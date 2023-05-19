@@ -4,13 +4,16 @@ INITIAL_MONEY = 1000
 SPENDING_PROB = 0.5 
 SPENDING_AMOUNT = 100
 NUM_PEOPLE = 10
+SALARY = 1000
+NUM_STEPS = 10
 
-modelTest = Model(NUM_PEOPLE, INITIAL_MONEY, 
-                 SPENDING_PROB, SPENDING_AMOUNT)
+model = Model(NUM_PEOPLE, INITIAL_MONEY, 
+                 SPENDING_PROB, SPENDING_AMOUNT,
+                 SALARY)
 
-for i in range(NUM_PEOPLE):
-    modelTest.step()
+for i in range(NUM_STEPS):
+    model.step()
 
-agent_money = modelTest.datacollector.get_agent_vars_dataframe()
+agent_money = model.datacollector.get_agent_vars_dataframe()
 
-print(agent_money)
+print(agent_money.xs(9, level="Step")["Money"])
