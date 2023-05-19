@@ -13,15 +13,15 @@ class GeneralAgent(Agent):
 
 class Person(GeneralAgent):
     def __init__(self, unique_id, model,
-                INITIAL_MONEY,
-                SPENDING_PROB,
-                SPENDING_AMOUNT,
-                SALARY):
+                initial_money,
+                spending_prob,
+                spending_amount,
+                salary):
         super().__init__(unique_id, model)
-        self.money = INITIAL_MONEY
-        self.__spendingProb = SPENDING_PROB
-        self.__spendingAmount = SPENDING_AMOUNT
-        self.__salary = SALARY
+        self.money = initial_money
+        self.__spendingProb = spending_prob
+        self.__spendingAmount = spending_amount
+        self.__salary = salary
 
 
 

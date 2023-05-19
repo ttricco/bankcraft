@@ -5,9 +5,9 @@ from mesa.datacollection import DataCollector
 
 
 class Model(Model):
-    def __init__(self, num_people = 10, INITIAL_MONEY=1000, 
-                 SPENDING_PROB = 0.5, SPENDING_AMOUNT = 100,
-                 SALARY = 1000):
+    def __init__(self, num_people = 10, initial_money=1000, 
+                 spending_prob = 0.5, spending_amount = 100,
+                 salary = 1000):
         
         self.num_people = num_people
         self.schedule = RandomActivation(self)
@@ -15,8 +15,8 @@ class Model(Model):
         
         # Adding PeopleAgents
         for i in range(self.num_people):
-            person = Person(i, self, INITIAL_MONEY, 
-                 SPENDING_PROB, SPENDING_AMOUNT, SALARY)
+            person = Person(i, self, initial_money, 
+                 spending_prob, spending_amount, salary)
             self.schedule.add(person)
 
         self.datacollector = DataCollector(
