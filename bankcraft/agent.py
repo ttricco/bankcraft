@@ -23,6 +23,8 @@ class Person(GeneralAgent):
         self.__spendingAmount = SPENDING_AMOUNT
         self.__salary = SALARY
 
+
+
     def spend(self):
         if self.random.random() > self.__spendingProb:
             if self.money >= self.__spendingAmount:
