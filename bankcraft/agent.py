@@ -33,7 +33,12 @@ class Person(GeneralAgent):
 
     def lend_borrow(self, amount):
         # a random counterparty
-        other_agent = self.random.choice(self.model.schedule.agents)
+        # other_agent = self.random.choice(self.model.schedule.agents)
+        # a random neighbor
+        other_agent_node = self.random.choice(self.model.grid.get_neighbors(self.pos))
+        # agent in that node
+        other_agent = self.model.grid.get_cell_list_contents([other_agent_node])[0]
+
         # borrowing from other person
         if amount > 0:
             if amount < other_agent.money:

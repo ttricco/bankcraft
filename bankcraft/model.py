@@ -2,7 +2,8 @@ from mesa import Model
 from mesa.time import RandomActivation
 from agent import Person
 from mesa.datacollection import DataCollector
-
+from mesa.space import NetworkGrid
+import networkx as nx
 
 class Model(Model):
     def __init__(self, num_people = 10, INITIAL_MONEY=1000, 
@@ -11,13 +12,19 @@ class Model(Model):
         
         self.num_people = num_people
         self.schedule = RandomActivation(self)
-    
+
+        # adding a network
+        self.G = nx.erdos_renyi_graph(self.num_people, 0.5)
+        self.grid = NetworkGrid(self.G)
         
         # Adding PeopleAgents
-        for i in range(self.num_people):
+        for i,node in enumerate(self.G.nodes()):
             person = Person(i, self, INITIAL_MONEY, 
                  SPENDING_PROB, SPENDING_AMOUNT, SALARY)
             self.schedule.add(person)
+
+            # add agent to a random node
+            self.grid.place_agent(person, node)
 
         self.datacollector = DataCollector(
              # collect agent money
