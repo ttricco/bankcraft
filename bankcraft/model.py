@@ -4,6 +4,7 @@ from agent import Person
 from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid
 import networkx as nx
+import pandas as pd
 
 class Model(Model):
     def __init__(self, num_people = 10, INITIAL_MONEY=1000, 
@@ -28,9 +29,9 @@ class Model(Model):
 
         self.datacollector = DataCollector(
              # collect agent money
-            agent_reporters = {"Money": lambda a: a.money}
-    
-        )
+            agent_reporters = {"Money": lambda a: a.money},
+            # collect model state
+            model_reporters = {'graph': lambda m: m.grid.get_all_cell_contents(), })
 
 
     def step(self):
@@ -39,11 +40,22 @@ class Model(Model):
 
 
     def run(self, steps):
+        # start model from previous state
+        try:
+            self.datacollector = DataCollector.from_dataframe(pd.read_csv("model_state.csv"))
+        except:
+            pass
+
         for i in range(steps):
             self.step()
 
+        # collect model state
+        self.datacollector.collect(self)
+        # append model state in the existing file
+        self.datacollector.get_model_vars_dataframe().to_csv("model_state.csv", mode='a', header=False)
         agent_money = self.datacollector.get_agent_vars_dataframe()
         return (agent_money)
+    
 
 
 
