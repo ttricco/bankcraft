@@ -24,21 +24,36 @@ class Person(GeneralAgent):
         self.__salary = SALARY
 
 
+    def setHome(self, home):
+        self.__home = home
+
+    def setSocialNode(self, social_node):
+        self.social_node = social_node
+
 
     def spend(self):
         if self.random.random() > self.__spendingProb:
             if self.money >= self.__spendingAmount:
                 self.money -= self.__spendingAmount
 
+    def setSocialNetwork(self):
+        # social_network is a all the nodes that are connected to the agent in the social network
+        network = self.model.social_grid
+        self.__social_network = list(network.neighbors(self.social_node))
 
     def lend_borrow(self, amount):
-        # a random counterparty
-        # other_agent = self.random.choice(self.model.schedule.agents)
-        # a random neighbor
-        other_agent_node = self.random.choice(self.model.grid.get_neighbors(self.pos))
-        # agent in that node
-        other_agent = self.model.grid.get_cell_list_contents([other_agent_node])[0]
+        all_agents = self.model.schedule.agents
+        weight = {}
+        self.setSocialNetwork()
+        for agent in all_agents:
+            if agent.social_node  in self.__social_network:
+                weight[agent] = 2
+            else:
+                weight[agent] = 1
 
+
+        other_agent = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+    
         # borrowing from other person
         if amount > 0:
             if amount < other_agent.money:
@@ -70,6 +85,15 @@ class Person(GeneralAgent):
     def billPayment(self):
         pass
 
+    def move(self):
+        possible_steps = self.model.grid.get_neighborhood(
+            self.pos,
+            moore=True,
+            include_center=False)
+        new_position = self.random.choice(possible_steps)
+        self.model.grid.move_agent(self, new_position)
+
+
 
     def step(self):
         self.spend()
@@ -77,6 +101,7 @@ class Person(GeneralAgent):
         self.deposit_withdraw(-50)
         self.salary()
         self.billPayment()
+        self.move()
 
 
 
