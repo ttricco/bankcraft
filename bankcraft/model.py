@@ -28,6 +28,11 @@ class Model(Model):
             y = self.random.randrange(self.grid.height)
             person.setHome((x,y))
             self.grid.place_agent(person, (x, y))
+            # choosing another location as work
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            person.setWork((x,y))
+            
             self.schedule.add(person)
             person.setSocialNode(i)
 

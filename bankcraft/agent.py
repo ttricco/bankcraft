@@ -30,6 +30,8 @@ class Person(GeneralAgent):
     def setSocialNode(self, social_node):
         self.social_node = social_node
 
+    def setWork(self, work):
+        self.__work = work
 
     def spend(self):
         if self.random.random() > self.__spendingProb:
@@ -93,9 +95,18 @@ class Person(GeneralAgent):
         new_position = self.random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
 
+    def goHome(self):
+        self.model.grid.move_agent(self, self.__home)
+
+    def goWork(self):
+        self.model.grid.move_agent(self, self.__work)
 
 
     def step(self):
+        if self.model.schedule.step == 2:
+            self.goWork()
+        elif self.model.schedule.step == 4:
+            self.goHome()
         self.spend()
         self.lend_borrow(-1000)
         self.deposit_withdraw(-50)
