@@ -1,5 +1,7 @@
 from mesa import Agent
 import random
+from TransactionType import TransactionType
+from Motivation import Motivation
 
 
 
@@ -18,17 +20,26 @@ class Person(GeneralAgent):
                 spending_amount,
                 salary):
         super().__init__(unique_id, model)
-        self.money = initial_money
-        self.__spendingProb = spending_prob
-        self.__spendingAmount = spending_amount
+        self.__money = initial_money
+        self.__spending_prob = spending_prob
+        self.__spending_amount = spending_amount
         self.__salary = salary
+        self.motivation = None
+        self.tx_type = None
 
 
+    def get_money(self):
+        return self.__money
 
-    def spend(self):
-        if self.random.random() > self.__spendingProb:
-            if self.money >= self.__spendingAmount:
-                self.money -= self.__spendingAmount
+
+    def spend(self, amount, spending_prob, 
+              tx_type, motivation):
+        if self.random.random() > spending_prob:
+            if self.__money >= amount:
+                self.__money -= amount
+                self.tx_type = tx_type.value
+                self.motivation = motivation.value
+                
 
 
     def lend_borrow(self, amount):
@@ -36,14 +47,14 @@ class Person(GeneralAgent):
         other_agent = self.random.choice(self.model.schedule.agents)
         # borrowing from other person
         if amount > 0:
-            if amount < other_agent.money:
-                self.money += amount
-                other_agent.money -= amount
+            if amount < other_agent.__money:
+                self.__money += amount
+                other_agent.__money -= amount
         # lending to other person
         elif amount < 0: 
-            if abs(amount) < self.money :
-                self.money += amount
-                other_agent.money -= amount
+            if abs(amount) < self.__money :
+                self.__money += amount
+                other_agent.__money -= amount
         
         # return self.unique_id, self.money, other_agent.unique_id, other_agent.money
 
@@ -57,9 +68,12 @@ class Person(GeneralAgent):
                 self.money -= amount
 
 
-    def salary(self):
-        if self.model.schedule.step == 2:
-            self.money += self.__salary
+    def receive_salary(self, salary, 
+                       tx_type, motivation):
+        if self.model.schedule.steps == 2:
+            self.__money += salary
+            self.tx_type = tx_type.value
+            self.motivation = motivation.value
 
 
     def billPayment(self):
@@ -67,11 +81,14 @@ class Person(GeneralAgent):
 
 
     def step(self):
-        self.spend()
-        self.lend_borrow(-1000)
-        self.deposit_withdraw(-50)
-        self.salary()
-        self.billPayment()
+        self.receive_salary(self.__salary, 
+                            TransactionType.Check, Motivation.ConsumerNeeds)
+        self.spend(self.__spending_amount, self.__spending_prob,
+                   TransactionType.Online, Motivation.Hunger)
+        # self.lend_borrow(-1000)
+        # self.deposit_withdraw(-50)
+        
+        # self.billPayment()
 
 
 
