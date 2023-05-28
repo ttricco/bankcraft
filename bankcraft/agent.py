@@ -87,6 +87,19 @@ class Person(GeneralAgent):
     def billPayment(self):
         pass
 
+    def buy(self):
+        # if there is a merchant agent in this location
+        if self.model.grid.is_cell_empty(self.pos) == False:
+            # get the agent in this location
+            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+            # if the agent is a merchant
+            if isinstance(agent, Merchant):
+                # if the agent has enough money to buy
+                if self.money >= agent.price:
+                    self.money -= agent.price 
+                    agent.money += agent.price                   
+        
+
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
@@ -107,11 +120,13 @@ class Person(GeneralAgent):
             self.goWork()
         elif self.model.schedule.step == 4:
             self.goHome()
+
         self.spend()
         self.lend_borrow(-1000)
         self.deposit_withdraw(-50)
         self.salary()
         self.billPayment()
+        self.buy()
         self.move()
 
 
@@ -127,11 +142,18 @@ class Bank(GeneralAgent):
 
 
 class Merchant(GeneralAgent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, 
+                 TYPE,
+                 PRICE,
+                 INITIAL_MONEY):
         super().__init__(unique_id, model)
-    
+        self.money = INITIAL_MONEY
+        self.__type = TYPE
+        self.price = PRICE
+
     def step(self):
         pass
+
 
 
 

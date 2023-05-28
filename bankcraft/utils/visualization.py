@@ -1,4 +1,5 @@
 from model import Model
+from agent import Person, Merchant
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,15 +9,21 @@ from mesa.visualization.ModularVisualization import ModularServer
 def agent_portrayal(agent):
     portrayal = {
         "Shape": "circle",
-        "Color": "red",
         "Filled": "true",
-        "Layer": 0,
-        'agent number': agent.social_node,
-        'Money': agent.money,
     }
-    if agent.money > 0:
-        portrayal["Color"] = "green"
+    if type(agent) is Person:
+        portrayal["color"] = "red" 
+        if agent.money > 0:
+            portrayal["Color"] = "green"
+            portrayal["r"] = 0.5 * np.log2(agent.money)
+            portrayal["Layer"] = 1
+            portrayal['Money'] = agent.money
+            portrayal['agent number'] = agent.social_node
+
+    elif type(agent) is Merchant:
+        portrayal["Color"] = "blue"
         portrayal["r"] = 0.5 * np.log2(agent.money)
+        portrayal["Layer"] = 0
     return portrayal
 
 
