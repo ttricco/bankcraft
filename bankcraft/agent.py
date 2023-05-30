@@ -1,7 +1,7 @@
 from mesa import Agent
 import random
-from TransactionType import TransactionType
-from Motivation import Motivation
+import Transaction
+from MotivationTypes import Motivation
 
 
 
@@ -37,7 +37,7 @@ class Person(GeneralAgent):
         if self.random.random() > spending_prob:
             if self.__money >= amount:
                 self.__money -= amount
-                self.tx_type = tx_type.value
+                self.tx_type = tx_type
                 self.motivation = motivation.value
                 
 
@@ -72,7 +72,7 @@ class Person(GeneralAgent):
                        tx_type, motivation):
         if self.model.schedule.steps == 2:
             self.__money += salary
-            self.tx_type = tx_type.value
+            self.tx_type = tx_type
             self.motivation = motivation.value
 
 
@@ -82,12 +82,10 @@ class Person(GeneralAgent):
 
     def step(self):
         self.receive_salary(self.__salary, 
-                            TransactionType.Check, Motivation.ConsumerNeeds)
+                            Transaction.Cheque().get_tx_type(), Motivation.ConsumerNeeds)
         self.spend(self.__spending_amount, self.__spending_prob,
-                   TransactionType.Online, Motivation.Hunger)
-        # self.lend_borrow(-1000)
-        # self.deposit_withdraw(-50)
-        
+                   Transaction.ACH().get_tx_type(), Motivation.Hunger)
+
         # self.billPayment()
 
 
