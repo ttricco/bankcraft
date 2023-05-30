@@ -24,16 +24,38 @@ class Person(GeneralAgent):
         self.__salary = SALARY
 
 
+    def setHome(self, home):
+        self.__home = home
+
+    def setSocialNode(self, social_node):
+        self.social_node = social_node
+
+    def setWork(self, work):
+        self.__work = work
 
     def spend(self):
         if self.random.random() > self.__spendingProb:
             if self.money >= self.__spendingAmount:
                 self.money -= self.__spendingAmount
 
+    def setSocialNetwork(self):
+        # social_network is a all the nodes that are connected to the agent in the social network
+        network = self.model.social_grid
+        self.__social_network = list(network.neighbors(self.social_node))
 
     def lend_borrow(self, amount):
-        # a random counterparty
-        other_agent = self.random.choice(self.model.schedule.agents)
+        all_agents = self.model.schedule.agents
+        weight = {}
+        self.setSocialNetwork()
+        for agent in all_agents:
+            if agent.social_node  in self.__social_network:
+                weight[agent] = 2
+            else:
+                weight[agent] = 1
+
+
+        other_agent = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+    
         # borrowing from other person
         if amount > 0:
             if amount < other_agent.money:
@@ -65,13 +87,47 @@ class Person(GeneralAgent):
     def billPayment(self):
         pass
 
+    def buy(self):
+        # if there is a merchant agent in this location
+        if self.model.grid.is_cell_empty(self.pos) == False:
+            # get the agent in this location
+            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+            # if the agent is a merchant
+            if isinstance(agent, Merchant):
+                # if the agent has enough money to buy
+                if self.money >= agent.price:
+                    self.money -= agent.price 
+                    agent.money += agent.price                   
+        
+
+    def move(self):
+        possible_steps = self.model.grid.get_neighborhood(
+            self.pos,
+            moore=True,
+            include_center=False)
+        new_position = self.random.choice(possible_steps)
+        self.model.grid.move_agent(self, new_position)
+
+    def goHome(self):
+        self.model.grid.move_agent(self, self.__home)
+
+    def goWork(self):
+        self.model.grid.move_agent(self, self.__work)
+
 
     def step(self):
+        if self.model.schedule.step == 2:
+            self.goWork()
+        elif self.model.schedule.step == 4:
+            self.goHome()
+
         self.spend()
         self.lend_borrow(-1000)
         self.deposit_withdraw(-50)
         self.salary()
         self.billPayment()
+        self.buy()
+        self.move()
 
 
 
@@ -86,11 +142,18 @@ class Bank(GeneralAgent):
 
 
 class Merchant(GeneralAgent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id, model, 
+                 TYPE,
+                 PRICE,
+                 INITIAL_MONEY):
         super().__init__(unique_id, model)
-    
+        self.money = INITIAL_MONEY
+        self.__type = TYPE
+        self.price = PRICE
+
     def step(self):
         pass
+
 
 
 
