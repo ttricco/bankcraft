@@ -63,7 +63,7 @@ class Person(GeneralAgent):
         if amount > 0:
             if amount < other_agent.money:
                 self.money += amount
-                other_agent__money -= amount
+                other_agent.money -= amount
         # lending to other person
         elif amount < 0: 
             if abs(amount) < self.money :
