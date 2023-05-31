@@ -6,3 +6,4 @@ model_state.csv
 graph.png
 grid.png
 __pycache__/
+.ipynb_checkpoints
