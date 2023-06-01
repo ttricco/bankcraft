@@ -1,12 +1,13 @@
-from model import Model
-from agent import Person, Merchant
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
 from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 
-def agent_portrayal(agent):
+from ..model import Model
+from ..agent import Person, Merchant
+
+def _agent_portrayal(agent):
     portrayal = {
         "Shape": "circle",
         "Filled": "true",

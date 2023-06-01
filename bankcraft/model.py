@@ -1,9 +1,10 @@
 from mesa import Model
 from mesa.time import RandomActivation
-from agent import Person, Merchant
 from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
+
+from .agent import Person, Merchant
 
 class Model(Model):
     def __init__(self, num_people=10, num_merchant=2, initial_money=1000,
