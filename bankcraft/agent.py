@@ -19,22 +19,22 @@ class Person(GeneralAgent):
                 salary):
         super().__init__(unique_id, model)
         self.money = initial_money
-        self.__spendingProb = spending_prob
-        self.__spendingAmount = spending_amount
-        self.__salary = salary
+        self._spendingProb = spending_prob
+        self._spendingAmount = spending_amount
+        self._salary = salary
 
 
     # def get_money(self):
     #     return self.money
 
     def setHome(self, home):
-        self.__home = home
+        self._home = home
 
     def setSocialNode(self, social_node):
         self.social_node = social_node
 
     def setWork(self, work):
-        self.__work = work
+        self._work = work
 
     def spend(self, amount, spending_prob):
         if self.random.random() > spending_prob:
@@ -44,14 +44,14 @@ class Person(GeneralAgent):
     def setSocialNetwork(self):
         # social_network is a all the nodes that are connected to the agent in the social network
         network = self.model.social_grid
-        self.__social_network = list(network.neighbors(self.social_node))
+        self._social_network = list(network.neighbors(self.social_node))
 
     def lend_borrow(self, amount):
         all_agents = self.model.schedule.agents
         weight = {}
         self.setSocialNetwork()
         for agent in all_agents:
-            if agent.social_node  in self.__social_network:
+            if agent.social_node  in self._social_network:
                 weight[agent] = 2
             else:
                 weight[agent] = 1
@@ -113,10 +113,10 @@ class Person(GeneralAgent):
         self.model.grid.move_agent(self, new_position)
 
     def goHome(self):
-        self.model.grid.move_agent(self, self.__home)
+        self.model.grid.move_agent(self, self._home)
 
     def goWork(self):
-        self.model.grid.move_agent(self, self.__work)
+        self.model.grid.move_agent(self, self._work)
 
 
     def step(self):
@@ -125,10 +125,10 @@ class Person(GeneralAgent):
         elif self.model.schedule.steps == 4:
             self.goHome()
 
-        self.spend(self.__spendingAmount, self.__spendingProb)
+        self.spend(self._spendingAmount, self._spendingProb)
         self.lend_borrow(-1000)
         self.deposit_withdraw(-50)
-        self.receive_salary(self.__salary)
+        self.receive_salary(self._salary)
         self.billPayment()
         self.buy()
         self.move()
@@ -152,7 +152,7 @@ class Merchant(GeneralAgent):
                  initial_money):
         super().__init__(unique_id, model)
         self.money = initial_money
-        self.__type = type
+        self._type = type
         self.price = price
 
     def step(self):

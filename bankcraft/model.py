@@ -11,18 +11,18 @@ class Model(Model):
                  salary=1000 ):
         super().__init__()
 
-        self.__num_people = num_people
+        self._num_people = num_people
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
 
         # adding a network
-        self.social_grid = nx.erdos_renyi_graph(self.__num_people, 0.3)
+        self.social_grid = nx.erdos_renyi_graph(self._num_people, 0.3)
 
         # adding grid
         self.grid = MultiGrid(width = 50,height= 50, torus=False)
         
         # Adding PeopleAgents
-        for i in range(self.__num_people):
+        for i in range(self._num_people):
             person = Person(i, self, initial_money, spending_prob, spending_amount, salary)
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)
@@ -39,7 +39,7 @@ class Model(Model):
 
         # Adding MerchantAgents
         for i in range(self.num_merchant):
-            merchant = Merchant(i+self.__num_people, self, "Restaurant", 10, 1000)
+            merchant = Merchant(i+self._num_people, self, "Restaurant", 10, 1000)
                         # choosing location
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
