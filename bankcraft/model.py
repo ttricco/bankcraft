@@ -3,6 +3,7 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
+from uuid import uuid4
 
 from .agent import Person, Merchant
 
@@ -24,7 +25,7 @@ class Model(Model):
         
         # Adding PeopleAgents
         for i in range(self._num_people):
-            person = Person(i, self, initial_money, spending_prob, spending_amount, salary)
+            person = Person(uuid4(), self, initial_money, spending_prob, spending_amount, salary)
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
@@ -40,7 +41,7 @@ class Model(Model):
 
         # Adding MerchantAgents
         for i in range(self.num_merchant):
-            merchant = Merchant(i+self._num_people, self, "Restaurant", 10, 1000)
+            merchant = Merchant(uuid4(), self, "Restaurant", 10, 1000)
                         # choosing location
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
