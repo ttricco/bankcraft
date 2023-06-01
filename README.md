@@ -19,5 +19,5 @@ bankcraft.utils.draw_interactive_grid()
 
 ## Access
 
-BankCraft is currently under development. While open source, it is yet ready for public use.
+BankCraft is currently under development. While open source, it is not yet ready for public use.
 BankCraft may only be used if explicit permission is given.
