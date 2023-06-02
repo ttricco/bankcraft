@@ -51,9 +51,6 @@ class Person(GeneralAgent):
         all_agents = self.model.schedule.agents
         weight = {}
         self.setSocialNetwork()
-        # get the weight of the edges between the agent and the other agents
-        # weight is the probability of choosing the other agent
-        # weight = {agent: weight of edge between agent and other agent} 
         for agent in all_agents:
             if agent != self :
                 weight[agent] = self.model.social_grid.edges[self.social_node, agent.social_node]['weight']
