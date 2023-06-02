@@ -42,23 +42,34 @@ class Person(GeneralAgent):
                 self.money -= amount
 
     def setSocialNetwork(self):
-        # social_network is a all the nodes that are connected to the agent in the social network
+        # social_network is a all the nodes that are connected to the social_node
         network = self.model.social_grid
         self._social_network = list(network.neighbors(self.social_node))
+
 
     def lend_borrow(self, amount):
         all_agents = self.model.schedule.agents
         weight = {}
         self.setSocialNetwork()
+        # get the weight of the edges between the agent and the other agents
+        # weight is the probability of choosing the other agent
+        # weight = {agent: weight of edge between agent and other agent} 
         for agent in all_agents:
-            if agent.social_node  in self._social_network:
-                weight[agent] = 2
+            if agent != self :
+                weight[agent] = self.model.social_grid.edges[self.social_node, agent.social_node]['weight']
             else:
-                weight[agent] = 1
-
+                weight[agent] = 0
 
         other_agent = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
-    
+        #change the weights of the edges between the agent and the other agents
+        weight[other_agent] += 0.1
+        # normalize the weights of self.edges
+        for agent in all_agents:
+            if agent != other_agent and agent != self:
+                self.model.social_grid.edges[self.social_node, agent.social_node]['weight'] /= sum(weight.values())
+            elif agent == other_agent:
+                self.model.social_grid.edges[self.social_node, agent.social_node]['weight'] = weight[agent]/sum(weight.values())
+        
         # borrowing from other person
         if amount > 0:
             if amount < other_agent.money:

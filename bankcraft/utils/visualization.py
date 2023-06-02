@@ -33,14 +33,15 @@ def draw_graph(model):
     # draw the graph with labels and size of nodes proportional to money
     nx.draw_networkx(model.social_grid, pos=nx.spring_layout(model.social_grid),
                      labels={node:node for node in model.social_grid.nodes()}, 
-                     node_size=[model.schedule.agents[node].money for node in model.social_grid.nodes()])
-     
-    # save the graph    
+                     node_size=[model.schedule.agents[node].money for node in model.social_grid.nodes()],ax = ax
+                     ,width = [model.social_grid[u][v]['weight'] for u,v in model.social_grid.edges()])
+ 
+    #save the graph    
     plt.savefig("graph.png")
 
 
 def draw_interactive_grid():
-    grid = CanvasGrid(agent_portrayal, 50, 50, 500, 500)
+    grid = CanvasGrid(_agent_portrayal, 50, 50, 500, 500)
     server = ModularServer(
         Model, [grid], "Money Model", {}
     )

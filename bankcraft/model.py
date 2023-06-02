@@ -4,7 +4,7 @@ from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
 from uuid import uuid4
-
+import matplotlib.pyplot as plt
 from .agent import Person, Merchant
 
 class Model(Model):
@@ -17,8 +17,10 @@ class Model(Model):
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
 
-        # adding a network
-        self.social_grid = nx.erdos_renyi_graph(self._num_people, 0.3)
+        # adding a complete graph with equal weights
+        self.social_grid = nx.complete_graph(self._num_people)
+        for (u, v) in self.social_grid.edges():
+            self.social_grid.edges[u, v]['weight'] = 1/(num_people-1)
 
         # adding grid
         self.grid = MultiGrid(width = 50,height= 50, torus=False)
@@ -58,7 +60,8 @@ class Model(Model):
 
             # collect model 
             model_reporters = {"social_network_edges": lambda m: m.social_grid.edges(),
-                                "social_network_nodes": lambda m: m.social_grid.nodes(),})
+                                "social_network_nodes": lambda m: m.social_grid.nodes(),}
+                                )
         
 
 
