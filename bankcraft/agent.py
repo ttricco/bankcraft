@@ -29,6 +29,10 @@ class Person(GeneralAgent):
         self._tx_motiv_score = 1
 
 
+    def get_agent_id(self):
+        return self.unique_id
+
+
     def get_tx_type(self):
         return self._tx_type
 
@@ -188,15 +192,6 @@ class Person(GeneralAgent):
         # if self.model.schedule.steps == n:
         #     self.reset_motiv_dict()
 
-
-
-
-class Bank(GeneralAgent):
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
-    
-    def step(self):
-        pass
 
 
 
