@@ -1,7 +1,7 @@
 from mesa import Agent
 import random
 from . import Transaction
-
+from . import Motivation
 
 
 class GeneralAgent(Agent):
@@ -24,10 +24,37 @@ class Person(GeneralAgent):
         self._spendingAmount = spending_amount
         self._salary = salary
         self._tx_type = None
+        self.motivation = Motivation.Motivation()
+        self._tx_motiv = None
+        self._tx_motiv_score = 1
 
 
     def get_tx_type(self):
         return self._tx_type
+
+
+    def get_tx_motiv(self):
+        return self._tx_motiv 
+
+
+    def get_tx_motiv_score(self):
+        return self._tx_motiv_score 
+    
+
+    def modify_motiv_dict(self, key, amount):
+            """
+            1000 is a benchmarch for altering motivation scores 
+            """
+            value = self.motivation.mtv_dict[key] - amount/1000
+            self.motivation.mtv_dict.update({key : value})
+
+
+    def reset_motiv_dict(self):
+            """
+            resets all motivation scores
+            """
+            self.motivation = Motivation.Motivation()
+
 
     def setHome(self, home):
         self._home = home
@@ -38,11 +65,15 @@ class Person(GeneralAgent):
     def setWork(self, work):
         self._work = work
 
-    def spend(self, amount, spending_prob, tx_type):
+    def spend(self, amount, spending_prob, tx_type, motiv_type):
         if self.random.random() > spending_prob:
             if self.money >= amount:
                 self.money -= amount
                 self._tx_type = tx_type
+                self.modify_motiv_dict(motiv_type, amount)
+                self._tx_motiv = motiv_type
+                self._tx_motiv_score = self.motivation.mtv_dict[motiv_type]
+                
 
     def setSocialNetwork(self):
         # social_network is a all the nodes that are connected to the social_node
@@ -96,10 +127,13 @@ class Person(GeneralAgent):
                 self.money -= amount
 
 
-    def receive_salary(self, salary, tx_type):
-        if self.model.schedule.steps == 2:
-            self.money += salary
-            self._tx_type = tx_type
+    def receive_salary(self, salary, tx_type, motiv_type):
+        self.money += salary
+        self._tx_type = tx_type
+        # receiving salary increases the consumer_needs' score 
+        self.modify_motiv_dict(motiv_type, -1 * salary)
+        self._tx_motiv = motiv_type
+        self._tx_motiv_score = self.motivation.mtv_dict[motiv_type]
 
 
 
@@ -140,14 +174,19 @@ class Person(GeneralAgent):
         elif self.model.schedule.steps == 4:
             self.goHome()
 
-        self.spend(self._spendingAmount, self._spendingProb
-                    , Transaction.ACH().get_tx_type())
-        self.lend_borrow(-1000)
-        self.deposit_withdraw(-50)
-        self.receive_salary(self._salary, Transaction.Cheque().get_tx_type())
-        self.billPayment()
-        self.buy()
-        self.move()
+        if self.model.schedule.steps == 1:
+            self.receive_salary(self._salary, Transaction.Cheque().get_tx_type(), 'consumer_needs')
+        else:
+            self.spend(self._spendingAmount, self._spendingProb, Transaction.ACH().get_tx_type(), 'hunger')
+            self.lend_borrow(-1000)
+            self.deposit_withdraw(-50)
+            self.billPayment()
+            self.buy()
+            self.move()
+
+        # # reseting the motivation scors
+        # if self.model.schedule.steps == n:
+        #     self.reset_motiv_dict()
 
 
 

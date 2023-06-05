@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from .agent import Person, Merchant
 
 class Model(Model):
-    def __init__(self, num_people=10, num_merchant=2, initial_money=1000,
+    def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
                  spending_prob=0.5,  spending_amount=100,
                  salary=1000 ):
         super().__init__()
@@ -57,6 +57,8 @@ class Model(Model):
              
             agent_reporters = {"Money": lambda a: a.money,
                                 'tx_type': lambda a: a.get_tx_type(),
+                                'tx_motiv': lambda a: a.get_tx_motiv(),
+                                'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
                                'location': lambda a: a.pos},
 
             # collect model 
