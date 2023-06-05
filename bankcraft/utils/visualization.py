@@ -49,4 +49,3 @@ def draw_interactive_grid():
     server.launch()
 
 
-

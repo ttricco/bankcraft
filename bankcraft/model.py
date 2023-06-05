@@ -56,6 +56,7 @@ class Model(Model):
              # collect agent money for person agents
              
             agent_reporters = {"Money": lambda a: a.money,
+                                'tx_type': lambda a: a.get_tx_type(),
                                'location': lambda a: a.pos},
 
             # collect model 

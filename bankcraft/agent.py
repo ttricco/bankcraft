@@ -1,5 +1,6 @@
 from mesa import Agent
 import random
+from . import Transaction
 
 
 
@@ -22,10 +23,11 @@ class Person(GeneralAgent):
         self._spendingProb = spending_prob
         self._spendingAmount = spending_amount
         self._salary = salary
+        self._tx_type = None
 
 
-    # def get_money(self):
-    #     return self.money
+    def get_tx_type(self):
+        return self._tx_type
 
     def setHome(self, home):
         self._home = home
@@ -36,10 +38,11 @@ class Person(GeneralAgent):
     def setWork(self, work):
         self._work = work
 
-    def spend(self, amount, spending_prob):
+    def spend(self, amount, spending_prob, tx_type):
         if self.random.random() > spending_prob:
             if self.money >= amount:
                 self.money -= amount
+                self._tx_type = tx_type
 
     def setSocialNetwork(self):
         # social_network is a all the nodes that are connected to the social_node
@@ -93,9 +96,10 @@ class Person(GeneralAgent):
                 self.money -= amount
 
 
-    def receive_salary(self, salary):
+    def receive_salary(self, salary, tx_type):
         if self.model.schedule.steps == 2:
             self.money += salary
+            self._tx_type = tx_type
 
 
 
@@ -136,10 +140,11 @@ class Person(GeneralAgent):
         elif self.model.schedule.steps == 4:
             self.goHome()
 
-        self.spend(self._spendingAmount, self._spendingProb)
+        self.spend(self._spendingAmount, self._spendingProb
+                    , Transaction.ACH().get_tx_type())
         self.lend_borrow(-1000)
         self.deposit_withdraw(-50)
-        self.receive_salary(self._salary)
+        self.receive_salary(self._salary, Transaction.Cheque().get_tx_type())
         self.billPayment()
         self.buy()
         self.move()
@@ -197,5 +202,4 @@ class GovernmentBenefit(GeneralAgent):
     
     def step(self):
         pass
-
 

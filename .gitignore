@@ -6,3 +6,5 @@ _pycache__
 .ipynb_checkpoints
 .idea
 .python-version
+codecheck.py
+test.ipynb
