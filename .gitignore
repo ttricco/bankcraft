@@ -2,11 +2,9 @@
 *.csv
 *.png
 *.ipynb
-__pycache__
+_pycache__
 .ipynb_checkpoints
 .idea
 .python-version
-codecheck.py
-test.ipynb
-.gitignore
-./__pycache__/
+
+
