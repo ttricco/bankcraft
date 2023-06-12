@@ -1,5 +1,5 @@
 from mesa import Model
-from mesa.time import RandomActivation
+from mesa.time import RandomActivation, SimultaneousActivation
 from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
@@ -16,6 +16,7 @@ class Model(Model):
         self._num_people = num_people
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
+        # self.schedule = SimultaneousActivation(self)
 
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
@@ -37,9 +38,12 @@ class Model(Model):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             person.setWork((x,y))
-            
             self.schedule.add(person)
             person.setSocialNode(i)
+
+        # set social network weights
+        for person in self.schedule.agents:
+            person.setSocialNetworkWeights()
 
         # Adding MerchantAgents
         for i in range(self.num_merchant):

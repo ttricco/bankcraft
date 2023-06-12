@@ -33,6 +33,7 @@ class Person(GeneralAgent):
     def setSocialNode(self, social_node):
         self.social_node = social_node
 
+
     def setWork(self, work):
         self._work = work
 
@@ -41,32 +42,23 @@ class Person(GeneralAgent):
             if self.money >= amount:
                 self.money -= amount
 
-    def setSocialNetwork(self):
-        # social_network is a all the nodes that are connected to the social_node
-        network = self.model.social_grid
-        self._social_network = list(network.neighbors(self.social_node))
-
-
-    def lend_borrow(self, amount):
+    def setSocialNetworkWeights(self):
         all_agents = self.model.schedule.agents
         weight = {}
-        self.setSocialNetwork()
         for agent in all_agents:
             if agent != self :
                 weight[agent] = self.model.social_grid.edges[self.social_node, agent.social_node]['weight']
             else:
                 weight[agent] = 0
+        self._socialNetworkWeights = weight
 
-        other_agent = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+
+
+    def lend_borrow(self, amount):
+        weight = self._socialNetworkWeights
+        other_agent =  random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
         #change the weights of the edges between the agent and the other agents
-        weight[other_agent] += 0.1
-        # normalize the weights of self.edges
-        for agent in all_agents:
-            if agent != other_agent and agent != self:
-                self.model.social_grid.edges[self.social_node, agent.social_node]['weight'] /= sum(weight.values())
-            elif agent == other_agent:
-                self.model.social_grid.edges[self.social_node, agent.social_node]['weight'] = weight[agent]/sum(weight.values())
-        
+        self.adjustSocialNetwork(other_agent)
         # borrowing from other person
         if amount > 0:
             if amount < other_agent.money:
@@ -79,6 +71,13 @@ class Person(GeneralAgent):
                 other_agent.money -= amount
         
         # return self.unique_id, self.money, other_agent.unique_id, other_agent.money
+
+    
+    def adjustSocialNetwork(self, other_agent):
+        self._socialNetworkWeights[other_agent] += 0.1
+        # have weights to be between 0 and 1
+        if self._socialNetworkWeights[other_agent] > 1:
+            self._socialNetworkWeights[other_agent] = 1
 
 
     def deposit_withdraw(self, amount):
