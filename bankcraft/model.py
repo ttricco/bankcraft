@@ -84,7 +84,7 @@ class Model(Model):
 
         # collect model state
         self.datacollector.collect(self)
-        agents_df = self.datacollector.get_table_dataframe("agents")
+        agents_df = self.datacollector.get_agent_vars_dataframe()
         transactions_df = self.datacollector.get_table_dataframe("transactions")
 
         return agents_df, transactions_df
