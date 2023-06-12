@@ -62,14 +62,17 @@ class Model(Model):
             agent_reporters = {"Money": lambda a: a.money,
                                'location': lambda a: a.pos},
 
-            # collect model 
-            model_reporters = {"social_network_edges": lambda m: m.social_grid.edges(),
-                                "social_network_nodes": lambda m: m.social_grid.nodes(),}
+
+            tables= {"transactions": ["sender", "receiver", "amount", "time"],
+                        "agents": ["id", "money", "location"]}
+
                                 )
         
 
 
     def step(self):
+        # for person in self.schedule.agents:
+        #     person.do_transactions()
         self.schedule.step()
         self.datacollector.collect(self)
 
@@ -81,11 +84,13 @@ class Model(Model):
 
         # collect model state
         self.datacollector.collect(self)
-        self.datacollector.get_model_vars_dataframe().to_csv("model_state.csv", mode='a', header=True)
-        agent_money = self.datacollector.get_agent_vars_dataframe()
+        agents_df = self.datacollector.get_table_dataframe("agents")
+        transactions_df = self.datacollector.get_table_dataframe("transactions")
 
-        return (agent_money)
+        return agents_df, transactions_df
     
+        
+
 
 
 
