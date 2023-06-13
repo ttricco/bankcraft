@@ -125,6 +125,15 @@ class Person(GeneralAgent):
     def goWork(self):
         self.model.grid.move_agent(self, self._work)
 
+    def updateRecords(self, other_agent, amount):
+        # Update the transaction records
+            transaction_data = {
+                "sender": self.unique_id,
+                "receiver": other_agent.unique_id,
+                "amount": amount,
+                "time": self.model.schedule.time
+            }
+            self.model.datacollector.get_table("transactions").append(transaction_data)
 
     def step(self):
         if self.model.schedule.steps == 2:
