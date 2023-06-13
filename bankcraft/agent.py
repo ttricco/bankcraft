@@ -2,7 +2,7 @@ from mesa import Agent
 import random
 from . import Transaction
 from . import Motivation
-
+from . import BankAccount
 
 class GeneralAgent(Agent):
     def __init__(self, unique_id, model):
@@ -17,7 +17,7 @@ class Person(GeneralAgent):
                 initial_money,
                 spending_prob,
                 spending_amount,
-                salary):
+                salary, person_count, num_people):
         super().__init__(unique_id, model)
         self.money = initial_money
         self._spendingProb = spending_prob
@@ -27,7 +27,8 @@ class Person(GeneralAgent):
         self.motivation = Motivation.Motivation()
         self._tx_motiv = None
         self._tx_motiv_score = 1
-
+        self.bank_accounts = [BankAccount.BankAccount(self, bank, initial_money) for bank in model.banks]
+        self.transaction_counter = person_count * num_people
 
     def get_agent_id(self):
         return self.unique_id
@@ -173,20 +174,30 @@ class Person(GeneralAgent):
 
 
     def step(self):
-        if self.model.schedule.steps == 2:
-            self.goWork()
-        elif self.model.schedule.steps == 4:
-            self.goHome()
+        # if self.model.schedule.steps == 2:
+        #     self.goWork()
+        # elif self.model.schedule.steps == 4:
+        #     self.goHome()
 
-        if self.model.schedule.steps == 1:
-            self.receive_salary(self._salary, Transaction.Cheque().get_tx_type(), 'consumer_needs')
-        else:
-            self.spend(self._spendingAmount, self._spendingProb, Transaction.ACH().get_tx_type(), 'hunger')
-            self.lend_borrow(-1000)
-            self.deposit_withdraw(-50)
-            self.billPayment()
-            self.buy()
-            self.move()
+        # if self.model.schedule.steps == 1:
+        #     self.receive_salary(self._salary, Transaction.Cheque().get_tx_type(), 'consumer_needs')
+        # else:
+        #     self.spend(self._spendingAmount, self._spendingProb, Transaction.ACH().get_tx_type(), 'hunger')
+        #     self.lend_borrow(-1000)
+        #     self.deposit_withdraw(-50)
+        #     self.billPayment()
+        #     self.buy()
+        #     self.move()
+        amount = random.randint(1,100)
+        recipient = random.choice(self.model.schedule.agents)
+        transaction = Transaction.ACH(self.bank_accounts[1],
+                                              recipient.bank_accounts[1],
+                                              amount, self.model.schedule.steps,
+                                              self.transaction_counter
+                                              )
+        transaction.do_transaction()
+        self.model.transactions.append(transaction)
+        self.transaction_counter += 1
 
         # # reseting the motivation scors
         # if self.model.schedule.steps == n:
@@ -221,19 +232,25 @@ class Employer(GeneralAgent):
 
 
 
-class Biller(GeneralAgent):
+# class Biller(GeneralAgent):
+#     def __init__(self, unique_id, model):
+#         super().__init__(unique_id, model)
+    
+#     def step(self):
+#         pass
+
+
+
+# class GovernmentBenefit(GeneralAgent):
+#     def __init__(self, unique_id, model):
+#         super().__init__(unique_id, model)
+    
+#     def step(self):
+#         pass
+
+class Bank(GeneralAgent):
     def __init__(self, unique_id, model):
         super().__init__(unique_id, model)
     
     def step(self):
         pass
-
-
-
-class GovernmentBenefit(GeneralAgent):
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
-    
-    def step(self):
-        pass
-

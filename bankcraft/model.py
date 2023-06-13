@@ -5,7 +5,8 @@ from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
 from uuid import uuid4
 import matplotlib.pyplot as plt
-from .agent import Person, Merchant
+from .agent3 import Person, Merchant, Bank
+import csv
 
 class Model(Model):
     def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
@@ -14,9 +15,11 @@ class Model(Model):
         super().__init__()
 
         self._num_people = num_people
+        # self._num_banks = 1
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
-
+        self.banks = [Bank(i+1, self) for i in range(5)]
+        self.transactions = [] 
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
         for (u, v) in self.social_grid.edges():
@@ -25,9 +28,12 @@ class Model(Model):
         # adding grid
         self.grid = MultiGrid(width = 50,height= 50, torus=False)
         
+
         # Adding PeopleAgents
         for i in range(self._num_people):
-            person = Person(uuid4(), self, initial_money, spending_prob, spending_amount, salary)
+            person = Person(uuid4(), self,
+                             initial_money, spending_prob, spending_amount, salary, i, self._num_people)
+
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
@@ -37,9 +43,13 @@ class Model(Model):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             person.setWork((x,y))
-            
+                # specify bank accounts to each person
+            # for j in ('checking', 'saving'):
+                # bank_account = BankAccount( uuid4, person.get_agent_id, bank.get_agent_id, j)
+                # person.add_bank_account(bank_account)
             self.schedule.add(person)
             person.setSocialNode(i)
+
 
         # Adding MerchantAgents
         for i in range(self.num_merchant):
@@ -52,6 +62,12 @@ class Model(Model):
 
 
 
+
+
+
+
+
+
         self.datacollector = DataCollector(
              # collect agent money for person agents
              
@@ -59,14 +75,16 @@ class Model(Model):
                                 'tx_type': lambda a: a.get_tx_type(),
                                 'tx_motiv': lambda a: a.get_tx_motiv(),
                                 'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
-                               'location': lambda a: a.pos},
+                               'location': lambda a: a.pos,
+                               'account_balance': lambda a: a.bank_accounts[1].balance
+                               },
 
             # collect model 
             model_reporters = {"social_network_edges": lambda m: m.social_grid.edges(),
                                 "social_network_nodes": lambda m: m.social_grid.nodes(),}
                                 )
         
-
+    
 
     def step(self):
         self.schedule.step()
@@ -82,10 +100,22 @@ class Model(Model):
         self.datacollector.collect(self)
         self.datacollector.get_model_vars_dataframe().to_csv("model_state.csv", mode='a', header=True)
         agent_money = self.datacollector.get_agent_vars_dataframe()
-
+        self.report_transactions()
         return (agent_money)
     
 
+    def report_transactions(self):
+        # Write the transactions to a CSV file.
+        with open("transactions.csv", "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["Transaction_id", "Sender_id", "Receiver_id", "Amount","Date_of_Transaction"])
+            for transaction in self.transactions:
+                writer.writerow([transaction.transaction_id,
+                                 transaction.get_sender_id(),
+                                 transaction.get_receiver_id(),
+                                 transaction.amount,
+                                 transaction.date_of_transaction
+                                ])
 
 
  
