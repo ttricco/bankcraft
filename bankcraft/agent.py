@@ -229,6 +229,16 @@ class Employer(GeneralAgent):
     def step(self):
         pass
 
+    def pay_salary(self, employee):
+        if self.model.schedule.steps == employee.salary_pay_date:
+            transaction = Transaction.Cheque(False,
+                                              employee.bank_accounts[1],
+                                              employee.salary, self.model.schedule.steps+1,
+                                              self.unique_id)
+            transaction.do_transaction()
+            self.model.transactions.append(transaction)
+            
+
 
 
 

@@ -5,22 +5,22 @@ from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
 from uuid import uuid4
 import matplotlib.pyplot as plt
-from .agent import Person, Merchant, Bank
+from .agent import Person, Merchant, Bank, Employer
 import csv
+import random
 
 class Model(Model):
-    def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
+    def __init__(self, num_people=50, num_merchant=2, initial_money=1000,
                  spending_prob=0.5,  spending_amount=100,
-                 salary=1000 ):
+                 salary=1000, num_employers=2 ):
         super().__init__()
 
         self._num_people = num_people
-        # self._num_banks = 1
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
         self.banks = [Bank(i+1, self) for i in range(5)]
         self.transactions = [] 
-
+        self.num_employers = num_employers
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
         for (u, v) in self.social_grid.edges():
@@ -50,6 +50,22 @@ class Model(Model):
         # set social network weights
         for person in self.schedule.agents:
             person.setSocialNetworkWeights()
+
+        # Adding Employees 
+        for i in range(self.num_employers):
+            employer = Employer(uuid4(), self)
+            employer.employees = random.choices(self.schedule.agents, k=10)
+            self.schedule.add(employer)
+
+
+
+        # Adding Employees 
+        for i in range(self.num_employers):
+            employer = Employer(uuid4(), self)
+            employer.employees = random.choices(self.schedule.agents, k=10)
+            self.schedule.add(employer)
+
+
 
         # Adding MerchantAgents
         for i in range(self.num_merchant):
