@@ -19,7 +19,6 @@ class Model(Model):
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
         self.banks = [Bank(i+1, self) for i in range(5)]
-        self.transactions = [] 
 
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
@@ -71,7 +70,7 @@ class Model(Model):
                                },
 
 
-            tables= {"transactions": ["sender", "receiver", "amount", "time"],
+            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type"],
                         "agents": ["id", "money", "location"]}
 
                                 )
@@ -79,8 +78,7 @@ class Model(Model):
     
 
     def step(self):
-        # for person in self.schedule.agents:
-        #     person.do_transactions()
+
         self.schedule.step()
         self.datacollector.collect(self)
 
@@ -99,21 +97,6 @@ class Model(Model):
         return agents_df, transactions_df
     
         
-
-
-    def report_transactions(self):
-        # Write the transactions to a CSV file.
-        with open("transactions.csv", "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(["TX_id", "Sender_id", "Receiver_id", "Amount","TX_type","Date_of_TX"])
-            for transaction in self.transactions:
-                writer.writerow([transaction.transaction_id,
-                                 transaction.get_sender_id(),
-                                 transaction.get_receiver_id(),
-                                 transaction.amount,
-                                 transaction.get_tx_type(),
-                                 transaction.date_of_transaction
-                                ])
 
 
  

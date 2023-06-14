@@ -29,6 +29,7 @@ class Person(GeneralAgent):
         self._tx_motiv_score = 1
         # define multiple bank_accounts for each agent which can be saving, checking, .. in different banks  
         self.bank_accounts = [BankAccount.BankAccount(self, bank, initial_money) for bank in model.banks]
+        self.transaction_counter = 0
 
     def get_agent_id(self):
         return self.unique_id
@@ -67,14 +68,19 @@ class Person(GeneralAgent):
     def setWork(self, work):
         self._work = work
 
-    def spend(self, amount, spending_prob, tx_type, motiv_type):
+    def spend(self, amount, spending_prob):
         if self.random.random() > spending_prob:
             if self.money >= amount:
-                self.money -= amount
-                self._tx_type = tx_type
-                self.modify_motiv_dict(motiv_type, amount)
-                self._tx_motiv = motiv_type
-                self._tx_motiv_score = self.motivation.mtv_dict[motiv_type]
+                recipient = random.choice(self.model.schedule.agents)
+                transaction = Transaction.Cheque(self.bank_accounts[1],
+                                              recipient.bank_accounts[1],
+                                              amount, self.model.schedule.steps,
+                                              self.transaction_counter
+                                              )
+                self.updateRecords(recipient, amount, "Cheque")
+                transaction.do_transaction()
+                self.transaction_counter += 1
+
                 
 
     def setSocialNetworkWeights(self):
@@ -105,23 +111,12 @@ class Person(GeneralAgent):
                 self.money += amount
                 other_agent.money -= amount
         
-        # return self.unique_id, self.money, other_agent.unique_id, other_agent.money
-
     
     def adjustSocialNetwork(self, other_agent):
         self._socialNetworkWeights[other_agent] += 0.1
         # have weights to be between 0 and 1
         if self._socialNetworkWeights[other_agent] > 1:
             self._socialNetworkWeights[other_agent] = 1
-
-
-    def deposit_withdraw(self, amount):
-        # deposit the money
-        if amount >= 0:
-            self.money += amount
-        # withdraw the money
-        elif abs(amount) < self.money:
-                self.money -= amount
 
 
     def receive_salary(self, salary, tx_type, motiv_type):
@@ -164,47 +159,20 @@ class Person(GeneralAgent):
     def goWork(self):
         self.model.grid.move_agent(self, self._work)
 
-    def updateRecords(self, other_agent, amount):
-        # Update the transaction records
-            transaction_data = {
-                "sender": self.unique_id,
-                "receiver": other_agent.unique_id,
-                "amount": amount,
-                "time": self.model.schedule.time
-            }
-            self.model.datacollector.get_table("transactions").append(transaction_data)
+    def updateRecords(self, other_agent, amount, transaction_type):
+    # Update the transaction records
+        transaction_data = {
+            "sender": self.unique_id,
+            "receiver": other_agent.unique_id,
+            "amount": amount,
+            "time": self.model.schedule.time,
+            "transaction_id": str(self.unique_id) + "_" + str(self.transaction_counter),
+            "transaction_type": transaction_type,
+        }
+        self.model.datacollector.add_table_row("transactions", transaction_data)
 
     def step(self):
-        # if self.model.schedule.steps == 2:
-        #     self.goWork()
-        # elif self.model.schedule.steps == 4:
-        #     self.goHome()
-
-        # if self.model.schedule.steps == 1:
-        #     self.receive_salary(self._salary, Transaction.Cheque().get_tx_type(), 'consumer_needs')
-        # else:
-        #     self.spend(self._spendingAmount, self._spendingProb, Transaction.ACH().get_tx_type(), 'hunger')
-        #     self.lend_borrow(-1000)
-        #     self.deposit_withdraw(-50)
-        #     self.billPayment()
-        #     self.buy()
-        #     self.move()
-        amount = random.randint(1,100)
-        recipient = random.choice(self.model.schedule.agents)
-        transaction = Transaction.ACH(self.bank_accounts[1],
-                                              recipient.bank_accounts[1],
-                                              amount, self.model.schedule.steps+1,
-                                              self.unique_id)
-        transaction.do_transaction()
-        self.model.transactions.append(transaction)
-       
-
-        # # reseting the motivation scors
-        # if self.model.schedule.steps == n:
-        #     self.reset_motiv_dict()
-
-
-
+                self.spend(self._spendingAmount, self._spendingProb)
 
 class Merchant(GeneralAgent):
     def __init__(self, unique_id, model, 
@@ -218,8 +186,6 @@ class Merchant(GeneralAgent):
 
     def step(self):
         pass
-
-
 
 
 class Employer(GeneralAgent):
