@@ -32,7 +32,7 @@ class Model(Model):
         # Adding PeopleAgents
         for i in range(self._num_people):
             person = Person(uuid4(), self,
-                             initial_money, spending_prob, spending_amount, salary, i, self._num_people)
+                             initial_money, spending_prob, spending_amount, salary)
 
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)

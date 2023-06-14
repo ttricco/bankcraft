@@ -17,25 +17,21 @@ class Person(GeneralAgent):
                 initial_money,
                 spending_prob,
                 spending_amount,
-                salary, person_count, num_people):
+                salary):
         super().__init__(unique_id, model)
         self.money = initial_money
         self._spendingProb = spending_prob
         self._spendingAmount = spending_amount
         self._salary = salary
-        self._tx_type = None
+        
         self.motivation = Motivation.Motivation()
         self._tx_motiv = None
         self._tx_motiv_score = 1
+        # define multiple bank_accounts for each agent which can be saving, checking, .. in different banks  
         self.bank_accounts = [BankAccount.BankAccount(self, bank, initial_money) for bank in model.banks]
-        self.transaction_counter = person_count * num_people
 
     def get_agent_id(self):
         return self.unique_id
-
-
-    def get_tx_type(self):
-        return self._tx_type
 
 
     def get_tx_motiv(self):
@@ -192,11 +188,11 @@ class Person(GeneralAgent):
         recipient = random.choice(self.model.schedule.agents)
         transaction = Transaction.ACH(self.bank_accounts[1],
                                               recipient.bank_accounts[1],
-                                              amount, self.model.schedule.steps,
+                                              amount, self.model.schedule.steps+1,
                                               self.unique_id)
         transaction.do_transaction()
         self.model.transactions.append(transaction)
-        self.transaction_counter += 1
+       
 
         # # reseting the motivation scors
         # if self.model.schedule.steps == n:
