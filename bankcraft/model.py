@@ -5,18 +5,21 @@ from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
 from uuid import uuid4
 import matplotlib.pyplot as plt
-from .agent import Person, Merchant
+from .agent import Person, Merchant, Bank
+import csv
 
 class Model(Model):
-    def __init__(self, num_people=10, num_merchant=2, initial_money=1000,
+    def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
                  spending_prob=0.5,  spending_amount=100,
                  salary=1000 ):
         super().__init__()
 
         self._num_people = num_people
+        # self._num_banks = 1
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
-        # self.schedule = SimultaneousActivation(self)
+        self.banks = [Bank(i+1, self) for i in range(5)]
+        self.transactions = [] 
 
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
@@ -26,9 +29,12 @@ class Model(Model):
         # adding grid
         self.grid = MultiGrid(width = 50,height= 50, torus=False)
         
+
         # Adding PeopleAgents
         for i in range(self._num_people):
-            person = Person(uuid4(), self, initial_money, spending_prob, spending_amount, salary)
+            person = Person(uuid4(), self,
+                             initial_money, spending_prob, spending_amount, salary)
+
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
@@ -54,13 +60,15 @@ class Model(Model):
 
             self.grid.place_agent(merchant, (x,y))
 
-
-
         self.datacollector = DataCollector(
              # collect agent money for person agents
              
             agent_reporters = {"Money": lambda a: a.money,
-                               'location': lambda a: a.pos},
+                                'tx_motiv': lambda a: a.get_tx_motiv(),
+                                'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
+                               'location': lambda a: a.pos,
+                               'account_balance': lambda a: a.bank_accounts[1].balance
+                               },
 
 
             tables= {"transactions": ["sender", "receiver", "amount", "time"],
@@ -68,7 +76,7 @@ class Model(Model):
 
                                 )
         
-
+    
 
     def step(self):
         # for person in self.schedule.agents:
@@ -84,6 +92,7 @@ class Model(Model):
 
         # collect model state
         self.datacollector.collect(self)
+
         agents_df = self.datacollector.get_agent_vars_dataframe()
         transactions_df = self.datacollector.get_table_dataframe("transactions")
 
@@ -92,6 +101,19 @@ class Model(Model):
         
 
 
+    def report_transactions(self):
+        # Write the transactions to a CSV file.
+        with open("transactions.csv", "w", newline="") as csvfile:
+            writer = csv.writer(csvfile)
+            writer.writerow(["TX_id", "Sender_id", "Receiver_id", "Amount","TX_type","Date_of_TX"])
+            for transaction in self.transactions:
+                writer.writerow([transaction.transaction_id,
+                                 transaction.get_sender_id(),
+                                 transaction.get_receiver_id(),
+                                 transaction.amount,
+                                 transaction.get_tx_type(),
+                                 transaction.date_of_transaction
+                                ])
 
 
  
