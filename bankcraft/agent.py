@@ -124,16 +124,6 @@ class Person(GeneralAgent):
                 self.money -= amount
 
 
-    def receive_salary(self, salary, tx_type, motiv_type):
-        self.money += salary
-        self._tx_type = tx_type
-        # receiving salary increases the consumer_needs' score 
-        self.modify_motiv_dict(motiv_type, -1 * salary)
-        self._tx_motiv = motiv_type
-        self._tx_motiv_score = self.motivation.mtv_dict[motiv_type]
-
-
-
     def billPayment(self):
         pass
 
