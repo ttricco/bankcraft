@@ -5,7 +5,7 @@ from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
 from uuid import uuid4
 import matplotlib.pyplot as plt
-from .agent3 import Person, Merchant, Bank
+from .agent import Person, Merchant, Bank
 import csv
 
 class Model(Model):
@@ -72,7 +72,6 @@ class Model(Model):
              # collect agent money for person agents
              
             agent_reporters = {"Money": lambda a: a.money,
-                                'tx_type': lambda a: a.get_tx_type(),
                                 'tx_motiv': lambda a: a.get_tx_motiv(),
                                 'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
                                'location': lambda a: a.pos,
@@ -108,12 +107,13 @@ class Model(Model):
         # Write the transactions to a CSV file.
         with open("transactions.csv", "w", newline="") as csvfile:
             writer = csv.writer(csvfile)
-            writer.writerow(["Transaction_id", "Sender_id", "Receiver_id", "Amount","Date_of_Transaction"])
+            writer.writerow(["TX_id", "Sender_id", "Receiver_id", "Amount","TX_type","Date_of_TX"])
             for transaction in self.transactions:
                 writer.writerow([transaction.transaction_id,
                                  transaction.get_sender_id(),
                                  transaction.get_receiver_id(),
                                  transaction.amount,
+                                 transaction.get_tx_type(),
                                  transaction.date_of_transaction
                                 ])
 

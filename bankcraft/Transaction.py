@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
  
 class Transaction(ABC):
-    def __init__(self, sender_account, recipient_account, amount, date, counter):
-        self.transaction_id = counter
+    def __init__(self, sender_account, recipient_account, amount,
+                  date, sender_id):
+        self.transaction_id = f"{date}-{sender_id}"
         self.sender_account = sender_account
         self.recipient_account = recipient_account
         self.amount = amount
@@ -10,7 +11,7 @@ class Transaction(ABC):
    
     
     def do_transaction(self):
-        if self.sender_account.balance >= self.amount:
+        if self.sender_account and self.sender_account.balance >= self.amount:
             self.sender_account.balance -= self.amount
         if self.recipient_account:
             self.recipient_account.balance += self.amount
@@ -25,9 +26,9 @@ class Transaction(ABC):
     
     ######################
 class Cheque(Transaction):
-    def __init__(self, sender_account, recipient_account, amount, date, counter):
+    def __init__(self, sender_account, recipient_account, amount, date, sender_id):
         self._tx_type = "cheque"
-        super().__init__(sender_account, recipient_account, amount, date, counter)
+        super().__init__(sender_account, recipient_account, amount, date, sender_id)
 
     def get_tx_type(self):
         return self._tx_type
@@ -35,9 +36,9 @@ class Cheque(Transaction):
 
 
 class Cash(Transaction):
-    def __init__(self, sender_account, recipient_account, amount, date, counter):
+    def __init__(self, sender_account, recipient_account, amount, date, sender_id):
         self._tx_type = "cash"
-        super().__init__(sender_account, recipient_account, amount, date, counter)
+        super().__init__(sender_account, recipient_account, amount, date, sender_id)
 
     def get_tx_type(self):
         return self._tx_type
@@ -51,9 +52,9 @@ class ACH(Transaction):
     including direct deposit of paycheck and monthly 
     debits for routin payments.
     """
-    def __init__(self, sender_account, recipient_account, amount, date, counter):
+    def __init__(self, sender_account, recipient_account, amount, date, sender_id):
         self._tx_type = "ACH"
-        super().__init__(sender_account, recipient_account, amount, date, counter)
+        super().__init__(sender_account, recipient_account, amount, date, sender_id)
 
     def get_tx_type(self):
         return self._tx_type
@@ -61,9 +62,9 @@ class ACH(Transaction):
     
 
 class Wire(Transaction):
-    def __init__(self, sender_account, recipient_account, amount, date, counter):
+    def __init__(self, sender_account, recipient_account, amount, date, sender_id):
         self._tx_type = "wire"
-        super().__init__(sender_account, recipient_account, amount, date, counter)
+        super().__init__(sender_account, recipient_account, amount, date, sender_id)
 
     def get_tx_type(self):
         return self._tx_type
@@ -71,9 +72,9 @@ class Wire(Transaction):
 
 
 class OnlinePayment(Transaction):
-    def __init__(self, sender_account, recipient_account, amount, date, counter):
+    def __init__(self, sender_account, recipient_account, amount, date, sender_id):
         self._tx_type = "online"
-        super().__init__(sender_account, recipient_account, amount, date, counter)
+        super().__init__(sender_account, recipient_account, amount, date, sender_id)
     
     def get_tx_type(self):
         return self._tx_type   

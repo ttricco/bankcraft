@@ -193,8 +193,7 @@ class Person(GeneralAgent):
         transaction = Transaction.ACH(self.bank_accounts[1],
                                               recipient.bank_accounts[1],
                                               amount, self.model.schedule.steps,
-                                              self.transaction_counter
-                                              )
+                                              self.unique_id)
         transaction.do_transaction()
         self.model.transactions.append(transaction)
         self.transaction_counter += 1
