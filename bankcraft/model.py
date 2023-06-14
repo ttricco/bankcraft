@@ -1,5 +1,5 @@
 from mesa import Model
-from mesa.time import RandomActivation
+from mesa.time import RandomActivation, SimultaneousActivation
 from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
@@ -20,6 +20,7 @@ class Model(Model):
         self.schedule = RandomActivation(self)
         self.banks = [Bank(i+1, self) for i in range(5)]
         self.transactions = [] 
+
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
         for (u, v) in self.social_grid.edges():
@@ -43,13 +44,12 @@ class Model(Model):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             person.setWork((x,y))
-                # specify bank accounts to each person
-            # for j in ('checking', 'saving'):
-                # bank_account = BankAccount( uuid4, person.get_agent_id, bank.get_agent_id, j)
-                # person.add_bank_account(bank_account)
             self.schedule.add(person)
             person.setSocialNode(i)
 
+        # set social network weights
+        for person in self.schedule.agents:
+            person.setSocialNetworkWeights()
 
         # Adding MerchantAgents
         for i in range(self.num_merchant):
@@ -59,14 +59,6 @@ class Model(Model):
             y = self.random.randrange(self.grid.height)
 
             self.grid.place_agent(merchant, (x,y))
-
-
-
-
-
-
-
-
 
         self.datacollector = DataCollector(
              # collect agent money for person agents
@@ -78,14 +70,17 @@ class Model(Model):
                                'account_balance': lambda a: a.bank_accounts[1].balance
                                },
 
-            # collect model 
-            model_reporters = {"social_network_edges": lambda m: m.social_grid.edges(),
-                                "social_network_nodes": lambda m: m.social_grid.nodes(),}
+
+            tables= {"transactions": ["sender", "receiver", "amount", "time"],
+                        "agents": ["id", "money", "location"]}
+
                                 )
         
     
 
     def step(self):
+        # for person in self.schedule.agents:
+        #     person.do_transactions()
         self.schedule.step()
         self.datacollector.collect(self)
 
@@ -97,11 +92,14 @@ class Model(Model):
 
         # collect model state
         self.datacollector.collect(self)
-        self.datacollector.get_model_vars_dataframe().to_csv("model_state.csv", mode='a', header=True)
-        agent_money = self.datacollector.get_agent_vars_dataframe()
-        self.report_transactions()
-        return (agent_money)
+
+        agents_df = self.datacollector.get_agent_vars_dataframe()
+        transactions_df = self.datacollector.get_table_dataframe("transactions")
+
+        return agents_df, transactions_df
     
+        
+
 
     def report_transactions(self):
         # Write the transactions to a CSV file.
