@@ -3,10 +3,7 @@ from mesa.time import RandomActivation, SimultaneousActivation
 from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
-from uuid import uuid4
-import matplotlib.pyplot as plt
 from .agent import Person, Merchant, Bank
-import csv
 
 class Model(Model):
     def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
