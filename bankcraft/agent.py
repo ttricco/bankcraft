@@ -28,7 +28,6 @@ class Person(GeneralAgent):
                 spending_amount,
                 salary):
         super().__init__( model)
-        self.money = initial_money
         self._spendingProb = spending_prob
         self._spendingAmount = spending_amount
         self._salary = salary
@@ -38,6 +37,8 @@ class Person(GeneralAgent):
         self._tx_motiv_score = 1
         # define multiple bank_accounts for each agent which can be saving, checking, .. in different banks  
         self.bank_accounts = [BankAccount.BankAccount(self, bank, initial_money) for bank in model.banks]
+        #money is the sum of all bank accounts
+        self.money = sum([account.balance for account in self.bank_accounts])
         self.transaction_counter = 0
         self._landlord =Business(model=self.model,business_type='Landlord')
         self._payerBusiness = Business(model=self.model,business_type='test') # a temporary business for recieving scheduled transactions
@@ -59,7 +60,7 @@ class Person(GeneralAgent):
             """
             1000 is a benchmarch for altering motivation scores 
             """
-            value = self.motivation.mtv_dict[key] - amount/1000
+            value = self.motivation.mtv_dict[key] + amount/1000
             self.motivation.mtv_dict.update({key : value})
 
 
@@ -80,6 +81,8 @@ class Person(GeneralAgent):
     def setWork(self, work):
         self._work = work
 
+    def updateMoney(self):
+        self.money = sum([account.balance for account in self.bank_accounts])
 
     def setScheduleTransaction(self):
         schedule_transaction = [['Type', 'TotalAmount', 'Frequency', 'Probability', 'Receiver'],
@@ -98,6 +101,32 @@ class Person(GeneralAgent):
             if self.model.schedule.steps % row['Frequency'] == 0 and random.random() < row['Probability']:
                 self.pay(row['TotalAmount'], row['Receiver'])
 
+    def unscheduleTransaction(self):
+        for motivation in self.motivation.mtv_dict:
+            if self.motivation.mtv_dict[motivation] > 200:
+                self.buy()
+                self.modify_motiv_dict(motivation, -100)
+
+        if  random.random() < 0.1:
+            weight = self._socialNetworkWeights
+            receipient =  random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+            self.adjustSocialNetwork(receipient)
+            if random.random() < self._spendingProb:
+                self.pay(self._spendingAmount, receipient)
+
+
+    def buy(self):
+        # if there is a merchant agent in this location
+        if self.model.grid.is_cell_empty(self.pos) == False:
+            # get the agent in this location
+            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+            # if the agent is a merchant
+            if isinstance(agent, Merchant):
+                # if the agent has enough money to buy
+                if self.money >= agent.price:
+                    self.pay(agent.price, agent)
+
+
     def pay(self, amount, receiver):
         if type(receiver) == str:
             receiver = self._payerBusiness
@@ -109,23 +138,7 @@ class Person(GeneralAgent):
         self.updateRecords(receiver, amount, 'Cheque')
         transaction.do_transaction()
         self.transaction_counter += 1
-            
-
-
-    def spend(self, amount, spending_prob):
-        if random.random() > spending_prob:
-            if self.money >= amount:
-                recipient = random.choice(self.model.schedule.agents)
-                transaction = Transaction.Cheque(self.bank_accounts[1],
-                                              recipient.bank_accounts[1],
-                                              amount, self.model.schedule.steps,
-                                              self.unique_id
-                                              )
-                self.updateRecords(recipient, amount, "Cheque")
-                transaction.do_transaction()
-                self.transaction_counter += 1
-
-                
+        self.updateMoney()
 
     def setSocialNetworkWeights(self):
         all_agents = self.model.schedule.agents
@@ -137,65 +150,30 @@ class Person(GeneralAgent):
                 weight[agent] = 0
         self._socialNetworkWeights = weight
 
-
-
-    def lend_borrow(self, amount):
-        weight = self._socialNetworkWeights
-        other_agent =  random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
-        #change the weights of the edges between the agent and the other agents
-        self.adjustSocialNetwork(other_agent)
-        # borrowing from other person
-        if amount > 0:
-            if amount < other_agent.money:
-                self.money += amount
-                other_agent.money -= amount
-        # lending to other person
-        elif amount < 0: 
-            if abs(amount) < self.money :
-                self.money += amount
-                other_agent.money -= amount
         
-    
     def adjustSocialNetwork(self, other_agent):
         self._socialNetworkWeights[other_agent] += 0.1
         # have weights to be between 0 and 1
         if self._socialNetworkWeights[other_agent] > 1:
             self._socialNetworkWeights[other_agent] = 1
 
-
-    def receive_salary(self, salary, tx_type, motiv_type):
-        self.money += salary
-        self._tx_type = tx_type
-        # receiving salary increases the consumer_needs' score 
-        self.modify_motiv_dict(motiv_type, -1 * salary)
-        self._tx_motiv = motiv_type
-        self._tx_motiv_score = self.motivation.mtv_dict[motiv_type]
-
-
-
-    def billPayment(self):
-        pass
-
-    def buy(self):
-        # if there is a merchant agent in this location
-        if self.model.grid.is_cell_empty(self.pos) == False:
-            # get the agent in this location
-            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
-            # if the agent is a merchant
-            if isinstance(agent, Merchant):
-                # if the agent has enough money to buy
-                if self.money >= agent.price:
-                    self.money -= agent.price 
-                    agent.money += agent.price                   
+                
         
-
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=True,
-            include_center=False)
+            include_center=True)
         new_position = self.random.choice(possible_steps)
         self.model.grid.move_agent(self, new_position)
+        # modify motivation scores
+        if self.pos != new_position:
+
+            self.modify_motiv_dict('fatigue', 10)
+            self.modify_motiv_dict('hunger', 10)
+        else:
+            self.modify_motiv_dict('fatigue', 5)
+            self.modify_motiv_dict('hunger', 5)
 
     def goHome(self):
         self.model.grid.move_agent(self, self._home)
@@ -216,7 +194,9 @@ class Person(GeneralAgent):
         self.model.datacollector.add_table_row("transactions", transaction_data)
 
     def step(self):
+        self.move()
         self.payScheduleTransaction()
+        self.unscheduleTransaction()
 
 class Merchant(GeneralAgent):
     def __init__(self,  model, 
