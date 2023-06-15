@@ -3,6 +3,13 @@ import random
 from . import Transaction
 from . import Motivation
 from . import BankAccount
+import pandas as pd
+from uuid import uuid4
+
+
+steps = {'10min' : 1 , 'hour' : 6 ,'day': 24 * 6,
+          'week': 7 * 24 * 6, 'biweek': 14 * 24 * 6, 
+          'month': 30 * 24 * 6, 'year': 365 * 24 * 6}
 
 class GeneralAgent(Agent):
     def __init__(self, unique_id, model):
@@ -30,6 +37,9 @@ class Person(GeneralAgent):
         # define multiple bank_accounts for each agent which can be saving, checking, .. in different banks  
         self.bank_accounts = [BankAccount.BankAccount(self, bank, initial_money) for bank in model.banks]
         self.transaction_counter = 0
+        self._landlord =Business(unique_id=uuid4(),model=self.model,business_type='Landlord')
+        self._payerBusiness = Business(unique_id=0,model=self.model,business_type='test') # a temporary business for recieving scheduled transactions
+        self.setScheduleTransaction()
 
     def get_agent_id(self):
         return self.unique_id
@@ -68,14 +78,46 @@ class Person(GeneralAgent):
     def setWork(self, work):
         self._work = work
 
+
+    def setScheduleTransaction(self):
+        schedule_transaction = [['Type', 'TotalAmount', 'Frequency', 'Probability', 'Receiver'],
+                                        ['Rent/Morgage',random.randrange(1000,10000) , steps['biweek'] , 1, self._landlord],
+                                        ['Utilities',random.randrange(60,300) ,steps['biweek'] , 1, 'Utility Company'],
+                                        ['Memberships', random.randrange(0,100) ,steps['month'] , 0.5, 'Business'],
+                                        ['Subscriptions',random.randrange(0,100)  ,steps['month'] , 0.5, 'Business'],
+                                        ['Bills', random.randrange(10,300) ,steps['month'] , 1, 'Business']]
+        self._schedule_transaction = pd.DataFrame(schedule_transaction[1:], columns=schedule_transaction[0])
+        
+        
+    
+    def payScheduleTransaction(self):
+        # for all types of transactions if the probability is met, and step is a multiple of frequency, do the transaction
+        for index, row in self._schedule_transaction.iterrows():
+            if self.model.schedule.steps % row['Frequency'] == 0 and random.random() < row['Probability']:
+                self.pay(row['TotalAmount'], row['Receiver'])
+
+    def pay(self, amount, receiver):
+        if type(receiver) == str:
+            receiver = self._payerBusiness
+        transaction = Transaction.Cheque(self.bank_accounts[1],
+                                            receiver.bank_accounts[1],
+                                            amount, self.model.schedule.steps,
+                                            self.transaction_counter
+                                            )
+        self.updateRecords(receiver, amount, 'Cheque')
+        transaction.do_transaction()
+        self.transaction_counter += 1
+            
+
+
     def spend(self, amount, spending_prob):
-        if self.random.random() > spending_prob:
+        if random.random() > spending_prob:
             if self.money >= amount:
                 recipient = random.choice(self.model.schedule.agents)
                 transaction = Transaction.Cheque(self.bank_accounts[1],
                                               recipient.bank_accounts[1],
                                               amount, self.model.schedule.steps,
-                                              self.transaction_counter
+                                              self.unique_id
                                               )
                 self.updateRecords(recipient, amount, "Cheque")
                 transaction.do_transaction()
@@ -172,7 +214,7 @@ class Person(GeneralAgent):
         self.model.datacollector.add_table_row("transactions", transaction_data)
 
     def step(self):
-                self.spend(self._spendingAmount, self._spendingProb)
+                self.payScheduleTransaction()
 
 class Merchant(GeneralAgent):
     def __init__(self, unique_id, model, 
@@ -195,8 +237,16 @@ class Employer(GeneralAgent):
     def step(self):
         pass
 
-
-
+class Business(GeneralAgent):
+    def __init__(self, unique_id, model, business_type):
+        super().__init__(unique_id, model)
+        self._employees = []
+        self._name = "Business" + str(unique_id)
+        self._type = business_type
+        self.bank_accounts = [BankAccount.BankAccount(self, bank, 0) for bank in model.banks]
+    
+    def step(self):
+        pass
 
 # class Biller(GeneralAgent):
 #     def __init__(self, unique_id, model):
