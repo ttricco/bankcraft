@@ -28,8 +28,25 @@ class Model(Model):
         # adding grid
         self.grid = MultiGrid(width = 50,height= 50, torus=False)
         
+        self.put_agents_in_model(initial_money, spending_prob, spending_amount, salary)
 
-        # Adding PeopleAgents
+        self.datacollector = DataCollector(
+             # collect agent money for person agents
+             
+            agent_reporters = {"Money": lambda a: a.money,
+                                'tx_motiv': lambda a: a.get_tx_motiv(),
+                                'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
+                               'location': lambda a: a.pos,
+                               'account_balance': lambda a: a.bank_accounts[1].balance
+                               },
+
+
+            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type"],
+                        "agents": ["id", "money", "location"]}
+
+                                )
+    
+    def put_agents_in_model(self, initial_money, spending_prob, spending_amount, salary):
         for i in range(self._num_people):
             person = Person( self,
                              initial_money, spending_prob, spending_amount, salary)
@@ -59,22 +76,6 @@ class Model(Model):
 
             self.grid.place_agent(merchant, (x,y))
 
-        self.datacollector = DataCollector(
-             # collect agent money for person agents
-             
-            agent_reporters = {"Money": lambda a: a.money,
-                                'tx_motiv': lambda a: a.get_tx_motiv(),
-                                'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
-                               'location': lambda a: a.pos,
-                               'account_balance': lambda a: a.bank_accounts[1].balance
-                               },
-
-
-            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type"],
-                        "agents": ["id", "money", "location"]}
-
-                                )
-        
     
 
     def step(self):
