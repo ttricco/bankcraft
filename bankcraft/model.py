@@ -18,7 +18,7 @@ class Model(Model):
         # self._num_banks = 1
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
-        self.banks = [Bank(i+1, self) for i in range(5)]
+        self.banks = [Bank(self) for i in range(5)]
 
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
@@ -31,7 +31,7 @@ class Model(Model):
 
         # Adding PeopleAgents
         for i in range(self._num_people):
-            person = Person(uuid4(), self,
+            person = Person( self,
                              initial_money, spending_prob, spending_amount, salary)
 
             # add agent to grid in random position
@@ -52,7 +52,7 @@ class Model(Model):
 
         # Adding MerchantAgents
         for i in range(self.num_merchant):
-            merchant = Merchant(uuid4(), self, "Restaurant", 10, 1000)
+            merchant = Merchant(self, "Restaurant", 10, 1000)
                         # choosing location
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)

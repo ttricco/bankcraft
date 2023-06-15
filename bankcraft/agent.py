@@ -12,20 +12,22 @@ steps = {'10min' : 1 , 'hour' : 6 ,'day': 24 * 6,
           'month': 30 * 24 * 6, 'year': 365 * 24 * 6}
 
 class GeneralAgent(Agent):
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+    def __init__(self, model):
+        self._unique_id = uuid4()
+        super().__init__(self._unique_id, model)
+        
 
     def step(self):
         pass
 
 
 class Person(GeneralAgent):
-    def __init__(self, unique_id, model,
+    def __init__(self, model,
                 initial_money,
                 spending_prob,
                 spending_amount,
                 salary):
-        super().__init__(unique_id, model)
+        super().__init__( model)
         self.money = initial_money
         self._spendingProb = spending_prob
         self._spendingAmount = spending_amount
@@ -37,8 +39,8 @@ class Person(GeneralAgent):
         # define multiple bank_accounts for each agent which can be saving, checking, .. in different banks  
         self.bank_accounts = [BankAccount.BankAccount(self, bank, initial_money) for bank in model.banks]
         self.transaction_counter = 0
-        self._landlord =Business(unique_id=uuid4(),model=self.model,business_type='Landlord')
-        self._payerBusiness = Business(unique_id=0,model=self.model,business_type='test') # a temporary business for recieving scheduled transactions
+        self._landlord =Business(model=self.model,business_type='Landlord')
+        self._payerBusiness = Business(model=self.model,business_type='test') # a temporary business for recieving scheduled transactions
         self.setScheduleTransaction()
 
     def get_agent_id(self):
@@ -214,14 +216,14 @@ class Person(GeneralAgent):
         self.model.datacollector.add_table_row("transactions", transaction_data)
 
     def step(self):
-                self.payScheduleTransaction()
+        self.payScheduleTransaction()
 
 class Merchant(GeneralAgent):
-    def __init__(self, unique_id, model, 
+    def __init__(self,  model, 
                  type,
                  price,
                  initial_money):
-        super().__init__(unique_id, model)
+        super().__init__( model)
         self.money = initial_money
         self._type = type
         self.price = price
@@ -231,42 +233,27 @@ class Merchant(GeneralAgent):
 
 
 class Employer(GeneralAgent):
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+    def __init__(self,  model):
+        super().__init__( model)
     
     def step(self):
         pass
 
 class Business(GeneralAgent):
-    def __init__(self, unique_id, model, business_type):
-        super().__init__(unique_id, model)
+    def __init__(self,  model, business_type):
+        super().__init__( model)
         self._employees = []
-        self._name = "Business" + str(unique_id)
+        self._name = "Business" + str(self._unique_id)
         self._type = business_type
         self.bank_accounts = [BankAccount.BankAccount(self, bank, 0) for bank in model.banks]
     
     def step(self):
         pass
 
-# class Biller(GeneralAgent):
-#     def __init__(self, unique_id, model):
-#         super().__init__(unique_id, model)
-    
-#     def step(self):
-#         pass
-
-
-
-# class GovernmentBenefit(GeneralAgent):
-#     def __init__(self, unique_id, model):
-#         super().__init__(unique_id, model)
-    
-#     def step(self):
-#         pass
 
 class Bank(GeneralAgent):
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+    def __init__(self,  model):
+        super().__init__(model)
     
     def step(self):
         pass
