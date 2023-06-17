@@ -3,10 +3,7 @@ from mesa.time import RandomActivation, SimultaneousActivation
 from mesa.datacollection import DataCollector
 from mesa.space import NetworkGrid, MultiGrid
 import networkx as nx
-from uuid import uuid4
-import matplotlib.pyplot as plt
 from .agent import Person, Merchant, Bank
-import csv
 
 class Model(Model):
     def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
@@ -18,7 +15,7 @@ class Model(Model):
         # self._num_banks = 1
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
-        self.banks = [Bank(i+1, self) for i in range(5)]
+        self.banks = [Bank(self) for i in range(5)]
 
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
@@ -28,10 +25,27 @@ class Model(Model):
         # adding grid
         self.grid = MultiGrid(width = 50,height= 50, torus=False)
         
+        self.put_agents_in_model(initial_money, spending_prob, spending_amount, salary)
 
-        # Adding PeopleAgents
+        self.datacollector = DataCollector(
+             # collect agent money for person agents
+             
+            agent_reporters = {"Money": lambda a: a.money,
+                                'tx_motiv': lambda a: a.get_tx_motiv(),
+                                'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
+                               'location': lambda a: a.pos,
+                               'account_balance': lambda a: a.bank_accounts[1].balance
+                               },
+
+
+            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type"],
+                        "agents": ["id", "money", "location"]}
+
+                                )
+    
+    def put_agents_in_model(self, initial_money, spending_prob, spending_amount, salary):
         for i in range(self._num_people):
-            person = Person(uuid4(), self,
+            person = Person( self,
                              initial_money, spending_prob, spending_amount, salary)
 
             # add agent to grid in random position
@@ -52,29 +66,13 @@ class Model(Model):
 
         # Adding MerchantAgents
         for i in range(self.num_merchant):
-            merchant = Merchant(uuid4(), self, "Restaurant", 10, 1000)
+            merchant = Merchant(self, "Restaurant", 10, 1000)
                         # choosing location
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
 
             self.grid.place_agent(merchant, (x,y))
 
-        self.datacollector = DataCollector(
-             # collect agent money for person agents
-             
-            agent_reporters = {"Money": lambda a: a.money,
-                                'tx_motiv': lambda a: a.get_tx_motiv(),
-                                'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
-                               'location': lambda a: a.pos,
-                               'account_balance': lambda a: a.bank_accounts[1].balance
-                               },
-
-
-            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type"],
-                        "agents": ["id", "money", "location"]}
-
-                                )
-        
     
 
     def step(self):
