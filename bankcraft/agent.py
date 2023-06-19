@@ -33,8 +33,6 @@ class Person(GeneralAgent):
         self._salary = salary
         
         self.motivation = Motivation.Motivation()
-        self._tx_motiv = None
-        self._tx_motiv_score = 1
         # define multiple bank_accounts for each agent which can be saving, checking, .. in different banks  
         self.bank_accounts = [BankAccount.BankAccount(self, bank, initial_money) for bank in model.banks]
         #money is the sum of all bank accounts
@@ -48,12 +46,8 @@ class Person(GeneralAgent):
         return self.unique_id
 
 
-    def get_tx_motiv(self):
-        return self._tx_motiv 
-
-
-    def get_tx_motiv_score(self):
-        return self._tx_motiv_score 
+    def getMotiv(self):
+        return self.motivation.mtv_dict
     
 
     def modify_motiv_dict(self, key, amount):
@@ -226,6 +220,8 @@ class Business(GeneralAgent):
         self._name = "Business" + str(self._unique_id)
         self._type = business_type
         self.bank_accounts = [BankAccount.BankAccount(self, bank, 0) for bank in model.banks]
+        self._meanPrice = random.randrange(10,100)
+        self._meanStd = random.randrange(1,10)
     
     def step(self):
         pass

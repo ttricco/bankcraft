@@ -31,8 +31,7 @@ class Model(Model):
              # collect agent money for person agents
              
             agent_reporters = {"Money": lambda a: a.money,
-                                'tx_motiv': lambda a: a.get_tx_motiv(),
-                                'tx_motiv_score': lambda a: a.get_tx_motiv_score(),
+                                'motiv': lambda a: a.getMotiv(),
                                'location': lambda a: a.pos,
                                'account_balance': lambda a: a.bank_accounts[1].balance
                                },
