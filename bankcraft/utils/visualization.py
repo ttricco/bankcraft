@@ -5,7 +5,9 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 
 from ..model import Model
-from ..agent import Person, Merchant
+from bankcraft.agent.general_agent import Merchant
+from ..agent.person import Person
+
 
 def _agent_portrayal(agent):
     portrayal = {
