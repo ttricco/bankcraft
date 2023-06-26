@@ -14,13 +14,13 @@ import csv
 class Model(Model):
     def __init__(self, num_people=50, num_merchant=2, initial_money=1000,
                  spending_prob=0.5, spending_amount=100,
-                 salary=1000, num_employers=2):
+                 salary=1000, num_employers=2, num_banks=1):
         super().__init__()
 
         self._num_people = num_people
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
-        self.banks = [Bank(i + 1, self) for i in range(5)]
+        self.banks = [Bank(i + 1, self) for i in range(num_banks)]
         self.transactions = []
         self.num_employers = num_employers
         self.employers = [Employer(j + 1, self) for j in range(self.num_employers)]
@@ -77,7 +77,7 @@ class Model(Model):
                 # 'tx_motiv': lambda a: a.get_tx_motiv() if isinstance(a, Person) else None,
                 # 'tx_motiv_score': lambda a: a.get_tx_motiv_score() if isinstance(a, Person) else None,
                 #    'location': lambda a: a.pos if isinstance(a, Person) else None,
-                'account_balance': lambda a: a.bank_accounts[1].balance if isinstance(a, Person) else None
+                'account_balance': lambda a: a.bank_accounts[0][0].balance if isinstance(a, Person) else None
             },
 
             tables={"transactions": ["sender", "receiver", "amount", "time"],
@@ -97,7 +97,6 @@ class Model(Model):
         self.datacollector.collect(self)
 
         agents_df = self.datacollector.get_agent_vars_dataframe()
-        agents_df.dropna(inplace=True)
         transactions_df = self.datacollector.get_table_dataframe("transactions")
 
         return agents_df, transactions_df

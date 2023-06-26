@@ -5,7 +5,7 @@ from mesa.visualization.modules import CanvasGrid
 from mesa.visualization.ModularVisualization import ModularServer
 
 from ..model import Model
-from bankcraft.agent.general_agent import Merchant
+from bankcraft.agent.merchant import Merchant
 from ..agent.person import Person
 
 

@@ -1,8 +1,10 @@
 import random
 
 from bankcraft.agent.general_agent import GeneralAgent
-from bankcraft.bank_account import BankAccount
+from bankcraft.agent.merchant import Merchant
+# from bankcraft.bank_account import BankAccount
 from bankcraft.motivation import Motivation
+from bankcraft.agent import merchant
 
 
 class Person(GeneralAgent):
@@ -15,14 +17,14 @@ class Person(GeneralAgent):
         self.money = initial_money
         self.spending_prob = spending_prob
         self.spending_amount = spending_amount
+
         self.salary = salary
         self.employer = None
 
         self.motivation = Motivation()
         self._tx_motiv = None
         self._tx_motiv_score = 1
-        # define multiple bank_accounts for each agent which can be saving, checking, credit in different banks
-        self.bank_accounts = [BankAccount(self, bank, initial_money) for bank in model.banks]
+        self.bank_accounts = self.assign_bank_account(model, initial_money)
 
     def get_agent_id(self):
         return self.unique_id
@@ -94,11 +96,9 @@ class Person(GeneralAgent):
         elif abs(amount) < self.money:
             self.money -= amount
 
-
-
     def buy(self):
         # if there is a merchant agent in this location
-        if self.model.grid.is_cell_empty(self.pos) == False:
+        if not self.model.grid.is_cell_empty(self.pos):
             # get the agent in this location
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
@@ -122,7 +122,7 @@ class Person(GeneralAgent):
     def goWork(self):
         self.model.grid.move_agent(self, self._work)
 
-    def update_tx_records(self, other_agent, amount):
+    def update_txn_records(self, other_agent, amount):
         transaction_data = {
             "sender": self.unique_id,
             "receiver": other_agent.unique_id,
@@ -138,9 +138,9 @@ class Person(GeneralAgent):
         #     self.goHome()
 
         # if self.model.schedule.steps == 1:
-        #     self.receive_salary(self.salary, Transaction.Cheque().get_tx_type(), 'consumer_needs')
+        #     self.receive_salary(self.salary, Cheque().tx_type(), 'consumer_needs')
         # else:
-        #     self.spend(self.spending_amount, self.spending_prob, Transaction.ACH().get_tx_type(), 'hunger')
+        #     self.spend(self.spending_amount, self.spending_prob, ACH().tx_type(), 'hunger')
         #     self.lend_borrow(-1000)
         #     self.deposit_withdraw(-50)
         #     self.billPayment()
@@ -148,10 +148,10 @@ class Person(GeneralAgent):
         #     self.move()
         # amount = random.randint(1,100)
         # recipient = random.choice(self.model.schedule.agents)
-        # transaction = Transaction.ACH(self.bank_accounts[1],
-        #                                       recipient.bank_accounts[1],
-        #                                       amount, self.model.schedule.steps+1,
-        #                                       self.unique_id)
+        # transaction = ACH(self.bank_accounts[0],
+        #                   recipient.bank_accounts[0],
+        #                   amount, self.model.schedule.steps+1,
+        #                   self.unique_id)
         # transaction.do_transaction()
         # self.model.transactions.append(transaction)
         pass

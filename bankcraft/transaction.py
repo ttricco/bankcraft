@@ -17,12 +17,6 @@ class Transaction(ABC):
         if self.recipient_account is not None:
             self.recipient_account.balance += self.amount
 
-    def get_sender_id(self):
-        return self.sender_account.owner.unique_id
-
-    def get_receiver_id(self):
-        return self.recipient_account.owner.unique_id
-
     def get_tx_type(self):
         return self._tx_type
 
