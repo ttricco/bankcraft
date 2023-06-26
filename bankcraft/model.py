@@ -77,7 +77,7 @@ class Model(Model):
                 # 'tx_motiv': lambda a: a.get_tx_motiv() if isinstance(a, Person) else None,
                 # 'tx_motiv_score': lambda a: a.get_tx_motiv_score() if isinstance(a, Person) else None,
                 #    'location': lambda a: a.pos if isinstance(a, Person) else None,
-                'account_balance': lambda a: a.bank_accounts[0][0].balance if isinstance(a, Person) else None
+                'account_balance': lambda a: a.bank_accounts[0][0].balance
             },
 
             tables={"transactions": ["sender", "receiver", "amount", "time"],
