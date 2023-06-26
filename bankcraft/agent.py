@@ -93,12 +93,12 @@ class Person(GeneralAgent):
         # for all types of transactions if the probability is met, and step is a multiple of frequency, do the transaction
         for index, row in self._schedule_transaction.iterrows():
             if self.model.schedule.steps % row['Frequency'] == 0 and random.random() < row['Probability']:
-                self.pay(row['TotalAmount'], row['Receiver'])
+                self.pay(row['TotalAmount'], row['Receiver'], row['Type'])
 
     def unscheduleTransaction(self):
         for motivation in self.motivation.mtv_dict:
             if self.motivation.mtv_dict[motivation] > 200:
-                self.buy()
+                self.buy(motivation)
                 self.modify_motiv_dict(motivation, -100)
 
         if  random.random() < 0.1:
@@ -106,10 +106,10 @@ class Person(GeneralAgent):
             receipient =  random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
             self.adjustSocialNetwork(receipient)
             if random.random() < self._spendingProb:
-                self.pay(self._spendingAmount, receipient)
+                self.pay(self._spendingAmount, receipient, 'Social')
 
 
-    def buy(self):
+    def buy(self, motivation):
         # if there is a merchant agent in this location
         if self.model.grid.is_cell_empty(self.pos) == False:
             # get the agent in this location
@@ -118,10 +118,10 @@ class Person(GeneralAgent):
             if isinstance(agent, Merchant):
                 # if the agent has enough money to buy
                 if self.money >= agent.price:
-                    self.pay(agent.price, agent)
+                    self.pay(agent.price, agent, motivation)
 
 
-    def pay(self, amount, receiver):
+    def pay(self, amount, receiver,motivation=None):
         if type(receiver) == str:
             receiver = self._payerBusiness
         transaction = Transaction.Cheque(self.bank_accounts[1],
@@ -129,7 +129,7 @@ class Person(GeneralAgent):
                                             amount, self.model.schedule.steps,
                                             self.transaction_counter
                                             )
-        self.updateRecords(receiver, amount, 'Cheque')
+        self.updateRecords(receiver, amount, transaction.get_tx_type(), motivation)
         transaction.do_transaction()
         self.transaction_counter += 1
         self.updateMoney()
@@ -175,7 +175,7 @@ class Person(GeneralAgent):
     def goWork(self):
         self.model.grid.move_agent(self, self._work)
 
-    def updateRecords(self, other_agent, amount, transaction_type):
+    def updateRecords(self, other_agent, amount, transaction_type, motivation = None):
     # Update the transaction records
         transaction_data = {
             "sender": self.unique_id,
@@ -184,6 +184,7 @@ class Person(GeneralAgent):
             "time": self.model.schedule.time,
             "transaction_id": str(self.unique_id) + "_" + str(self.transaction_counter),
             "transaction_type": transaction_type,
+            "Motivation" : motivation
         }
         self.model.datacollector.add_table_row("transactions", transaction_data)
 

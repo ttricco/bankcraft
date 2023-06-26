@@ -37,7 +37,7 @@ class Model(Model):
                                },
 
 
-            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type"],
+            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type","Motivation"],
                         "agents": ["id", "money", "location"]}
 
                                 )

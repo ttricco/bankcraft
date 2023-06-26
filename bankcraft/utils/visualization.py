@@ -16,19 +16,19 @@ def _agent_portrayal(agent):
         portrayal["color"] = "red" 
         if agent.money > 0:
             portrayal["Color"] = "green"
-            portrayal["r"] = 0.5 * np.log2(agent.money)
+            portrayal["r"] = agent.money
             portrayal["Layer"] = 1
             portrayal['Money'] = agent.money
             portrayal['agent number'] = agent.social_node
 
     elif type(agent) is Merchant:
         portrayal["Color"] = "blue"
-        portrayal["r"] = 0.5 * np.log2(agent.money)
         portrayal["Layer"] = 0
     return portrayal
 
 
 def draw_graph(model):
+    
     fig, ax = plt.subplots(figsize=(10, 10))
     # draw the graph with labels and size of nodes proportional to money
     nx.draw_networkx(model.social_grid, pos=nx.spring_layout(model.social_grid),
