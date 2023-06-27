@@ -29,8 +29,12 @@ class Model(Model):
         for (u, v) in self.social_grid.edges():
             self.social_grid.edges[u, v]['weight'] = 1 / (num_people - 1)
 
-        self.grid = MultiGrid(width=50, height=50, torus=False)
+        # adding grid
+        self.grid = MultiGrid(width = 50,height= 50, torus=False)
 
+        self.put_agents_in_model(initial_money, spending_prob, spending_amount, salary)
+
+        # def put_agents_in_model(self, initial_money, spending_prob, spending_amount, salary):
         for i in range(self._num_people):
             person = Person(uuid4(), self,
                             initial_money, spending_prob, spending_amount, salary)
