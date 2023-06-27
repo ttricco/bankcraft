@@ -1,10 +1,12 @@
 from mesa import Agent
 from bankcraft.bank_account import BankAccount
+from uuid import uuid4
 
 
 class GeneralAgent(Agent):
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+    def __init__(self, model):
+        self.unique_id = uuid4().int
+        super().__init__(self.unique_id, model)
         self.bank_accounts = None
 
     def step(self):

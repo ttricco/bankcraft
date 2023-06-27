@@ -20,23 +20,19 @@ class Model(Model):
         self._num_people = num_people
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
-        self.banks = [Bank(i + 1, self) for i in range(num_banks)]
+        self.banks = [Bank(self) for i in range(num_banks)]
         self.transactions = []
         self.num_employers = num_employers
-        self.employers = [Employer(j + 1, self) for j in range(self.num_employers)]
+        self.employers = [Employer(self) for j in range(self.num_employers)]
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
         for (u, v) in self.social_grid.edges():
             self.social_grid.edges[u, v]['weight'] = 1 / (num_people - 1)
 
-        # adding grid
-        self.grid = MultiGrid(width = 50,height= 50, torus=False)
+        self.grid = MultiGrid(width=50, height=50, torus=False)
 
-        self.put_agents_in_model(initial_money, spending_prob, spending_amount, salary)
-
-        # def put_agents_in_model(self, initial_money, spending_prob, spending_amount, salary):
         for i in range(self._num_people):
-            person = Person(uuid4(), self,
+            person = Person(self,
                             initial_money, spending_prob, spending_amount, salary)
             if i % 2 == 0:
                 self.employers[0].employees.append(person)
@@ -48,14 +44,14 @@ class Model(Model):
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
-            person.setHome((x, y))
+            person.set_home((x, y))
             self.grid.place_agent(person, (x, y))
             # choosing another location as work
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
-            person.setWork((x, y))
+            person.set_work((x, y))
             self.schedule.add(person)
-            person.setSocialNode(i)
+            person.set_social_node(i)
 
         for i in self.employers:
             self.schedule.add(i)
@@ -63,10 +59,10 @@ class Model(Model):
         # set social network weights
         for person in self.schedule.agents:
             if isinstance(person, Person):
-                person.setSocialNetworkWeights()
+                person.set_social_network_weights()
 
         for i in range(self.num_merchant):
-            merchant = Merchant(uuid4(), self, "Restaurant", 10, 1000)
+            merchant = Merchant(self, "Restaurant", 10, 1000)
             # choosing location
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
@@ -77,10 +73,10 @@ class Model(Model):
             # collect agent money for person agents
 
             agent_reporters={
-                # "Money": lambda a: a.money if isinstance(a, Person) else None,
-                # 'tx_motiv': lambda a: a.get_tx_motiv() if isinstance(a, Person) else None,
-                # 'tx_motiv_score': lambda a: a.get_tx_motiv_score() if isinstance(a, Person) else None,
-                #    'location': lambda a: a.pos if isinstance(a, Person) else None,
+                "Money": lambda a: a.money if isinstance(a, Person) else None,
+                'tx_motiv': lambda a: a.txn_motivation if isinstance(a, Person) else None,
+                'tx_motiv_score': lambda a: a.txn_motivation_score if isinstance(a, Person) else None,
+                'location': lambda a: a.pos if isinstance(a, Person) else None,
                 'account_balance': lambda a: a.bank_accounts[0][0].balance
             },
 

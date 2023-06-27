@@ -4,8 +4,8 @@ from bankcraft.bank_account import BankAccount
 
 
 class Employer(GeneralAgent):
-    def __init__(self, unique_id, model):
-        super().__init__(unique_id, model)
+    def __init__(self, model):
+        super().__init__(model)
         self.pay_period = 14
         self.employees = []
         self.initial_fund = 1000000
