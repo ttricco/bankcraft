@@ -31,7 +31,7 @@ class Person(GeneralAgent):
         self.txn_counter = 0
         self.landlord = Business(model, business_type='Landlord')
         self.payerBusiness = Business(model, business_type='test') # a temporary business for recieving scheduled transactions
-        self.schedule_txn = None
+        self.schedule_txn = pd.DataFrame()
 
     def update_motivation(self, key, amount):
         value = self.motivation.motivation_dict[key] - amount/1000
@@ -50,13 +50,13 @@ class Person(GeneralAgent):
         self.work = work
 
     def set_schedule_txn(self):
-        schedule_txn = [['Type', 'TotalAmount', 'Frequency', 'Probability', 'Receiver'],
-                        ['Rent/Mortgage', np.random.normal(3000, 1000), TimeStep.steps['biweek'], 1, self.landlord],
-                        ['Utilities', np.random.normal(loc=200, scale=50), TimeStep.steps['month'], 1, 'Utility Company'],
-                        ['Memberships', random.randrange(0, 100), TimeStep.steps['month'], 0.5, 'Business'],
-                        ['Subscriptions', random.randrange(0, 100), TimeStep.steps['month'], 0.5, 'Business'],
-                        ['Bills', random.randrange(10, 300), TimeStep.steps['month'], 1, 'Business']]
-        self.schedule_txn = pd.DataFrame(schedule_txn[1:], columns=schedule_txn[0])
+        txn_list = [['Type', 'TotalAmount', 'Frequency', 'Probability', 'Receiver'],
+                    ['Rent/Mortgage', np.random.normal(3000, 1000), TimeStep.steps['biweekly'], 1, self.landlord],
+                    ['Utilities', np.random.normal(loc=200, scale=50), TimeStep.steps['month'], 1, 'Utility Company'],
+                    ['Memberships', random.randrange(0, 100), TimeStep.steps['month'], 0.5, 'Business'],
+                    ['Subscriptions', random.randrange(0, 100), TimeStep.steps['month'], 0.5, 'Business'],
+                    ['Bills', random.randrange(10, 300), TimeStep.steps['month'], 1, 'Business']]
+        self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
         # for all types of transactions if the probability is met, and step is a multiple of frequency, do the transaction

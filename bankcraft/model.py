@@ -3,7 +3,6 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import MultiGrid
 import networkx as nx
-from uuid import uuid4
 from bankcraft.agent.merchant import Merchant
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
@@ -70,8 +69,6 @@ class Model(Model):
             self.grid.place_agent(merchant, (x, y))
 
         self.datacollector = DataCollector(
-            # collect agent money for person agents
-
             agent_reporters={
                 "Money": lambda a: a.money if isinstance(a, Person) else None,
                 'tx_motiv': lambda a: a.txn_motivation if isinstance(a, Person) else None,
