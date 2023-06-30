@@ -29,4 +29,4 @@ class Employer(GeneralAgent):
     def step(self):
         if self.is_pay_date(self.model.schedule.steps):
             for i in self.employees:
-                self.pay_salary(i, i.salary)
+                self.pay_salary(i, i.salary_per_pay)
