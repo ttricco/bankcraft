@@ -6,7 +6,7 @@ from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
 from bankcraft.transaction import *
 from bankcraft.motivation import Motivation
-from bankcraft.agent.time_step import TimeStep
+from bankcraft.steps import steps
 
 
 class Person(GeneralAgent):
@@ -51,11 +51,11 @@ class Person(GeneralAgent):
 
     def set_schedule_txn(self):
         txn_list = [['Type', 'TotalAmount', 'Frequency', 'Probability', 'Receiver'],
-                    ['Rent/Mortgage', np.random.normal(3000, 1000), TimeStep.steps['biweekly'], 1, self.landlord],
-                    ['Utilities', np.random.normal(loc=200, scale=50), TimeStep.steps['month'], 1, 'Utility Company'],
-                    ['Memberships', random.randrange(0, 100), TimeStep.steps['month'], 0.5, 'Business'],
-                    ['Subscriptions', random.randrange(0, 100), TimeStep.steps['month'], 0.5, 'Business'],
-                    ['Bills', random.randrange(10, 300), TimeStep.steps['month'], 1, 'Business']]
+                    ['Rent/Mortgage', np.random.normal(3000, 1000), steps.steps['biweekly'], 1, self.landlord],
+                    ['Utilities', np.random.normal(loc=200, scale=50), steps.steps['month'], 1, 'Utility Company'],
+                    ['Memberships', random.randrange(0, 100), steps.steps['month'], 0.5, 'Business'],
+                    ['Subscriptions', random.randrange(0, 100), steps.steps['month'], 0.5, 'Business'],
+                    ['Bills', random.randrange(10, 300), steps.steps['month'], 1, 'Business']]
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
