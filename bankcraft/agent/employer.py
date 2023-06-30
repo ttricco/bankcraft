@@ -6,10 +6,13 @@ from bankcraft.steps import steps
 class Employer(GeneralAgent):
     def __init__(self, model):
         super().__init__(model)
-        self.pay_period = steps.steps['biweekly']
+        self.pay_period = steps['biweekly']
         self.employees = []
         self.initial_fund = 1000000
         self.bank_accounts = self.assign_bank_account(model, self.initial_fund)
+        # These are for use of agent reporter and needs to be handled better in the future
+        self.money = self.initial_fund
+        self.motivation = None
 
     def is_pay_date(self, date):
         return date % self.pay_period == 0
