@@ -56,6 +56,9 @@ class Person(GeneralAgent):
     def set_work(self, work):
         self.work = work
 
+    def updateMoney(self):
+        self.money = sum(account[0].balance for account in self.bank_accounts)
+        
     def set_schedule_txn(self):
         txn_list = [['Type', 'Amount', 'Frequency', 'Receiver'],
                     ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
@@ -71,74 +74,69 @@ class Person(GeneralAgent):
             if self.model.schedule.steps % row['Frequency'] == 0:
                 self.pay(row['Amount'], row['Receiver'])
 
-    def pay(self, amount, receiver):
+    def unscheduled_txn(self):
+        for key,value in self.motivation.motivation_dict.items():
+            if value < 0:
+                self.pay(1000, key)
+                
+
+        if  random.random() < 0.1:
+            weight = self._social_network_weights
+            recipient =  random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+            self.adjust_social_network(recipient)
+            if random.random() < self.spending_prob:
+                self.pay(self.spending_amount, recipient, 'Social')
+
+
+    def buy(self, motivation):
+        # if there is a merchant agent in this location
+        if self.model.grid.is_cell_empty(self.pos) == False:
+            # get the agent in this location
+            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+            # if the agent is a merchant
+            if isinstance(agent, Merchant) and self.money >= agent.price:
+                self.pay(agent.price, agent, motivation)
+                
+            
+    def pay(self, amount, receiver,motivation=None):
         if type(receiver) == str:
-            receiver = self.payerBusiness
+            receiver = self._payerBusiness
         transaction = Cheque(self.bank_accounts[0][0],
-                             receiver.bank_accounts[0][0],
-                             amount, self.model.schedule.steps,
-                             self.txn_counter)
-        self.update_txn_records(receiver, amount, 'Cheque')
+                                            receiver.bank_accounts[0][0],
+                                            amount, self.model.schedule.steps,
+                                            self.txn_counter
+                                            )
+        self.updateRecords(receiver, amount, transaction.get_tx_type(), motivation)
         transaction.do_transaction()
         self.txn_counter += 1
+        self.updateMoney()
+        
+    
 
-    def spend(self, amount, spending_prob):
-        if random.random() > spending_prob:
-            if self.money >= amount:
-                recipient = random.choice(self.model.schedule.agents)
-                transaction = Cheque(self.bank_accounts[0][0],
-                                     recipient.bank_accounts[0][0],
-                                     amount, self.model.schedule.steps,
-                                     self.unique_id
-                                     )
-                self.update_txn_records(recipient, amount, "Cheque")
-                transaction.do_transaction()
-                self.txn_counter += 1
+
 
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
-        weight = {}
-        for agent in all_agents:
-            if isinstance(agent, Person):
-                if agent != self:
-                    weight[agent] = self.model.social_grid.edges[self.social_node, agent.social_node]['weight']
-                else:
-                    weight[agent] = 0
+        weight = {
+            agent: self.model.social_grid.edges[
+                self.social_node, agent.social_node
+            ]['weight']
+            if agent != self
+            else 0
+            for agent in all_agents
+            if isinstance(agent, Person)
+        }
         self._social_network_weights = weight
 
-    def lend_borrow(self, amount):
-        weight = self._social_network_weights
-        other_agent = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
-        #change the weights of the edges between the agent and the other agents
-        self.adjust_social_network(other_agent)
-        # borrowing from other person
-        if amount > 0:
-            if amount < other_agent.money:
-                self.money += amount
-                other_agent.money -= amount
-        # lending to other person
-        elif amount < 0:
-            if abs(amount) < self.money:
-                self.money += amount
-                other_agent.money -= amount
 
     def adjust_social_network(self, other_agent):
         self._social_network_weights[other_agent] += 0.1
         # have weights to be between 0 and 1
-        if self._social_network_weights[other_agent] > 1:
-            self._social_network_weights[other_agent] = 1
+        self._social_network_weights[other_agent] = min(
+            self._social_network_weights[other_agent], 1
+        )
 
-    def buy(self):
-        # if there is a merchant agent in this location
-        if not self.model.grid.is_cell_empty(self.pos):
-            # get the agent in this location
-            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
-            # if the agent is a merchant
-            if isinstance(agent, Merchant):
-                # if the agent has enough money to buy
-                if self.money >= agent.price:
-                    self.money -= agent.price
-                    agent.money += agent.price
+
 
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
@@ -154,16 +152,20 @@ class Person(GeneralAgent):
     def go_work(self):
         self.model.grid.move_agent(self, self.work)
 
-    def update_txn_records(self, other_agent, amount, txn_type):
+    def updateRecords(self, other_agent, amount, transaction_type, motivation = None):
+    # Update the transaction records
         transaction_data = {
             "sender": self.unique_id,
             "receiver": other_agent.unique_id,
             "amount": amount,
             "time": self.model.schedule.time,
-            "transaction_id": str(self.unique_id) + "_" + str(self.txn_counter),
-            "transaction_type": txn_type,
+            "transaction_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
+            "transaction_type": transaction_type,
+            "Motivation": motivation,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data)
 
     def step(self):
+        self.move()
         self.pay_schedule_txn()
+        self.unscheduled_txn()

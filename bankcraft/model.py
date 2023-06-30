@@ -19,10 +19,10 @@ class Model(Model):
         self._num_people = num_people
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
-        self.banks = [Bank(self) for i in range(num_banks)]
+        self.banks = [Bank(self) for _ in range(num_banks)]
         self.transactions = []
         self.num_employers = num_employers
-        self.employers = [Employer(self) for j in range(self.num_employers)]
+        self.employers = [Employer(self) for _ in range(self.num_employers)]
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
         for (u, v) in self.social_grid.edges():
@@ -59,7 +59,7 @@ class Model(Model):
             if isinstance(person, Person):
                 person.set_social_network_weights()
 
-        for i in range(self.num_merchant):
+        for _ in range(self.num_merchant):
             merchant = Merchant(self, "Restaurant", 10, 1000)
             # choosing location
             x = self.random.randrange(self.grid.width)
@@ -68,16 +68,14 @@ class Model(Model):
             self.grid.place_agent(merchant, (x, y))
 
         self.datacollector = DataCollector(
-            agent_reporters={
-                "Money": lambda a: a.money if isinstance(a, Person) else None,
-                'tx_motiv': lambda a: a.txn_motivation if isinstance(a, Person) else None,
-                'tx_motiv_score': lambda a: a.txn_motivation_score if isinstance(a, Person) else None,
-                'location': lambda a: a.pos if isinstance(a, Person) else None,
-                'account_balance': lambda a: a.bank_accounts[0][0].balance
-            },
+            agent_reporters = {"Money": lambda a: a.money,
+                                'motivation': lambda a: a.motivation,
+                               'location': lambda a: a.pos,
+                               'account_balance': lambda a: a.bank_accounts[0][0].balance
+                               },
 
-            tables={"transactions": ["sender", "receiver", "amount", "time"],
-                    "agents": ["id", "money", "location"]}
+            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type","Motivation"],
+                        "agents": ["id", "money", "location"]}
 
         )
 
@@ -86,7 +84,7 @@ class Model(Model):
         self.datacollector.collect(self)
 
     def run(self, no_steps):
-        for i in range(no_steps):
+        for _ in range(no_steps):
             self.step()
 
         # collect model state
@@ -97,15 +95,4 @@ class Model(Model):
 
         return agents_df, transactions_df
 
-    def report_transactions(self):
-        with open("transactions.csv", "w", newline="") as csvfile:
-            writer = csv.writer(csvfile)
-            writer.writerow(["TX_id", "Sender_id", "Receiver_id", "Amount", "TX_type", "Date_of_TX"])
-            for transaction in self.transactions:
-                writer.writerow([transaction.transaction_id,
-                                 transaction.get_sender_id(),
-                                 transaction.get_receiver_id(),
-                                 transaction.amount,
-                                 transaction.get_tx_type(),
-                                 transaction.date_of_transaction
-                                 ])
+
