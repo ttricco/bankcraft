@@ -1,12 +1,13 @@
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.transaction import *
 from bankcraft.steps import steps
+import random
 
 
 class Employer(GeneralAgent):
     def __init__(self, model):
         super().__init__(model)
-        self.pay_period = steps.steps['biweekly']
+        self.pay_period = random.choice([steps.steps['biweekly'], steps.steps['monthly']])
         self.employees = []
         self.initial_fund = 1000000
         self.bank_accounts = self.assign_bank_account(model, self.initial_fund)
@@ -25,4 +26,4 @@ class Employer(GeneralAgent):
     def step(self):
         if self.is_pay_date(self.model.schedule.steps):
             for i in self.employees:
-                self.pay_salary(i, i.salary)
+                self.pay_salary(i, i.salary_per_pay)

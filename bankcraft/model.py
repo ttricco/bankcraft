@@ -31,8 +31,7 @@ class Model(Model):
         self.grid = MultiGrid(width=50, height=50, torus=False)
 
         for i in range(self._num_people):
-            person = Person(self,
-                            initial_money, spending_prob, spending_amount, salary)
+            person = Person(self, initial_money)
             if i % 2 == 0:
                 self.employers[0].employees.append(person)
                 person.employer = self.employers[0]
