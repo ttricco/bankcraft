@@ -29,44 +29,8 @@ class Model(Model):
             self.social_grid.edges[u, v]['weight'] = 1 / (num_people - 1)
 
         self.grid = MultiGrid(width=50, height=50, torus=False)
-
-        for i in range(self._num_people):
-            person = Person(self,
-                            initial_money, spending_prob, spending_amount, salary)
-            if i % 2 == 0:
-                self.employers[0].employees.append(person)
-                person.employer = self.employers[0]
-            elif i % 2 == 1:
-                self.employers[1].employees.append(person)
-                person.employer = self.employers[1]
-
-            # add agent to grid in random position
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            person.set_home((x, y))
-            self.grid.place_agent(person, (x, y))
-            # choosing another location as work
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            person.set_work((x, y))
-            self.schedule.add(person)
-            person.set_social_node(i)
-
-        for i in self.employers:
-            self.schedule.add(i)
-
-        # set social network weights
-        for person in self.schedule.agents:
-            if isinstance(person, Person):
-                person.set_social_network_weights()
-
-        for _ in range(self.num_merchant):
-            merchant = Merchant(self, "Restaurant", 10, 1000)
-            # choosing location
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-
-            self.grid.place_agent(merchant, (x, y))
+        self._put_people_in_model(initial_money, spending_prob, spending_amount, salary)
+        self._put_merchants_in_model()
 
         self.datacollector = DataCollector(
             agent_reporters = {"Money": lambda a: a.money,
@@ -79,7 +43,42 @@ class Model(Model):
                         "agents": ["id", "money", "location"]}
 
         )
+    def _put_people_in_model(self, initial_money, spending_prob, spending_amount, salary):
+        for i in range(self._num_people):
+            person = Person(self,
+                            initial_money, spending_prob, spending_amount, salary)
+            if i % 2 == 0:
+                self.employers[0].employees.append(person)
+                person.employer = self.employers[0]
+            elif i % 2 == 1:
+                self.employers[1].employees.append(person)
+                person.employer = self.employers[1]
+            # add agent to grid in random position
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            person.set_home((x, y))
+            self.grid.place_agent(person, (x, y))
+            # choosing another location as work
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            person.set_work((x, y))
+            self.schedule.add(person)
+            person.set_social_node(i)
+        for i in self.employers:
+            self.schedule.add(i)
+        # set social network weights
+        for person in self.schedule.agents:
+            if isinstance(person, Person):
+                person.set_social_network_weights()
 
+    def _put_merchants_in_model(self):
+        for _ in range(self.num_merchant):
+            merchant = Merchant(self, "Restaurant", 10, 1000)
+            # choosing location
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(merchant, (x, y))
+            
     def step(self):
         self.schedule.step()
         self.datacollector.collect(self)
@@ -91,9 +90,11 @@ class Model(Model):
         # collect model state
         self.datacollector.collect(self)
 
-        agents_df = self.datacollector.get_agent_vars_dataframe()
-        transactions_df = self.datacollector.get_table_dataframe("transactions")
+        return 
 
-        return agents_df, transactions_df
-
+    def get_transactions(self):
+        return self.datacollector.get_table_dataframe("transactions")
+    
+    def get_agents(self):
+        return self.datacollector.get_table_dataframe("agents")
 

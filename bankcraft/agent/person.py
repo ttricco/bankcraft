@@ -103,11 +103,9 @@ class Person(GeneralAgent):
         transaction.do_transaction()
         self.txn_counter += 1
         self.updateMoney()
+        receiver.updateMoney()
         
-    
-
-
-
+        
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
