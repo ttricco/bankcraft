@@ -11,16 +11,23 @@ from bankcraft.steps import steps
 
 class Person(GeneralAgent):
     def __init__(self, model,
-                 initial_money,
-                 spending_prob,
-                 spending_amount,
-                 salary):
+                 initial_money):
         super().__init__(model)
         self.money = initial_money
-        self.spending_prob = spending_prob
-        self.spending_amount = spending_amount
 
-        self.salary = salary
+        self.monthly_housing_cost = np.random.normal(2000, 650)
+        self.housing_cost_frequency = random.choice([steps.step['biweekly'], steps.step['month']])
+        self.housing_cost_per_pay = self.monthly_housing_cost * self.housing_cost_frequency / steps.step['month']
+
+        self.monthly_salary = self.monthly_housing_cost / 0.34  # or np.random.normal(5500, 1800)
+        self.salary_frequency = random.choice([steps.step['biweekly'], steps.step['month']])
+        self.salary_per_pay = self.monthly_salary * self.salary_frequency / steps.step['month']
+
+        self.has_subscription = random.randint(0, 1)
+        self.subscription_amount = self.has_subscription * random.randrange(0, 100)
+        self.has_membership = random.randint(0, 1)
+        self.membership_amount = self.has_membership * random.randrange(0, 100)
+
         self.employer = None
 
         self.motivation = Motivation()
@@ -53,19 +60,19 @@ class Person(GeneralAgent):
         self.money = sum(account[0].balance for account in self.bank_accounts)
         
     def set_schedule_txn(self):
-        txn_list = [['Type', 'TotalAmount', 'Frequency', 'Probability', 'Receiver'],
-                    ['Rent/Mortgage', np.random.normal(3000, 1000), steps.steps['biweekly'], 1, self.landlord],
-                    ['Utilities', np.random.normal(loc=200, scale=50), steps.steps['month'], 1, 'Utility Company'],
-                    ['Memberships', random.randrange(0, 100), steps.steps['month'], 0.5, 'Business'],
-                    ['Subscriptions', random.randrange(0, 100), steps.steps['month'], 0.5, 'Business'],
-                    ['Bills', random.randrange(10, 300), steps.steps['month'], 1, 'Business']]
+        txn_list = [['Type', 'Amount', 'Frequency', 'Receiver'],
+                    ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
+                    ['Utilities', np.random.normal(loc=200, scale=50), steps.steps['month'], 'Utility Company'],
+                    ['Memberships', self.membership_amount, steps.steps['month'], 'Business'],
+                    ['Subscriptions', self.subscription_amount, steps.steps['month'], 'Business'],
+                    ['Bills', random.randrange(10, 300), steps.steps['month'], 'Business']]
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
         # for all types of transactions if the probability is met, and step is a multiple of frequency, do the transaction
         for index, row in self.schedule_txn.iterrows():
-            if self.model.schedule.steps % row['Frequency'] == 0 and random.random() < row['Probability']:
-                self.pay(row['TotalAmount'], row['Receiver'])
+            if self.model.schedule.steps % row['Frequency'] == 0:
+                self.pay(row['Amount'], row['Receiver'])
 
     def unscheduled_txn(self):
         for key,value in self.motivation.motivation_dict.items():

@@ -45,8 +45,7 @@ class Model(Model):
         )
     def _put_people_in_model(self, initial_money, spending_prob, spending_amount, salary):
         for i in range(self._num_people):
-            person = Person(self,
-                            initial_money, spending_prob, spending_amount, salary)
+            person = Person(self, initial_money)
             if i % 2 == 0:
                 self.employers[0].employees.append(person)
                 person.employer = self.employers[0]
