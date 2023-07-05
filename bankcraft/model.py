@@ -88,7 +88,7 @@ class Model(Model):
         for _ in range(no_steps):
             self.step()
         self.datacollector.collect(self)
-        return 
+        return self.get_agents(), self.get_transactions()
 
     def get_transactions(self):
         return self.datacollector.get_table_dataframe("transactions")
