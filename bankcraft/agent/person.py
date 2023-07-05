@@ -43,6 +43,7 @@ class Person(GeneralAgent):
         self.spending_prob = random.random()
         self.spending_amount = random.randrange(0, 100)
 
+        self._target_location = None
         
 
     def set_home(self, home):
@@ -126,16 +127,34 @@ class Person(GeneralAgent):
         self._social_network_weights[other_agent] = min(
             self._social_network_weights[other_agent], 1
         )
-
+        
     def move(self):
-        possible_steps = self.model.grid.get_neighborhood(
-            self.pos,
-            moore=True,
-            include_center=False)
-        new_position = self.random.choice(possible_steps)
-        self.motivation.update_motivation('hunger', 1)
-        self.model.grid.move_agent(self, new_position)
+        if self._target_location is None:
+            self.motivation.update_motivation('hunger', 1)
 
+        else:
+            self.move_to(self._target_location)
+            self.motivation.update_motivation('hunger', 2)
+
+    def move_to(self, new_position):
+        x, y = self.pos
+        x_new, y_new = new_position
+        x_distance = x_new - x
+        y_distance = y_new - y
+        if x_distance > 0:
+            x += 1
+        elif x_distance < 0:
+            x -= 1
+
+        if y_distance > 0:
+            y += 1
+        elif y_distance < 0:
+            y -= 1
+            
+        self.model.grid.move_agent(self, (x, y))
+        self.pos = (x, y)
+        
+        
     def go_home(self):
         self.model.grid.move_agent(self, self.home)
 

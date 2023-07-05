@@ -8,7 +8,7 @@ class GeneralAgent(Agent):
         self.unique_id = uuid4().int
         super().__init__(self.unique_id, model)
         self.bank_accounts = None
-        self.wealth = 0
+        self.wealth = 1
 
     def step(self):
         pass
