@@ -33,14 +33,16 @@ class Model(Model):
         self._put_merchants_in_model()
 
         self.datacollector = DataCollector(
-            agent_reporters = {"Wealth": lambda a: a.wealth,
-                                'motivation': lambda a: a.motivation.motivation_dict if isinstance(a, Person) else None,
+            agent_reporters = {"wealth": lambda a: a.wealth,
                                 'location': lambda a: a.pos,
-                                'account_balance': lambda a: a.bank_accounts[0][0].balance
+                                'account_balance': lambda a: a.bank_accounts[0][0].balance,
+                                'hunger level': lambda a: a.motivation.hunger if isinstance(a, Person) else None,
+                                'fatigue level': lambda a: a.motivation.fatigue if isinstance(a, Person) else None,
+                                'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
+                                'consumerism level': lambda a: a.motivation.consumer_needs if isinstance(a, Person) else None,
                                 },
 
-            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type","Motivation"],
-                        "agents": ["id", "money", "location"]}
+            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type","motivation"]}
 
         )
     def _put_people_in_model(self, initial_money, spending_prob, spending_amount, salary):

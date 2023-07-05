@@ -20,9 +20,9 @@ class Employer(GeneralAgent):
 
     def pay_salary(self, employee, amount):
         transaction = Cheque(self.bank_accounts[0][0],
-                             employee.bank_accounts[0][0],
-                             amount, self.model.schedule.steps + 1,
-                             self.unique_id)
+                            employee.bank_accounts[0][0],
+                            amount, self.model.schedule.steps + 1,
+                            self.unique_id)
         transaction.do_transaction()
         self.model.transactions.append(transaction)
 

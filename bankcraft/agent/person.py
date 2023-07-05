@@ -43,13 +43,7 @@ class Person(GeneralAgent):
         self.spending_prob = random.random()
         self.spending_amount = random.randrange(0, 100)
 
-    def update_motivation(self, key, amount):
-        value = self.motivation.motivation_dict[key] + amount
-        self.motivation.motivation_dict.update({key: value})
-
         
-    def reset_motivation(self):
-        self.motivation = Motivation()
 
     def set_home(self, home):
         self.home = home
@@ -59,8 +53,6 @@ class Person(GeneralAgent):
 
     def set_work(self, work):
         self.work = work
-
-
         
     def set_schedule_txn(self):
         txn_list = [['Type', 'Amount', 'Frequency', 'Receiver'],
@@ -78,11 +70,10 @@ class Person(GeneralAgent):
                 self.pay(row['Amount'], row['Receiver'], row['Type'])
 
     def unscheduled_txn(self):
-        for key,value in self.motivation.motivation_dict.items():
-            if value < 0:
-                self.pay(1000, key)
+        for motivation in self.motivation.motivation_list:
+            if self.motivation.get_motivation(motivation) > 20:
+                self.buy(motivation)
                 
-
         if  random.random() < 0.1:
             weight = self._social_network_weights
             recipient =  random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
@@ -142,7 +133,7 @@ class Person(GeneralAgent):
             moore=True,
             include_center=False)
         new_position = self.random.choice(possible_steps)
-        self.update_motivation('hunger', 1)
+        self.motivation.update_motivation('hunger', 1)
         self.model.grid.move_agent(self, new_position)
 
     def go_home(self):
@@ -160,7 +151,7 @@ class Person(GeneralAgent):
             "time": self.model.schedule.time,
             "transaction_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
             "transaction_type": transaction_type,
-            "Motivation": motivation,
+            "motivation": motivation,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data)
 
