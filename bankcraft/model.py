@@ -96,3 +96,9 @@ class Model(Model):
     def get_agents(self):
         return self.datacollector.get_agent_vars_dataframe()
 
+    def get_all_agents(self):
+        all_agents = []
+        for cell in self.grid.coord_iter():
+            cell_content, x, y = cell
+            all_agents.extend(cell_content)
+        return all_agents
