@@ -9,9 +9,10 @@ Here is a simple example of how to run BankCraft for now.
 ```
 import bankcraft
 
-model = bankcraft.Model()
+model = bankcraft.model.Model()
 
-df = model.run(10)
+model.run(365)
+transactions = model.get_transactions()
 
 bankcraft.utils.draw_graph(model)
 bankcraft.utils.draw_interactive_grid()

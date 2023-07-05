@@ -8,6 +8,7 @@ class GeneralAgent(Agent):
         self.unique_id = uuid4().int
         super().__init__(self.unique_id, model)
         self.bank_accounts = None
+        self.wealth = 0
 
     def step(self):
         pass
@@ -20,3 +21,6 @@ class GeneralAgent(Agent):
                 bank_accounts[bank_counter][account_counter] = BankAccount(self, bank, initial_balance, account_type)
 
         return bank_accounts
+    
+    def updateMoney(self):
+        self.wealth = sum(account[0].balance for account in self.bank_accounts)

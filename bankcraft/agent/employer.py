@@ -7,7 +7,7 @@ import random
 class Employer(GeneralAgent):
     def __init__(self, model):
         super().__init__(model)
-        self.pay_period = random.choice([steps.steps['biweekly'], steps.steps['monthly']])
+        self.pay_period = random.choice([steps['biweekly'], steps['month']])
         self.employees = []
         self.initial_fund = 1000000
         self.bank_accounts = self.assign_bank_account(model, self.initial_fund)

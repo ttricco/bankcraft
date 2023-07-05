@@ -12,8 +12,8 @@ import csv
 
 class Model(Model):
     def __init__(self, num_people=50, num_merchant=2, initial_money=1000,
-                 spending_prob=0.5, spending_amount=100,
-                 salary=1000, num_employers=2, num_banks=1):
+                spending_prob=0.5, spending_amount=100,
+                salary=1000, num_employers=2, num_banks=1):
         super().__init__()
 
         self._num_people = num_people
@@ -33,11 +33,11 @@ class Model(Model):
         self._put_merchants_in_model()
 
         self.datacollector = DataCollector(
-            agent_reporters = {"Money": lambda a: a.money,
-                                'motivation': lambda a: a.motivation,
-                               'location': lambda a: a.pos,
-                               'account_balance': lambda a: a.bank_accounts[0][0].balance
-                               },
+            agent_reporters = {"Wealth": lambda a: a.wealth,
+                                'motivation': lambda a: a.motivation.motivation_dict if isinstance(a, Person) else None,
+                                'location': lambda a: a.pos,
+                                'account_balance': lambda a: a.bank_accounts[0][0].balance
+                                },
 
             tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type","Motivation"],
                         "agents": ["id", "money", "location"]}
@@ -85,15 +85,12 @@ class Model(Model):
     def run(self, no_steps):
         for _ in range(no_steps):
             self.step()
-
-        # collect model state
         self.datacollector.collect(self)
-
         return 
 
     def get_transactions(self):
         return self.datacollector.get_table_dataframe("transactions")
     
     def get_agents(self):
-        return self.datacollector.get_table_dataframe("agents")
+        return self.datacollector.get_agent_vars_dataframe()
 

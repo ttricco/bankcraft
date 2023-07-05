@@ -13,15 +13,15 @@ class Person(GeneralAgent):
     def __init__(self, model,
                  initial_money):
         super().__init__(model)
-        self.money = initial_money
+        self.wealth = initial_money
 
         self.monthly_housing_cost = np.random.normal(2000, 650)
-        self.housing_cost_frequency = random.choice([steps.step['biweekly'], steps.step['month']])
-        self.housing_cost_per_pay = self.monthly_housing_cost * self.housing_cost_frequency / steps.step['month']
+        self.housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
+        self.housing_cost_per_pay = self.monthly_housing_cost * self.housing_cost_frequency / steps['month']
 
         self.monthly_salary = self.monthly_housing_cost / 0.34  # or np.random.normal(5500, 1800)
-        self.salary_frequency = random.choice([steps.step['biweekly'], steps.step['month']])
-        self.salary_per_pay = self.monthly_salary * self.salary_frequency / steps.step['month']
+        self.salary_frequency = random.choice([steps['biweekly'], steps['month']])
+        self.salary_per_pay = self.monthly_salary * self.salary_frequency / steps['month']
 
         self.has_subscription = random.randint(0, 1)
         self.subscription_amount = self.has_subscription * random.randrange(0, 100)
@@ -37,13 +37,17 @@ class Person(GeneralAgent):
 
         self.txn_counter = 0
         self.landlord = Business(model, business_type='Landlord')
-        self.payerBusiness = Business(model, business_type='test') # a temporary business for recieving scheduled transactions
-        self.schedule_txn = pd.DataFrame()
+        self._payerBusiness = Business(model, business_type='test') # a temporary business for recieving scheduled transactions
+        self.set_schedule_txn()
+        
+        self.spending_prob = random.random()
+        self.spending_amount = random.randrange(0, 100)
 
     def update_motivation(self, key, amount):
-        value = self.motivation.motivation_dict[key] - amount/1000
+        value = self.motivation.motivation_dict[key] + amount
         self.motivation.motivation_dict.update({key: value})
 
+        
     def reset_motivation(self):
         self.motivation = Motivation()
 
@@ -56,23 +60,22 @@ class Person(GeneralAgent):
     def set_work(self, work):
         self.work = work
 
-    def updateMoney(self):
-        self.money = sum(account[0].balance for account in self.bank_accounts)
+
         
     def set_schedule_txn(self):
         txn_list = [['Type', 'Amount', 'Frequency', 'Receiver'],
                     ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
-                    ['Utilities', np.random.normal(loc=200, scale=50), steps.steps['month'], 'Utility Company'],
-                    ['Memberships', self.membership_amount, steps.steps['month'], 'Business'],
-                    ['Subscriptions', self.subscription_amount, steps.steps['month'], 'Business'],
-                    ['Bills', random.randrange(10, 300), steps.steps['month'], 'Business']]
+                    ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
+                    ['Memberships', self.membership_amount, steps['month'], 'Business'],
+                    ['Subscriptions', self.subscription_amount, steps['month'], 'Business'],
+                    ['Bills', random.randrange(10, 300), steps['month'], 'Business']]
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
         # for all types of transactions if the probability is met, and step is a multiple of frequency, do the transaction
         for index, row in self.schedule_txn.iterrows():
             if self.model.schedule.steps % row['Frequency'] == 0:
-                self.pay(row['Amount'], row['Receiver'])
+                self.pay(row['Amount'], row['Receiver'], row['Type'])
 
     def unscheduled_txn(self):
         for key,value in self.motivation.motivation_dict.items():
@@ -126,7 +129,6 @@ class Person(GeneralAgent):
         }
         self._social_network_weights = weight
 
-
     def adjust_social_network(self, other_agent):
         self._social_network_weights[other_agent] += 0.1
         # have weights to be between 0 and 1
@@ -134,14 +136,13 @@ class Person(GeneralAgent):
             self._social_network_weights[other_agent], 1
         )
 
-
-
     def move(self):
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=True,
             include_center=False)
         new_position = self.random.choice(possible_steps)
+        self.update_motivation('hunger', 1)
         self.model.grid.move_agent(self, new_position)
 
     def go_home(self):
