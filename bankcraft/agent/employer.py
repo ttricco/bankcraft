@@ -18,15 +18,7 @@ class Employer(GeneralAgent):
     def is_pay_date(self, date):
         return date % self.pay_period == 0
 
-    # def pay_salary(self, employee, amount):
-    #     transaction = Cheque(self.bank_accounts[0][0],
-    #                          employee.bank_accounts[0][0],
-    #                          amount, self.model.schedule.steps + 1,
-    #                          self.unique_id)
-    #     transaction.do_transaction()
-    #     self.model.transactions.append(transaction)
-
     def step(self):
         if self.is_pay_date(self.model.schedule.steps):
             for i in self.employees:
-                self.pay(i.salary_per_pay, i, 'ACH', 'hunger')
+                self.pay(i.salary_per_pay, i, 'cheque', 'salary')

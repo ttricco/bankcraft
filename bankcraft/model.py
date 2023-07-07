@@ -20,7 +20,6 @@ class Model(Model):
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
         self.banks = [Bank(self) for _ in range(num_banks)]
-        self.transactions = []
         self.num_employers = num_employers
         self.employers = [Employer(self) for _ in range(self.num_employers)]
         # adding a complete graph with equal weights
@@ -87,7 +86,6 @@ class Model(Model):
     def run(self, no_steps):
         for _ in range(no_steps):
             self.step()
-        # self.datacollector.collect(self)
         return self.get_agents(), self.get_transactions()
 
     def get_transactions(self):
