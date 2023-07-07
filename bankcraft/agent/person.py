@@ -4,7 +4,6 @@ import numpy as np
 from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
-from bankcraft.transaction import *
 from bankcraft.motivation import Motivation
 from bankcraft.steps import steps
 
@@ -79,7 +78,7 @@ class Person(GeneralAgent):
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
             self.adjust_social_network(recipient)
             if random.random() < self.spending_prob:
-                self.pay(self.spending_amount, recipient, 'Social')
+                self.pay(self.spending_amount, recipient, 'ACH', 'social')
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
@@ -88,7 +87,7 @@ class Person(GeneralAgent):
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
-                self.pay(agent.price, agent, ACH, motivation)
+                self.pay(agent.price, agent, 'online', motivation)
 
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents

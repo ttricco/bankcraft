@@ -27,7 +27,7 @@ class GeneralAgent(Agent):
     def update_wealth(self):
         self.wealth = sum(account.balance for account in itertools.chain.from_iterable(self.bank_accounts))
 
-    def pay(self, amount, receiver, txn_type, motivation=None):
+    def pay(self, amount, receiver, txn_type, description):
         if type(receiver) == str:
             receiver = self._payerBusiness
         transaction = Transaction(self.bank_accounts[0][0],
@@ -38,19 +38,19 @@ class GeneralAgent(Agent):
                                   self.txn_counter,
                                   txn_type)
         transaction.do_transaction()
-        self.update_records(receiver, amount, txn_type, motivation)
+        self.update_records(receiver, amount, txn_type, description)
         self.txn_counter += 1
         self.update_wealth()
         receiver.update_wealth()
 
-    def update_records(self, other_agent, amount, transaction_type, motivation=None):
+    def update_records(self, other_agent, amount, transaction_type, description):
         transaction_data = {
             "sender": self.unique_id,
             "receiver": other_agent.unique_id,
             "amount": amount,
-            "time": self.model.schedule.time,
-            "transaction_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
-            "transaction_type": transaction_type,
-            "motivation": motivation,
+            "step": self.model.schedule.time,
+            "txn_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
+            "txn_type": transaction_type,
+            "description": description,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)

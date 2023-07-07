@@ -16,6 +16,6 @@ class Transaction:
             self.recipient_account.balance += self.amount
 
     def check_txn_type(self):
-        if str(self._txn_type).lower() not in ["cash", "wire", "onlinepayment", "ach", "cheque"]:
+        if str(self._txn_type).lower() not in ["cash", "wire", "online", "ach", "cheque"]:
             Exception("Undefined txn type")
 
