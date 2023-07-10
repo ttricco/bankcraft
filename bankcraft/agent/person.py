@@ -4,7 +4,6 @@ import numpy as np
 from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
-from bankcraft.transaction import *
 from bankcraft.motivation import Motivation
 from bankcraft.steps import steps
 
@@ -13,7 +12,6 @@ class Person(GeneralAgent):
     def __init__(self, model,
                  initial_money):
         super().__init__(model)
-        self.wealth = initial_money
 
         self.monthly_housing_cost = np.random.normal(2000, 650)
         self.housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
@@ -33,18 +31,18 @@ class Person(GeneralAgent):
         self.motivation = Motivation()
         self.txn_motivation = None
         self.txn_motivation_score = 1
+
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
-        self.txn_counter = 0
         self.landlord = Business(model, business_type='Landlord')
-        self._payerBusiness = Business(model, business_type='test') # a temporary business for recieving scheduled transactions
-        self.set_schedule_txn()
+        # a temporary business for receiving scheduled transactions
+        self._payerBusiness = Business(model, business_type='test')
+        self.schedule_txn = pd.DataFrame()
         
         self.spending_prob = random.random()
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
-        
 
     def set_home(self, home):
         self.home = home
@@ -56,7 +54,7 @@ class Person(GeneralAgent):
         self.work = work
         
     def set_schedule_txn(self):
-        txn_list = [['Type', 'Amount', 'Frequency', 'Receiver'],
+        txn_list = [['schedule_type', 'Amount', 'pay_date', 'Receiver'],
                     ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
                     ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
                     ['Memberships', self.membership_amount, steps['month'], 'Business'],
@@ -65,10 +63,10 @@ class Person(GeneralAgent):
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
-        # for all types of transactions if the probability is met, and step is a multiple of frequency, do the transaction
+        # for all types of txn if the probability is met and step is a multiple of frequency do the txn
         for index, row in self.schedule_txn.iterrows():
             if self.model.schedule.steps % row['Frequency'] == 0:
-                self.pay(row['Amount'], row['Receiver'], row['Type'])
+                self.pay(row['Amount'], row['Receiver'], "ACH", row['schedule_type'])
 
     def unscheduled_txn(self):
         for motivation in self.motivation.motivation_list:
@@ -76,17 +74,16 @@ class Person(GeneralAgent):
                 self._target_location = self.get_nearest(Merchant).pos
                 self.buy(motivation)
                 
-        if  random.random() < 0.1:
+        if random.random() < 0.1:
             weight = self._social_network_weights
-            recipient =  random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+            recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
             self.adjust_social_network(recipient)
             if random.random() < self.spending_prob:
-                self.pay(self.spending_amount, recipient, 'Social')
-
+                self.pay(self.spending_amount, recipient, 'ACH', 'social')
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
-        if self.model.grid.is_cell_empty(self.pos) == False:
+        if not self.model.grid.is_cell_empty(self.pos):
             # get the agent in this location
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
@@ -177,19 +174,6 @@ class Person(GeneralAgent):
 
     def go_work(self):
         self.model.grid.move_agent(self, self.work)
-
-    def updateRecords(self, other_agent, amount, transaction_type, motivation = None):
-    # Update the transaction records
-        transaction_data = {
-            "sender": self.unique_id,
-            "receiver": other_agent.unique_id,
-            "amount": amount,
-            "time": self.model.schedule.time,
-            "transaction_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
-            "transaction_type": transaction_type,
-            "motivation": motivation,
-        }
-        self.model.datacollector.add_table_row("transactions", transaction_data)
 
     def step(self):
         self.move()

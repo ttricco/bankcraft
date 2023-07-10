@@ -11,16 +11,15 @@ import csv
 
 
 class Model(Model):
-    def __init__(self, num_people=50, num_merchant=2, initial_money=1000,
-                spending_prob=0.5, spending_amount=100,
-                salary=1000, num_employers=2, num_banks=1):
+    def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
+                 spending_prob=0.5, spending_amount=100,
+                 num_employers=2, num_banks=1):
         super().__init__()
 
         self._num_people = num_people
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
         self.banks = [Bank(self) for _ in range(num_banks)]
-        self.transactions = []
         self.num_employers = num_employers
         self.employers = [Employer(self) for _ in range(self.num_employers)]
         # adding a complete graph with equal weights
@@ -29,23 +28,23 @@ class Model(Model):
             self.social_grid.edges[u, v]['weight'] = 1 / (num_people - 1)
 
         self.grid = MultiGrid(width=50, height=50, torus=False)
-        self._put_people_in_model(initial_money, spending_prob, spending_amount, salary)
+        self._put_people_in_model(initial_money, spending_prob, spending_amount)
         self._put_merchants_in_model()
 
         self.datacollector = DataCollector(
-            agent_reporters = {"wealth": lambda a: a.wealth,
-                                'location': lambda a: a.pos,
-                                'account_balance': lambda a: a.bank_accounts[0][0].balance,
-                                'hunger level': lambda a: a.motivation.hunger if isinstance(a, Person) else None,
-                                'fatigue level': lambda a: a.motivation.fatigue if isinstance(a, Person) else None,
-                                'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
-                                'consumerism level': lambda a: a.motivation.consumer_needs if isinstance(a, Person) else None,
-                                },
-
-            tables= {"transactions": ["sender", "receiver", "amount", "time", "transaction_id","transaction_type","motivation"]}
+            agent_reporters={"wealth": lambda a: a.wealth,
+                             'location': lambda a: a.pos,
+                             'account_balance': lambda a: a.bank_accounts[0][0].balance,
+                             'hunger level': lambda a: a.motivation.hunger if isinstance(a, Person) else None,
+                             'fatigue level': lambda a: a.motivation.fatigue if isinstance(a, Person) else None,
+                             'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
+                             'consumerism level': lambda a: a.motivation.consumer_needs if isinstance(a, Person) else None,
+                             },
+            tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id", "txn_type", "description"]}
 
         )
-    def _put_people_in_model(self, initial_money, spending_prob, spending_amount, salary):
+
+    def _put_people_in_model(self, initial_money, spending_prob, spending_amount):
         for i in range(self._num_people):
             person = Person(self, initial_money)
             if i % 2 == 0:
@@ -87,8 +86,7 @@ class Model(Model):
     def run(self, no_steps):
         for _ in range(no_steps):
             self.step()
-        self.datacollector.collect(self)
-        return 
+        return self.get_agents(), self.get_transactions()
 
     def get_transactions(self):
         return self.datacollector.get_table_dataframe("transactions")
