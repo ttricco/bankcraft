@@ -74,7 +74,6 @@ class Person(GeneralAgent):
         for motivation in self.motivation.motivation_list:
             if self.motivation.get_motivation(motivation) > 20:
                 self._target_location = self.get_nearest(Merchant).pos
-                print(f'{self.unique_id} is going to {self._target_location}')
                 self.buy(motivation)
                 
         if  random.random() < 0.1:
@@ -93,7 +92,6 @@ class Person(GeneralAgent):
             # if the agent is a merchant
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
                 self.pay(agent.price, agent, motivation)
-                print(f'{self.unique_id} bought {motivation} from {agent.unique_id}')
                 self.motivation.update_motivation(motivation, -15)
                 
             
@@ -141,7 +139,6 @@ class Person(GeneralAgent):
             self.motivation.update_motivation('hunger', 2)
 
     def move_to(self, new_position):
-        print('moving')
         x, y = self.pos
         x_new, y_new = new_position
         x_distance = x_new - x
