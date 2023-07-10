@@ -10,12 +10,15 @@ class Transaction:
         self.check_txn_type()
 
     def do_transaction(self):
-        if (self.sender_account is not None) and (self.sender_account.balance >= self.amount):
-            self.sender_account.balance -= self.amount
-        if self.recipient_account is not None:
-            self.recipient_account.balance += self.amount
+        self.check_txn_type()
+        if self.sender_account is not None:
+            if self.sender_account.balance >= self.amount:
+                self.sender_account.balance -= self.amount
+                if self.recipient_account is not None:
+                    self.recipient_account.balance += self.amount
+            else:
+                raise ValueError("txn_amount is more than account balance!")
 
     def check_txn_type(self):
         if str(self._txn_type).lower() not in ["cash", "wire", "online", "ach", "cheque"]:
-            Exception("Undefined txn type")
-
+            raise ValueError("Undefined txn type")
