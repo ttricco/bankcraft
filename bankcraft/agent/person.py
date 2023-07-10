@@ -56,10 +56,10 @@ class Person(GeneralAgent):
     def set_schedule_txn(self):
         txn_list = [['schedule_type', 'Amount', 'pay_date', 'Receiver'],
                     ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
-                    ['Utilities', np.random.normal(loc=200, scale=50), steps['month']+1, 'Utility Company'],
-                    ['Memberships', self.membership_amount, steps['month']+2, 'Business'],
-                    ['Subscriptions', self.subscription_amount, steps['month']+3, 'Business'],
-                    ['Bills', random.randrange(10, 300), steps['month']+4, 'Business']]
+                    ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
+                    ['Memberships', self.membership_amount, steps['month'], 'Business'],
+                    ['Subscriptions', self.subscription_amount, steps['month'], 'Business'],
+                    ['Bills', random.randrange(10, 300), steps['month'], 'Business']]
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
