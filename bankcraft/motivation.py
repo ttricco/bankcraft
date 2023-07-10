@@ -18,7 +18,7 @@ class Motivation:
         self.social = 1
         self.consumer_needs = 1
         
-    def get_motivation(self,key):
+    def get_motivation(self, key):
         return getattr(self, key) if hasattr(self, key) else "Invalid key"
         
 
