@@ -90,7 +90,6 @@ class Person(GeneralAgent):
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
                 self.pay(agent.price, agent, motivation)
                 self.motivation.update_motivation(motivation, -15)
-                
             
     def pay(self, amount, receiver,motivation=None):
         if type(receiver) == str:
@@ -103,9 +102,8 @@ class Person(GeneralAgent):
         self.updateRecords(receiver, amount, transaction.get_tx_type(), motivation)
         transaction.do_transaction()
         self.txn_counter += 1
-        self.updateMoney()
-        receiver.updateMoney()
-        
+        # self.updateMoney()
+        # receiver.updateMoney()
    
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
