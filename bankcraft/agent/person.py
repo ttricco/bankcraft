@@ -1,11 +1,9 @@
-import itertools
 import random
 import pandas as pd
 import numpy as np
 from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
-from bankcraft.transaction import *
 from bankcraft.motivation import Motivation
 from bankcraft.steps import steps
 
@@ -35,9 +33,7 @@ class Person(GeneralAgent):
         self.txn_motivation_score = 1
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
-        self.wealth = sum(account.balance for account in itertools.chain.from_iterable(self.bank_accounts))
 
-        self.txn_counter = 0
         self.landlord = Business(model, business_type='Landlord')
         # a temporary business for receiving scheduled transactions
         self._payerBusiness = Business(model, business_type='test')
@@ -47,7 +43,6 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
-        
 
     def set_home(self, home):
         self.home = home
@@ -59,7 +54,7 @@ class Person(GeneralAgent):
         self.work = work
         
     def set_schedule_txn(self):
-        txn_list = [['Type', 'Amount', 'Frequency', 'Receiver'],
+        txn_list = [['schedule_type', 'Amount', 'pay_date', 'Receiver'],
                     ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
                     ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
                     ['Memberships', self.membership_amount, steps['month'], 'Business'],
@@ -71,11 +66,12 @@ class Person(GeneralAgent):
         # for all types of txn if the probability is met and step is a multiple of frequency do the txn
         for index, row in self.schedule_txn.iterrows():
             if self.model.schedule.steps % row['Frequency'] == 0:
-                self.pay(row['Amount'], row['Receiver'], row['Type'])
+                self.pay(row['Amount'], row['Receiver'], "ACH", row['schedule_type'])
 
     def unscheduled_txn(self):
         for motivation in self.motivation.motivation_list:
             if self.motivation.get_motivation(motivation) > 20:
+                self._target_location = self.get_nearest(Merchant).pos
                 self.buy(motivation)
                 
         if random.random() < 0.1:
@@ -83,7 +79,7 @@ class Person(GeneralAgent):
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
             self.adjust_social_network(recipient)
             if random.random() < self.spending_prob:
-                self.pay(self.spending_amount, recipient, 'Social')
+                self.pay(self.spending_amount, recipient, 'ACH', 'social')
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
@@ -93,22 +89,24 @@ class Person(GeneralAgent):
             # if the agent is a merchant
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
                 self.pay(agent.price, agent, motivation)
+                self.motivation.update_motivation(motivation, -15)
+                
             
-    def pay(self, amount, receiver, motivation=None):
+    def pay(self, amount, receiver,motivation=None):
         if type(receiver) == str:
             receiver = self._payerBusiness
         transaction = Cheque(self.bank_accounts[0][0],
-                             receiver.bank_accounts[0][0],
-                             amount, self.model.schedule.steps,
-                             self.txn_counter
-                             )
-        self.update_records(receiver, amount, transaction.get_tx_type(), motivation)
+                                            receiver.bank_accounts[0][0],
+                                            amount, self.model.schedule.steps,
+                                            self.txn_counter
+                                            )
+        self.updateRecords(receiver, amount, transaction.get_tx_type(), motivation)
         transaction.do_transaction()
         self.txn_counter += 1
-        # self.updateMoney()
-        # receiver.updateMoney()
+        self.updateMoney()
+        receiver.updateMoney()
         
-        
+   
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
@@ -155,24 +153,27 @@ class Person(GeneralAgent):
         self.model.grid.move_agent(self, (x, y))
         self.pos = (x, y)
         
-        
+    def distance_to(self, other_agent):
+        x, y = self.pos
+        x_other, y_other = other_agent.pos
+        return np.sqrt((x - x_other) ** 2 + (y - y_other) ** 2)
+    
+    def get_nearest(self, agent_type):
+        closest = float('inf')
+        closest_agent = None
+        for agent in self.model.get_all_agents():
+            if isinstance(agent, agent_type):
+                distance = self.distance_to(agent)
+                if distance < closest:
+                    closest = distance
+                    closest_agent = agent  
+        return closest_agent
+    
     def go_home(self):
         self.model.grid.move_agent(self, self.home)
 
     def go_work(self):
         self.model.grid.move_agent(self, self.work)
-
-    def update_records(self, other_agent, amount, transaction_type, motivation=None):
-        transaction_data = {
-            "sender": self.unique_id,
-            "receiver": other_agent.unique_id,
-            "amount": amount,
-            "time": self.model.schedule.time,
-            "transaction_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
-            "transaction_type": transaction_type,
-            "motivation": motivation,
-        }
-        self.model.datacollector.add_table_row("transactions", transaction_data)
 
     def step(self):
         self.move()
