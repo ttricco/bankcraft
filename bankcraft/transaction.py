@@ -17,7 +17,8 @@ class Transaction:
                 if self.recipient_account is not None:
                     self.recipient_account.balance += self.amount
             else:
-                raise ValueError("txn_amount is more than account balance!")
+                # print("txn_amount is more than account balance!")
+                pass
 
     def check_txn_type(self):
         if str(self._txn_type).lower() not in ["cash", "wire", "online", "ach", "cheque"]:
