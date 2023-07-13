@@ -16,5 +16,5 @@ class Transaction:
     def txn_type_is_defined(self):
         return str(self._txn_type).lower() in ["cash", "wire", "online", "ach", "cheque"]
 
-    def txn_is_allowed(self):
+    def txn_is_possible(self):
         return True

@@ -19,7 +19,8 @@ class TestGeneralAgent(TestCase):
         self.agent2 = GeneralAgent(self.model)
         self.model.schedule = RandomActivation(self.model)
         self.model.datacollector = \
-            DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id", "txn_type", "txn_account", "description"]})
+            DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
+                                                   "txn_type", "sender_account_type", "description"]})
 
     def test_assign_bank_account(self):
         self.assertIsNotNone(self.agent1.bank_accounts)

@@ -15,7 +15,8 @@ txn_amount = 300
 account_types = ['chequing', 'saving', 'credit']
 model.schedule = RandomActivation(model)
 model.datacollector = \
-    DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id", "txn_type", "txn_account", "description"]})
+    DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
+                                           "txn_type", "sender_account_type", "description"]})
 
 
 @pytest.fixture
@@ -78,5 +79,5 @@ def test_updating_txn_records(agent, other_agent):
         "sender_account_type": "chequing",
         "description": "debt",
     }
-    saved_txn_data = model.datacollector.get_table_dataframe("transactions").iloc[0]
-    pd.testing.assert_series_equal(pd.Series(expected_txn_data, name=0), saved_txn_data)
+    model_txn_data = model.datacollector.get_table_dataframe("transactions").iloc[0]
+    pd.testing.assert_series_equal(pd.Series(expected_txn_data, name=0), model_txn_data)

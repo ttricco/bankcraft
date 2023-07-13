@@ -38,7 +38,7 @@ class GeneralAgent(Agent):
                                   self.unique_id,
                                   self.txn_counter,
                                   txn_type)
-        if transaction.txn_type_is_defined() and transaction.txn_is_allowed():
+        if transaction.txn_type_is_defined() and transaction.txn_is_possible():
             transaction.do_transaction()
             self.update_records(receiver, amount, txn_type, "chequing", description)
             self.txn_counter += 1
@@ -53,7 +53,7 @@ class GeneralAgent(Agent):
             "step": self.model.schedule.time,
             "txn_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
             "txn_type": transaction_type,
-            "txn_account": account_type,
+            "sender_account_type": account_type,
             "description": description,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)

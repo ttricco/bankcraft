@@ -40,7 +40,8 @@ class Model(Model):
                              'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
                              'consumerism level': lambda a: a.motivation.consumer_needs if isinstance(a, Person) else None,
                              },
-            tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id", "txn_type", "description"]}
+            tables={"transactions": ["sender", "receiver", "amount", "step",
+                                     "txn_id", "txn_type", "sender_account_type", "description"]}
 
         )
 
