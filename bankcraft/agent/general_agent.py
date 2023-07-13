@@ -7,7 +7,8 @@ from bankcraft.transaction import Transaction
 
 class GeneralAgent(Agent):
     def __init__(self, model):
-        self.unique_id = str(uuid4().int)[:10]
+        # todo "need an easy to read short version id"
+        self.unique_id = uuid4().int
         super().__init__(self.unique_id, model)
         self.bank_accounts = None
         self.wealth = 0
@@ -37,13 +38,14 @@ class GeneralAgent(Agent):
                                   self.unique_id,
                                   self.txn_counter,
                                   txn_type)
-        transaction.do_transaction()
-        self.update_records(receiver, amount, txn_type, description)
-        self.txn_counter += 1
-        self.update_wealth()
-        receiver.update_wealth()
+        if transaction.txn_type_is_defined() and transaction.txn_is_allowed():
+            transaction.do_transaction()
+            self.update_records(receiver, amount, txn_type, "chequing", description)
+            self.txn_counter += 1
+            self.update_wealth()
+            receiver.update_wealth()
 
-    def update_records(self, other_agent, amount, transaction_type, description):
+    def update_records(self, other_agent, amount, transaction_type, account_type, description):
         transaction_data = {
             "sender": self.unique_id,
             "receiver": other_agent.unique_id,
@@ -51,6 +53,7 @@ class GeneralAgent(Agent):
             "step": self.model.schedule.time,
             "txn_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
             "txn_type": transaction_type,
+            "txn_account": account_type,
             "description": description,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)
