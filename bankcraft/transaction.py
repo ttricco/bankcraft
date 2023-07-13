@@ -9,10 +9,12 @@ class Transaction:
         self._txn_type = txn_type
 
     def do_transaction(self):
-        if self.txn_type_is_defined():
-            self.sender_account.balance -= self.amount
-            if self.recipient_account is not None:
-                self.recipient_account.balance += self.amount
+        self.sender_account.balance -= self.amount
+        if self.recipient_account is not None:
+            self.recipient_account.balance += self.amount
 
     def txn_type_is_defined(self):
         return str(self._txn_type).lower() in ["cash", "wire", "online", "ach", "cheque"]
+
+    def txn_is_allowed(self):
+        return True
