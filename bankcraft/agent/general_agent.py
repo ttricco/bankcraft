@@ -38,7 +38,7 @@ class GeneralAgent(Agent):
                                   self.unique_id,
                                   self.txn_counter,
                                   txn_type)
-        if transaction.txn_type_is_defined() and transaction.txn_is_possible():
+        if transaction.txn_type_is_defined() and transaction.txn_is_authorized():
             transaction.do_transaction()
             self.update_records(receiver, amount, txn_type, "chequing", description)
             self.txn_counter += 1
