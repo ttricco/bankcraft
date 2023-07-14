@@ -6,7 +6,7 @@ from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
 from bankcraft.steps import steps
-from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate
+from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
 
 
 
@@ -57,6 +57,8 @@ class Person(GeneralAgent):
             self._target_location = self.get_nearest(Merchant).pos
         elif motivation == 'fatigue':
             self._target_location = self.home
+        elif motivation == 'social':
+            self._target_location = self.get_nearest(Person).pos
             
     def set_work(self, work):
         self.work = work
@@ -156,15 +158,27 @@ class Person(GeneralAgent):
     def live(self):
         self.motivation.update_motivation('hunger', hunger_rate)
         self.motivation.update_motivation('fatigue', fatigue_rate)
-    
+        self.motivation.update_motivation('social', social_rate)
+    def socialize(self):
+        #if there is a person in this location
+        if not self.model.grid.is_cell_empty(self.pos):
+            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+            # if the agent is a person
+            if isinstance(agent, Person):
+                self.adjust_social_network(agent)
+                self.motivation.update_motivation('social', social_rate * -10)
+                
     def motivation_handler(self):
         critical_motivation = self.motivation.get_critical_motivation()
         if critical_motivation is not None:
             self.set_target_location(critical_motivation)
             if critical_motivation == 'hunger':
                 self.buy('hunger')    
-            if critical_motivation == 'fatigue' and self.pos == self.home:
+            elif critical_motivation == 'fatigue' and self.pos == self.home:
                 self.motivation.update_motivation('fatigue', fatigue_rate * -10)
+            elif critical_motivation == 'social':
+                self.socialize()
+            
                 
     def step(self):
         self.live()
