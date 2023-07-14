@@ -96,6 +96,7 @@ class Person(GeneralAgent):
                 self.pay(agent.price, agent,'ACH' ,motivation)
                 self.motivation.update_motivation(motivation, -15)     
                               
+
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
