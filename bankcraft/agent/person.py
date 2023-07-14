@@ -45,6 +45,7 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
+        self.hungry = False
 
     def set_home(self, home):
         self.home = home
@@ -56,7 +57,8 @@ class Person(GeneralAgent):
         if motivation == 'hunger':
             self._target_location = self.get_nearest(Merchant).pos
         elif motivation == 'fatigue':
-            self._target_location = self.home.pos
+            self._target_location = self.home
+            
     def set_work(self, work):
         self.work = work
         
@@ -75,12 +77,7 @@ class Person(GeneralAgent):
             if self.model.schedule.steps % row['Frequency'] == 0:
                 self.pay(row['Amount'], row['Receiver'], "ACH", row['schedule_type'])
 
-    def unscheduled_txn(self):
-        for motivation in self.motivation.motivation_list:
-            if self.motivation.get_motivation(motivation) > motivation_threshold:
-                self.set_target_location(motivation)
-                self.buy(motivation)
-                
+    def unscheduled_txn(self):                     
         if random.random() < 0.1:
             weight = self._social_network_weights
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
@@ -95,9 +92,9 @@ class Person(GeneralAgent):
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
-                self.pay(agent.price, agent, motivation)
-                self.motivation.update_motivation(motivation, -15)
-                   
+                self.pay(agent.price, agent,'ACH' ,motivation)
+                self.motivation.update_motivation(motivation, -15)     
+                              
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
@@ -122,7 +119,7 @@ class Person(GeneralAgent):
         if self._target_location is not None:
             self.move_to(self._target_location)
             self.motivation.update_motivation('hunger', hunger_rate )
-
+            
     def move_to(self, new_position):
         x, y = self.pos
         x_new, y_new = new_position
@@ -160,9 +157,19 @@ class Person(GeneralAgent):
     def live(self):
         self.motivation.update_motivation('hunger', hunger_rate)
         self.motivation.update_motivation('fatigue', fatigue_rate)
-        
+    
+    def motivation_handler(self):
+        critical_motivation = self.motivation.get_critical_motivation()
+        if critical_motivation is not None:
+            self.set_target_location(critical_motivation)
+            if critical_motivation == 'hunger':
+                self.buy('hunger')    
+            if critical_motivation == 'fatigue' and self.pos == self.home:
+                self.motivation.update_motivation('fatigue', fatigue_rate * -10)
+                
     def step(self):
         self.live()
+        self.motivation_handler()
         self.move()
         self.pay_schedule_txn()
         self.unscheduled_txn()
