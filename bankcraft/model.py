@@ -49,10 +49,10 @@ class Model(Model):
         for i in range(self._num_people):
             person = Person(self, initial_money)
             if i % 2 == 0:
-                self.employers[0].employees.append(person)
+                self.employers[0].add_employee(person)
                 person.employer = self.employers[0]
             elif i % 2 == 1:
-                self.employers[1].employees.append(person)
+                self.employers[1].add_employee(person)
                 person.employer = self.employers[1]
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)

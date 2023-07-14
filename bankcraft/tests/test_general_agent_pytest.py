@@ -9,10 +9,9 @@ from mesa.datacollection import DataCollector
 
 
 model = Model
-account_initial_balance = 500
+account_initial_balance = 1500
 num_banks = 1
 txn_amount = 300
-account_types = ['chequing', 'saving', 'credit']
 model.schedule = RandomActivation(model)
 model.datacollector = \
     DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
@@ -45,7 +44,7 @@ def test_update_wealth_after_assigning_bank_account(agent, banks):
     agent.bank_accounts = agent.assign_bank_account(model, account_initial_balance)
     agent.update_wealth()
     assert (agent_default_wealth == 0 and
-            agent.wealth == num_banks*len(account_types)*account_initial_balance)
+            agent.wealth == num_banks*account_initial_balance)
 
 
 def test_pay_changes_chequing_balance(banks, agent, other_agent):
