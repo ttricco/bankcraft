@@ -6,6 +6,8 @@ from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
 from bankcraft.steps import steps
+from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate
+
 
 
 class Person(GeneralAgent):
@@ -50,6 +52,11 @@ class Person(GeneralAgent):
     def set_social_node(self, social_node):
         self.social_node = social_node
 
+    def set_target_location(self, motivation):
+        if motivation == 'hunger':
+            self._target_location = self.get_nearest(Merchant).pos
+        elif motivation == 'fatigue':
+            self._target_location = self.home.pos
     def set_work(self, work):
         self.work = work
         
@@ -70,8 +77,8 @@ class Person(GeneralAgent):
 
     def unscheduled_txn(self):
         for motivation in self.motivation.motivation_list:
-            if self.motivation.get_motivation(motivation) > 20:
-                self._target_location = self.get_nearest(Merchant).pos
+            if self.motivation.get_motivation(motivation) > motivation_threshold:
+                self.set_target_location(motivation)
                 self.buy(motivation)
                 
         if random.random() < 0.1:
@@ -90,23 +97,7 @@ class Person(GeneralAgent):
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
                 self.pay(agent.price, agent, motivation)
                 self.motivation.update_motivation(motivation, -15)
-                
-            
-    def pay(self, amount, receiver,motivation=None):
-        if type(receiver) == str:
-            receiver = self._payerBusiness
-        transaction = Cheque(self.bank_accounts[0][0],
-                                            receiver.bank_accounts[0][0],
-                                            amount, self.model.schedule.steps,
-                                            self.txn_counter
-                                            )
-        self.updateRecords(receiver, amount, transaction.get_tx_type(), motivation)
-        transaction.do_transaction()
-        self.txn_counter += 1
-        self.updateMoney()
-        receiver.updateMoney()
-        
-   
+                   
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
@@ -128,12 +119,9 @@ class Person(GeneralAgent):
         )
         
     def move(self):
-        if self._target_location is None:
-            self.motivation.update_motivation('hunger', 1)
-
-        else:
+        if self._target_location is not None:
             self.move_to(self._target_location)
-            self.motivation.update_motivation('hunger', 2)
+            self.motivation.update_motivation('hunger', hunger_rate )
 
     def move_to(self, new_position):
         x, y = self.pos
@@ -169,13 +157,12 @@ class Person(GeneralAgent):
                     closest_agent = agent  
         return closest_agent
     
-    def go_home(self):
-        self.model.grid.move_agent(self, self.home)
-
-    def go_work(self):
-        self.model.grid.move_agent(self, self.work)
-
+    def live(self):
+        self.motivation.update_motivation('hunger', hunger_rate)
+        self.motivation.update_motivation('fatigue', fatigue_rate)
+        
     def step(self):
+        self.live()
         self.move()
         self.pay_schedule_txn()
         self.unscheduled_txn()
