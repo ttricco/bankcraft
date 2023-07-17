@@ -36,6 +36,7 @@ class Person(GeneralAgent):
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
+        self.txn_counter = 0
         self.landlord = Business(model, business_type='Landlord')
         # a temporary business for receiving scheduled transactions
         self._payerBusiness = Business(model, business_type='test')
@@ -59,6 +60,7 @@ class Person(GeneralAgent):
             self._target_location = self.home
         elif motivation == 'social':
             self._target_location = self.get_nearest(Person).pos
+
             
     def set_work(self, work):
         self.work = work
@@ -96,7 +98,6 @@ class Person(GeneralAgent):
                 self.pay(agent.price, agent,'ACH' ,motivation)
                 self.motivation.update_motivation(motivation, -15)     
                               
-
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
@@ -123,6 +124,7 @@ class Person(GeneralAgent):
             self.motivation.update_motivation('hunger', hunger_rate )
             
     def move_to(self, new_position):
+        print('moving')
         x, y = self.pos
         x_new, y_new = new_position
         x_distance = x_new - x
@@ -144,7 +146,7 @@ class Person(GeneralAgent):
         x, y = self.pos
         x_other, y_other = other_agent.pos
         return np.sqrt((x - x_other) ** 2 + (y - y_other) ** 2)
-    
+
     def get_nearest(self, agent_type):
         closest = float('inf')
         closest_agent = None
@@ -153,9 +155,9 @@ class Person(GeneralAgent):
                 distance = self.distance_to(agent)
                 if distance < closest:
                     closest = distance
-                    closest_agent = agent  
+                    closest_agent = agent
         return closest_agent
-    
+      
     def live(self):
         self.motivation.update_motivation('hunger', hunger_rate)
         self.motivation.update_motivation('fatigue', fatigue_rate)
@@ -169,6 +171,7 @@ class Person(GeneralAgent):
                 self.adjust_social_network(agent)
                 self.motivation.update_motivation('social', social_rate * -10)
                 
+
     def motivation_handler(self):
         critical_motivation = self.motivation.get_critical_motivation()
         if critical_motivation is not None:
