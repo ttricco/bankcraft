@@ -20,5 +20,15 @@ class Employer(GeneralAgent):
 
     def step(self):
         if self.is_pay_date(self.model.schedule.steps):
-            for i in self.employees:
-                self.pay(i.salary_per_pay, i, 'cheque', 'salary')
+            self.pay_salary()
+
+    def add_employee(self, person):
+        self.employees.append(person)
+
+    def remove_employee(self, person):
+        self.employees.remove(person)
+
+    def pay_salary(self):
+        for i in self.employees:
+            self.pay(i.salary_per_pay, i, 'cheque', 'salary')
+
