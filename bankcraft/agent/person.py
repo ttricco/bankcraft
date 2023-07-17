@@ -17,9 +17,10 @@ class Person(GeneralAgent):
         self.housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
         self.housing_cost_per_pay = self.monthly_housing_cost * self.housing_cost_frequency / steps['month']
 
-        self.monthly_salary = self.monthly_housing_cost / 0.34  # or np.random.normal(5500, 1800)
+        self.yearly_income = np.random.normal(66800, 9000)
         self.salary_frequency = random.choice([steps['biweekly'], steps['month']])
-        self.salary_per_pay = self.monthly_salary * self.salary_frequency / steps['month']
+        self.num_pays_per_year = steps['year'] // self.salary_frequency
+        self.salary_per_pay = self.yearly_income / self.num_pays_per_year
 
         self.has_subscription = random.randint(0, 1)
         self.subscription_amount = self.has_subscription * random.randrange(0, 100)
@@ -34,7 +35,6 @@ class Person(GeneralAgent):
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
-        self.txn_counter = 0
         self.landlord = Business(model, business_type='Landlord')
         # a temporary business for receiving scheduled transactions
         self._payerBusiness = Business(model, business_type='test')
