@@ -55,7 +55,9 @@ class Person(GeneralAgent):
         self.work = work
         
     def set_schedule_txn(self):
-        txn_list = [['schedule_type', 'Amount', 'pay_date', 'Receiver'],
+        # todo: include insurance, car lease, loan, tuition
+        #  if the account balance is not enough they must be paid in future including the interest
+        txn_list = [['scheduled_expenses', 'Amount', 'pay_date', 'Receiver'],
                     ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
                     ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
                     ['Memberships', self.membership_amount, steps['month'], 'Business'],
@@ -64,12 +66,17 @@ class Person(GeneralAgent):
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
-        # for all types of txn if the probability is met and step is a multiple of frequency do the txn
         for index, row in self.schedule_txn.iterrows():
             if self.model.schedule.steps % row['Frequency'] == 0:
-                self.pay(row['Amount'], row['Receiver'], "ACH", row['schedule_type'])
+                self.pay(amount=row['Amount'],
+                         receiver=row['Receiver'],
+                         txn_type="ACH",
+                         description=row['scheduled_expenses'])
 
     def unscheduled_txn(self):
+        # todo: work with motivation (affected by time and date and previous txns)
+        #  include buying from merchant, car gas, restaurant, medical expenses, recreational activities,
+        #  saving, trip and seasonal expenses
         for motivation in self.motivation.motivation_list:
             if self.motivation.get_motivation(motivation) > 20:
                 self._target_location = self.get_nearest(Merchant).pos
