@@ -55,7 +55,7 @@ class Person(GeneralAgent):
         self.work = work
         
     def set_schedule_txn(self):
-        # todo: include insurance, car lease, loan, tuition
+        #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
         #  if the account balance is not enough they must be paid in future including the interest
         txn_list = [['scheduled_expenses', 'Amount', 'pay_date', 'Receiver'],
                     ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
@@ -74,7 +74,7 @@ class Person(GeneralAgent):
                          description=row['scheduled_expenses'])
 
     def unscheduled_txn(self):
-        # todo: work with motivation (affected by time and date and previous txns)
+        #  work with motivation (affected by time and date and previous txns)
         #  include buying from merchant, car gas, restaurant, medical expenses, recreational activities,
         #  saving, trip and seasonal expenses
         for motivation in self.motivation.motivation_list:
