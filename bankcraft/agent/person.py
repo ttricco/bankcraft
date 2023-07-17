@@ -36,6 +36,7 @@ class Person(GeneralAgent):
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
+        self.txn_counter = 0
         self.landlord = Business(model, business_type='Landlord')
         # a temporary business for receiving scheduled transactions
         self._payerBusiness = Business(model, business_type='test')
@@ -76,7 +77,9 @@ class Person(GeneralAgent):
             if self.model.schedule.steps % row['Frequency'] == 0:
                 self.pay(row['Amount'], row['Receiver'], "ACH", row['schedule_type'])
 
+
     def unscheduled_txn(self):                     
+
         if random.random() < 0.1:
             weight = self._social_network_weights
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
@@ -120,6 +123,7 @@ class Person(GeneralAgent):
             self.motivation.update_motivation('hunger', hunger_rate )
             
     def move_to(self, new_position):
+        print('moving')
         x, y = self.pos
         x_new, y_new = new_position
         x_distance = x_new - x
@@ -141,7 +145,7 @@ class Person(GeneralAgent):
         x, y = self.pos
         x_other, y_other = other_agent.pos
         return np.sqrt((x - x_other) ** 2 + (y - y_other) ** 2)
-    
+
     def get_nearest(self, agent_type):
         closest = float('inf')
         closest_agent = None
@@ -150,9 +154,9 @@ class Person(GeneralAgent):
                 distance = self.distance_to(agent)
                 if distance < closest:
                     closest = distance
-                    closest_agent = agent  
+                    closest_agent = agent
         return closest_agent
-    
+
     def live(self):
         self.motivation.update_motivation('hunger', hunger_rate)
         self.motivation.update_motivation('fatigue', fatigue_rate)
@@ -165,7 +169,7 @@ class Person(GeneralAgent):
                 self.buy('hunger')    
             if critical_motivation == 'fatigue' and self.pos == self.home:
                 self.motivation.update_motivation('fatigue', fatigue_rate * -10)
-                
+
     def step(self):
         self.live()
         self.motivation_handler()
