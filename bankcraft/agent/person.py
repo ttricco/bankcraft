@@ -44,6 +44,7 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
+        self.txn_counter = 0
 
     def set_home(self, home):
         self.home = home

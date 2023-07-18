@@ -66,6 +66,9 @@ def test_undefined_tnx_type_does_not_change_wealth(banks, agent, other_agent):
 
 
 def test_updating_txn_records(agent, other_agent):
+    model.datacollector = \
+        DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
+                                               "txn_type", "sender_account_type", "description"]})
     agent.update_records(other_agent, txn_amount, "cheque", "chequing", "debt")
     model.datacollector.collect(model)
     expected_txn_data = {
