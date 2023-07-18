@@ -5,8 +5,7 @@ from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
-from bankcraft.steps import steps
-from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
+from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate,steps
 
 
 
@@ -124,7 +123,6 @@ class Person(GeneralAgent):
             self.motivation.update_motivation('hunger', hunger_rate )
             
     def move_to(self, new_position):
-        print('moving')
         x, y = self.pos
         x_new, y_new = new_position
         x_distance = x_new - x
@@ -162,6 +160,7 @@ class Person(GeneralAgent):
         self.motivation.update_motivation('hunger', hunger_rate)
         self.motivation.update_motivation('fatigue', fatigue_rate)
         self.motivation.update_motivation('social', social_rate)
+        
     def socialize(self):
         #if there is a person in this location
         if not self.model.grid.is_cell_empty(self.pos):
