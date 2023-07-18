@@ -7,7 +7,6 @@ from bankcraft.agent.merchant import Merchant
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
-import csv
 
 
 class Model(Model):
@@ -87,7 +86,7 @@ class Model(Model):
     def run(self, no_steps):
         for _ in range(no_steps):
             self.step()
-        return self.get_agents(), self.get_transactions()
+        return 
 
     def get_transactions(self):
         return self.datacollector.get_table_dataframe("transactions")

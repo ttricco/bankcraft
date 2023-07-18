@@ -52,4 +52,3 @@ def draw_interactive_grid():
     server.port = 8521  # The default
     server.launch()
 
-

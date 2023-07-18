@@ -5,8 +5,7 @@ from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
-from bankcraft.steps import steps
-from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
+from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate,steps
 
 
 
@@ -60,7 +59,6 @@ class Person(GeneralAgent):
             self._target_location = self.home
         elif motivation == 'social':
             self._target_location = self.get_nearest(Person).pos
-
             
     def set_work(self, work):
         self.work = work
@@ -118,50 +116,11 @@ class Person(GeneralAgent):
             self._social_network_weights[other_agent], 1
         )
         
-    def move(self):
-        if self._target_location is not None:
-            self.move_to(self._target_location)
-            self.motivation.update_motivation('hunger', hunger_rate )
-            
-    def move_to(self, new_position):
-        print('moving')
-        x, y = self.pos
-        x_new, y_new = new_position
-        x_distance = x_new - x
-        y_distance = y_new - y
-        if x_distance > 0:
-            x += 1
-        elif x_distance < 0:
-            x -= 1
-
-        if y_distance > 0:
-            y += 1
-        elif y_distance < 0:
-            y -= 1
-            
-        self.model.grid.move_agent(self, (x, y))
-        self.pos = (x, y)
-        
-    def distance_to(self, other_agent):
-        x, y = self.pos
-        x_other, y_other = other_agent.pos
-        return np.sqrt((x - x_other) ** 2 + (y - y_other) ** 2)
-
-    def get_nearest(self, agent_type):
-        closest = float('inf')
-        closest_agent = None
-        for agent in self.model.get_all_agents():
-            if isinstance(agent, agent_type):
-                distance = self.distance_to(agent)
-                if distance < closest:
-                    closest = distance
-                    closest_agent = agent
-        return closest_agent
-      
     def live(self):
         self.motivation.update_motivation('hunger', hunger_rate)
         self.motivation.update_motivation('fatigue', fatigue_rate)
         self.motivation.update_motivation('social', social_rate)
+        
     def socialize(self):
         #if there is a person in this location
         if not self.model.grid.is_cell_empty(self.pos):

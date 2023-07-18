@@ -1,6 +1,6 @@
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.transaction import *
-from bankcraft.steps import steps
+from bankcraft.config import steps
 import random
 
 

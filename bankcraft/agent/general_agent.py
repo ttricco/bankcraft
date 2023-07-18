@@ -3,6 +3,8 @@ from bankcraft.bank_account import BankAccount
 from uuid import uuid4
 import itertools
 from bankcraft.transaction import Transaction
+from bankcraft.config import hunger_rate
+import numpy as np
 
 
 class GeneralAgent(Agent):
@@ -57,3 +59,42 @@ class GeneralAgent(Agent):
             "description": description,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)
+        
+    def move(self):
+        if self._target_location is not None:
+            self.move_to(self._target_location)
+            self.motivation.update_motivation('hunger', hunger_rate )
+            
+    def move_to(self, new_position):
+        x, y = self.pos
+        x_new, y_new = new_position
+        x_distance = x_new - x
+        y_distance = y_new - y
+        if x_distance > 0:
+            x += 1
+        elif x_distance < 0:
+            x -= 1
+
+        if y_distance > 0:
+            y += 1
+        elif y_distance < 0:
+            y -= 1
+            
+        self.model.grid.move_agent(self, (x, y))
+        self.pos = (x, y)
+        
+    def distance_to(self, other_agent):
+        x, y = self.pos
+        x_other, y_other = other_agent.pos
+        return np.sqrt((x - x_other) ** 2 + (y - y_other) ** 2)
+
+    def get_nearest(self, agent_type):
+        closest = float('inf')
+        closest_agent = None
+        for agent in self.model.get_all_agents():
+            if isinstance(agent, agent_type):
+                distance = self.distance_to(agent)
+                if distance < closest:
+                    closest = distance
+                    closest_agent = agent
+        return closest_agent
