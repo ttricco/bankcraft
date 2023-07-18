@@ -8,29 +8,28 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
 
-model = Model
 num_banks = 1
-model.schedule = RandomActivation(model)
-model.datacollector = \
+Model.schedule = RandomActivation(Model)
+Model.datacollector = \
     DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
                                            "txn_type", "sender_account_type", "description"]})
 
 
 @pytest.fixture
 def person():
-    return Person(model, 500)
+    return Person(Model, 500)
 
 
 @pytest.fixture
 def employers(banks):
-    model.employers = [Employer(model) for _ in range(1)]
-    return model.employers
+    Model.employers = [Employer(Model) for _ in range(1)]
+    return Model.employers
 
 
 @pytest.fixture
 def banks():
-    model.banks = [Bank(model) for _ in range(num_banks)]
-    return model.banks
+    Model.banks = [Bank(Model) for _ in range(num_banks)]
+    return Model.banks
 
 
 def test_add_employee(employers, person, banks):
@@ -41,8 +40,8 @@ def test_add_employee(employers, person, banks):
 
 def test_remove_employee(employers, person, banks):
     employers[0].add_employee(person)
-    second_person = Person(model, 500)
-    third_person = Person(model, 500)
+    second_person = Person(Model, 500)
+    third_person = Person(Model, 500)
     employers[0].add_employee(second_person)
     employers[0].add_employee(third_person)
     initial_num_employees = len(employers[0].employees)
@@ -62,7 +61,7 @@ def test_after_30weeks_is_pay_date(employers):
 
 def test_pay_salary_changes_the_employees_wealth(employers, person, banks):
     employers[0].add_employee(person)
-    person.bank_accounts = person.assign_bank_account(model, 10)
+    person.bank_accounts = person.assign_bank_account(Model, 10)
     person.update_wealth()
     employees_initial_wealth = person.wealth
     employers[0].pay_salary()
