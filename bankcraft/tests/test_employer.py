@@ -15,6 +15,7 @@ model.datacollector = \
     DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
                                            "txn_type", "sender_account_type", "description"]})
 
+
 @pytest.fixture
 def person():
     return Person(model, 500)
@@ -65,5 +66,5 @@ def test_pay_salary_changes_the_employees_wealth(employers, person, banks):
     person.update_wealth()
     employees_initial_wealth = person.wealth
     employers[0].pay_salary()
-    assert person.wealth > employees_initial_wealth
+    assert person.wealth == employees_initial_wealth + person.salary_per_pay
 
