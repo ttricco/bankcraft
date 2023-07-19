@@ -19,9 +19,10 @@ class Person(GeneralAgent):
         self.housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
         self.housing_cost_per_pay = self.monthly_housing_cost * self.housing_cost_frequency / steps['month']
 
-        self.monthly_salary = self.monthly_housing_cost / 0.34  # or np.random.normal(5500, 1800)
+        self.yearly_income = np.random.normal(66800, 9000)
         self.salary_frequency = random.choice([steps['biweekly'], steps['month']])
-        self.salary_per_pay = self.monthly_salary * self.salary_frequency / steps['month']
+        self.num_pays_per_year = steps['year'] // self.salary_frequency
+        self.salary_per_pay = self.yearly_income / self.num_pays_per_year
 
         self.has_subscription = random.randint(0, 1)
         self.subscription_amount = self.has_subscription * random.randrange(0, 100)
@@ -36,7 +37,6 @@ class Person(GeneralAgent):
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
-        self.txn_counter = 0
         self.landlord = Business(model, business_type='Landlord')
         # a temporary business for receiving scheduled transactions
         self._payerBusiness = Business(model, business_type='test')
@@ -61,12 +61,14 @@ class Person(GeneralAgent):
         elif motivation == 'social':
             self._target_location = self.get_nearest(Person).pos
 
-            
+
     def set_work(self, work):
         self.work = work
         
     def set_schedule_txn(self):
-        txn_list = [['schedule_type', 'Amount', 'pay_date', 'Receiver'],
+        #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
+        #  if the account balance is not enough they must be paid in future including the interest
+        txn_list = [['scheduled_expenses', 'Amount', 'pay_date', 'Receiver'],
                     ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
                     ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
                     ['Memberships', self.membership_amount, steps['month'], 'Business'],
@@ -75,12 +77,24 @@ class Person(GeneralAgent):
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
-        # for all types of txn if the probability is met and step is a multiple of frequency do the txn
         for index, row in self.schedule_txn.iterrows():
             if self.model.schedule.steps % row['Frequency'] == 0:
-                self.pay(row['Amount'], row['Receiver'], "ACH", row['schedule_type'])
+                self.pay(amount=row['Amount'],
+                         receiver=row['Receiver'],
+                         txn_type="ACH",
+                         description=row['scheduled_expenses'])
 
-    def unscheduled_txn(self):                     
+    def unscheduled_txn(self):
+        #  work with motivation (affected by time and date and previous txns)
+        #  include buying from merchant, car gas, restaurant, medical expenses, recreational activities,
+        #  saving, trip and seasonal expenses
+        for motivation in self.motivation.motivation_list:
+            if self.motivation.get_motivation(motivation) > 20:
+                self._target_location = self.get_nearest(Merchant).pos
+                print(f'{self.unique_id} is going to {self._target_location}')
+                self.buy(motivation)
+                
+    def unscheduled_txn(self):
         if random.random() < 0.1:
             weight = self._social_network_weights
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
@@ -96,8 +110,8 @@ class Person(GeneralAgent):
             # if the agent is a merchant
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
                 self.pay(agent.price, agent,'ACH' ,motivation)
-                self.motivation.update_motivation(motivation, -15)     
-                              
+                self.motivation.update_motivation(motivation, -15)
+
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
@@ -122,7 +136,7 @@ class Person(GeneralAgent):
         if self._target_location is not None:
             self.move_to(self._target_location)
             self.motivation.update_motivation('hunger', hunger_rate )
-            
+
     def move_to(self, new_position):
         print('moving')
         x, y = self.pos
@@ -157,7 +171,7 @@ class Person(GeneralAgent):
                     closest = distance
                     closest_agent = agent
         return closest_agent
-      
+
     def live(self):
         self.motivation.update_motivation('hunger', hunger_rate)
         self.motivation.update_motivation('fatigue', fatigue_rate)
@@ -170,20 +184,20 @@ class Person(GeneralAgent):
             if isinstance(agent, Person):
                 self.adjust_social_network(agent)
                 self.motivation.update_motivation('social', social_rate * -10)
-                
+
 
     def motivation_handler(self):
         critical_motivation = self.motivation.get_critical_motivation()
         if critical_motivation is not None:
             self.set_target_location(critical_motivation)
             if critical_motivation == 'hunger':
-                self.buy('hunger')    
+                self.buy('hunger')
             elif critical_motivation == 'fatigue' and self.pos == self.home:
                 self.motivation.update_motivation('fatigue', fatigue_rate * -10)
             elif critical_motivation == 'social':
                 self.socialize()
-            
-                
+
+
     def step(self):
         self.live()
         self.motivation_handler()

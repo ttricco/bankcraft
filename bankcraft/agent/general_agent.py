@@ -7,7 +7,7 @@ from bankcraft.transaction import Transaction
 
 class GeneralAgent(Agent):
     def __init__(self, model):
-        # todo "need an easy to read short version id"
+        # todo "need an easy-to-read short version id"
         self.unique_id = uuid4().int
         super().__init__(self.unique_id, model)
         self.bank_accounts = None

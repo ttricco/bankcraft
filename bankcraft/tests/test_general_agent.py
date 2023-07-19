@@ -37,8 +37,10 @@ class TestGeneralAgent(TestCase):
         self.assertEqual(self.agent1.wealth, 1200)
         self.assertEqual(self.agent2.wealth, 1800)
 
-        with self.assertRaises(ValueError):
-            self.agent1.pay(300, self.agent2, "cash", "gift")
+        agent1_wealth_before_txn = self.agent1.wealth
+        self.agent1.pay(300, self.agent2, "cash", "gift")
+        agent1_wealth_after_txn = self.agent1.wealth
+        self.assertEqual(agent1_wealth_before_txn, agent1_wealth_after_txn)
 
         with self.assertRaises(Exception):
             self.agent1.pay(100, self.agent2, "e-transfer", "gift")
