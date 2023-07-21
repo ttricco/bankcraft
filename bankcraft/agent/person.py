@@ -30,8 +30,8 @@ class Person(GeneralAgent):
         self.employer = None
 
         self.motivation = Motivation()
-        self.txn_motivation = None
-        self.txn_motivation_score = 1
+        # self.txn_motivation = None
+        # self.txn_motivation_score = 1
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
