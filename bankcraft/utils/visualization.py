@@ -1,36 +1,23 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
-from mesa.visualization.modules import CanvasGrid
-from mesa.visualization.ModularVisualization import ModularServer
-
+import mesa
 from ..model import Model
 from bankcraft.agent.merchant import Merchant
 from ..agent.person import Person
 
 
-def _agent_portrayal(agent):
-    portrayal = {
-        "Shape": "circle",
-        "Filled": "true",
-    }
-    if type(agent) is Person:
-        portrayal["color"] = "red"
-        if agent.wealth > 0:
-            _extracted_from__agent_portrayal_9("green", portrayal, agent, 1)
-            portrayal['wealth'] = agent.wealth
-            portrayal['agent number'] = agent.social_node
-
-    elif type(agent) is Merchant:
-        _extracted_from__agent_portrayal_9("blue", portrayal, agent, 0)
+def agent_portrayal(agent):
+    portrayal = {"Shape": "circle",
+                 "Filled": "true",
+                 "Layer": 0,
+                 "Color": "red",
+                 "r": 0.5}
+    if type(agent) is Merchant:
+        portrayal["Color"] = "Green"
+        
     return portrayal
 
-
-# TODO Rename this here and in `_agent_portrayal`
-def _extracted_from__agent_portrayal_9(arg0, portrayal, agent, arg3):
-    portrayal["Color"] = arg0
-    portrayal["r"] = 0.5 * np.log2(agent.wealth)
-    portrayal["Layer"] = arg3
 
 
 def draw_graph(model):
@@ -44,11 +31,17 @@ def draw_graph(model):
     plt.savefig("graph.png")
 
 
-def draw_interactive_grid():
-    grid = CanvasGrid(_agent_portrayal, 50, 50, 500, 500)
-    server = ModularServer(
-        Model, [grid], "wealth Model", {}
-    )
-    server.port = 8521  # The default
+def draw_interactive_grid(port):
+    parameters = {"num_people": 5, "num_merchant": 2, "initial_money": 1000,
+              "spending_prob": 0.5, "spending_amount": 100, "num_employers": 2, "num_banks": 1}
+    grid = mesa.visualization.CanvasGrid(agent_portrayal, 50, 50, 500, 500)
+    chart = mesa.visualization.ChartModule([{'Label': 'Wealth'}])
+    server = mesa.visualization.ModularServer(Model,
+                        [grid],
+                        "BankCraft Model",
+                        parameters)
+    server.port = port # The default
     server.launch()
+
+
 

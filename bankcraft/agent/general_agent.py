@@ -15,6 +15,7 @@ class GeneralAgent(Agent):
         self.bank_accounts = None
         self.wealth = 0
         self.txn_counter = 0
+        self.type = 'general_agent'
 
     def step(self):
         pass

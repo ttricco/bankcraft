@@ -11,4 +11,5 @@ class Merchant(GeneralAgent):
         self._type = type
         self.price = price
         self.bank_accounts = self.assign_bank_account(model, self.wealth)
+        self.type = 'merchant'
 

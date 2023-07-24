@@ -33,6 +33,7 @@ class Model(Model):
         self.datacollector = DataCollector(
             agent_reporters={"wealth": lambda a: a.wealth,
                              'location': lambda a: a.pos,
+                             'Agent type': lambda a: a.type,
                              'account_balance': lambda a: a.bank_accounts[0][0].balance,
                              'hunger level': lambda a: a.motivation.hunger if isinstance(a, Person) else None,
                              'fatigue level': lambda a: a.motivation.fatigue if isinstance(a, Person) else None,

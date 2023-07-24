@@ -14,6 +14,7 @@ class Employer(GeneralAgent):
         # These are for use of agent reporter and needs to be handled better in the future
         self.wealth = self.initial_fund
         self.motivation = None
+        self.type = 'employer'
 
     def is_pay_date(self, date):
         return date % self.pay_period == 0
