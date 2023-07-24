@@ -13,19 +13,19 @@ class Person(GeneralAgent):
                  initial_money):
         super().__init__(model)
 
-        self.monthly_housing_cost = np.random.normal(2000, 650)
-        self.housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
-        self.housing_cost_per_pay = self.monthly_housing_cost * self.housing_cost_frequency / steps['month']
+        self._monthly_housing_cost = np.random.normal(2000, 650)
+        self._housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
+        self._housing_cost_per_pay = self._monthly_housing_cost * self._housing_cost_frequency / steps['month']
 
-        self.yearly_income = np.random.normal(66800, 9000)
-        self.salary_frequency = random.choice([steps['biweekly'], steps['month']])
-        self.num_pays_per_year = steps['year'] // self.salary_frequency
-        self.salary_per_pay = self.yearly_income / self.num_pays_per_year
+        self._yearly_income = np.random.normal(66800, 9000)
+        self._salary_frequency = random.choice([steps['biweekly'], steps['month']])
+        self._num_pays_per_year = steps['year'] // self._salary_frequency
+        self.salary_per_pay = self._yearly_income / self._num_pays_per_year
 
-        self.has_subscription = random.randint(0, 1)
-        self.subscription_amount = self.has_subscription * random.randrange(0, 100)
-        self.has_membership = random.randint(0, 1)
-        self.membership_amount = self.has_membership * random.randrange(0, 100)
+        self._has_subscription = random.randint(0, 1)
+        self._subscription_amount = self._has_subscription * random.randrange(0, 100)
+        self._has_membership = random.randint(0, 1)
+        self._membership_amount = self._has_membership * random.randrange(0, 100)
 
         self.employer = None
 
@@ -35,7 +35,7 @@ class Person(GeneralAgent):
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
-        self.landlord = Business(model, business_type='Landlord')
+        self._landlord = Business(model, business_type='Landlord')
         # a temporary business for receiving scheduled transactions
         self._payerBusiness = Business(model, business_type='test')
         self.schedule_txn = pd.DataFrame()
@@ -44,7 +44,7 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
-        self.txn_counter = 0
+        # self.txn_counter = 0
 
     def set_home(self, home):
         self.home = home
@@ -59,10 +59,10 @@ class Person(GeneralAgent):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
         #  if the account balance is not enough they must be paid in future including the interest
         txn_list = [['scheduled_expenses', 'Amount', 'pay_date', 'Receiver'],
-                    ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
+                    ['Rent/Mortgage', self._housing_cost_per_pay, self._housing_cost_frequency, self._landlord],
                     ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
-                    ['Memberships', self.membership_amount, steps['month'], 'Business'],
-                    ['Subscriptions', self.subscription_amount, steps['month'], 'Business'],
+                    ['Memberships', self._membership_amount, steps['month'], 'Business'],
+                    ['Subscriptions', self._subscription_amount, steps['month'], 'Business'],
                     ['Bills', random.randrange(10, 300), steps['month'], 'Business']]
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
@@ -157,7 +157,7 @@ class Person(GeneralAgent):
     def get_nearest(self, agent_type):
         closest = float('inf')
         closest_agent = None
-        for agent in self.model.get_all_agents():
+        for agent in self.model.get_all_agents_on_grid():
             if isinstance(agent, agent_type):
                 distance = self.distance_to(agent)
                 if distance < closest:

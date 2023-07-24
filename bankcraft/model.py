@@ -35,7 +35,7 @@ class Model(Model):
         self.datacollector = DataCollector(
             agent_reporters={"wealth": lambda a: a.wealth,
                              'location': lambda a: a.pos,
-                             'account_balance': lambda a: a.bank_accounts[0][0].balance,
+                             'account_balance': lambda a: a.bank_accounts[0][0].balance if isinstance(a, Person) else None,
                              'hunger level': lambda a: a.motivation.hunger if isinstance(a, Person) else None,
                              'fatigue level': lambda a: a.motivation.fatigue if isinstance(a, Person) else None,
                              'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
@@ -45,18 +45,6 @@ class Model(Model):
                                      "txn_id", "txn_type", "sender_account_type", "description"]}
 
         )
-
-    def get_num_people(self):
-        return self._num_people
-
-    def get_num_employers(self):
-        return self._num_employers
-
-    def get_num_merchants(self):
-        return self._num_merchant
-
-    def get_num_banks(self):
-        return self._num_banks
 
     def _put_people_in_model(self, initial_money):
         for i in range(self._num_people):
