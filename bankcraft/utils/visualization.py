@@ -125,4 +125,16 @@ class visualization():
         sns.barplot(x='receiver', y='amount', hue='description', data=df, ax=ax)
         ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.receiver.unique()], rotation=45, horizontalalignment='right')
         plt.show()
+        
+    def motivation_plot(self, agentID):
+        df = self.agents[self.agents['AgentID'] == agentID]
+        fig, ax = plt.subplots(figsize=(15, 6))
+        ax.plot(df['Step'], df['hunger level'], color='red')
+        ax.plot(df['Step'], df['fatigue level'], color='blue')
+        ax.plot(df['Step'], df['social level'], color='green')
+        ax.set_title("Motivation over time")
+        ax.set_ylabel("Motivation")
+        ax.set_xlabel("Step")
+        ax.legend(['hunger level', 'fatigue level', 'social level'])
+        
 
