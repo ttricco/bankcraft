@@ -93,5 +93,36 @@ class visualization():
             plt.show()
         
 
+    # def distribution_plot(self):
+    #     fig, ax = plt.subplots(figsize=(15, 6))
+    #     df = self.agents[self.agents["Agent type"] == "person"]
+    #     df = df.groupby(['AgentID', 'Step']).last().reset_index()
+    #     sns.distplot(df['wealth'], ax=ax)
+    #     ax.set_title("Money Distribution")
+    #     ax.set_ylabel("Density")
+    #     ax.set_xlabel("Money")
+    
+    def sender_bar_plot(self,include='all'):
+        if include == 'all':
+            df = self.transactions
+        else:
+            df = self.transactions[self.transactions['sender'] == include]  
+            
+        df = df.groupby(['sender', 'description']).sum().reset_index()
+        fig, ax = plt.subplots(figsize=(15, 6))
+        sns.barplot(x='sender', y='amount', hue='description', data=df, ax=ax)
+        ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.sender.unique()], rotation=45, horizontalalignment='right')
 
+        plt.show()
+
+    def receiver_bar_plot(self,include='all'):
+        if include == 'all':
+            df = self.transactions
+        else:
+            df = self.transactions[self.transactions['receiver'] == include]
+        df = df.groupby(['receiver', 'description']).sum().reset_index()
+        fig, ax = plt.subplots(figsize=(15, 6))
+        sns.barplot(x='receiver', y='amount', hue='description', data=df, ax=ax)
+        ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.receiver.unique()], rotation=45, horizontalalignment='right')
+        plt.show()
 
