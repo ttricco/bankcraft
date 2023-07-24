@@ -79,6 +79,8 @@ class Model(Model):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(merchant, (x, y))
+            # add to data collector
+            self.schedule.add(merchant)
             
     def step(self):
         self.schedule.step()
