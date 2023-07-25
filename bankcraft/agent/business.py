@@ -9,4 +9,5 @@ class Business(GeneralAgent):
         self._type = business_type
         self.initial_money = 0
         self.bank_accounts = self.assign_bank_account(model, self.initial_money)
+        self.type = 'business'
 

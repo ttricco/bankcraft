@@ -13,9 +13,9 @@ model = bankcraft.model.Model()
 
 model.run(365)
 transactions = model.get_transactions()
-
-bankcraft.utils.draw_graph(model)
-bankcraft.utils.draw_interactive_grid()
+agents = model.get_agents()
+vis = bankcraft.utils.visualization.visualization(model, agents, transactions)
+vis.grid_plot()
 ```
 
 ## Access

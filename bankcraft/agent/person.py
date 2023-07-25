@@ -13,7 +13,7 @@ class Person(GeneralAgent):
     def __init__(self, model,
                  initial_money):
         super().__init__(model)
-
+        self.type = 'person'
         self.monthly_housing_cost = np.random.normal(2000, 650)
         self.housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
         self.housing_cost_per_pay = self.monthly_housing_cost * self.housing_cost_frequency / steps['month']
