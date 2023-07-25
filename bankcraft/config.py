@@ -25,6 +25,6 @@ def time_of_the_day(step):
 
 
 def is_weekend(step):
-    return (step % (7*steps['day'])) % (5*steps['day']) > 1
+    return (step % (7*steps['day'])) > (5*steps['day'])
 
 
