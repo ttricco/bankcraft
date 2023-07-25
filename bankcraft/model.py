@@ -56,15 +56,17 @@ class Model(Model):
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
-            person.set_home((x, y))
+            # person.set_home((x, y))
+            person.home = (x, y)
             self.grid.place_agent(person, (x, y))
             # choosing another location as work
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
-            person.set_work((x, y))
+            # person.set_work((x, y))
+            person.work = (x, y)
             self.schedule.add(person)
-            person.set_social_node(i)
-
+            # person.set_social_node(i)
+            person.social_node = i
         # set social network weights
         for person in self.schedule.agents:
             if isinstance(person, Person):

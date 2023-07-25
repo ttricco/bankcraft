@@ -44,13 +44,56 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
+#########################
+        self._home = None
+        self._work = None
+        self._social_node = None
 
-     def set_home(self, home):
-        self.home = home
+    @property
+    def home(self):
+        if self._home is None:
+            return 0, 0
+        else:
+            return self._home
 
-    def set_social_node(self, social_node):
-        self.social_node = social_node
+    @home.setter
+    def home(self, value):
+        self._home = value
 
+     # def set_home(self, home):
+     #     self.home = home
+
+##############################
+    @property
+    def work(self):
+        if self._work is None:
+            return 0, 0
+        else:
+            return self._work
+
+    @work.setter
+    def work(self, value):
+        self._work = value
+
+    # def set_work(self, work):
+    #     self.work = work
+
+#################################
+    @property
+    def social_node(self):
+        if self._social_node is None:
+            return 0
+        else:
+            return self._social_node
+
+    @social_node.setter
+    def social_node(self, value):
+        self._social_node = value
+
+    # def set_social_node(self, social_node):
+        # self.social_node = social_node
+
+#################################
     def set_target_location(self, motivation):
         if motivation == 'hunger':
             self._target_location = self.get_nearest(Merchant).pos
@@ -60,8 +103,6 @@ class Person(GeneralAgent):
             self._target_location = self.get_nearest(Person).pos
 
 
-    def set_work(self, work):
-        self.work = work
         
     def set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
