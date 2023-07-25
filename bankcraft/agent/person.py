@@ -32,8 +32,6 @@ class Person(GeneralAgent):
         self.employer = None
 
         self.motivation = Motivation()
-        # self.txn_motivation = None
-        # self.txn_motivation_score = 1
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
@@ -46,9 +44,8 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
-        # self.txn_counter = 0
 
-    def set_home(self, home):
+     def set_home(self, home):
         self.home = home
 
     def set_social_node(self, social_node):

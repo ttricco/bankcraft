@@ -16,28 +16,6 @@ initial_money = 500
 model.schedule = RandomActivation(model)
 
 
-# @pytest.fixture
-# def agent():
-#     return GeneralAgent(model)
-#
-#
-# @pytest.fixture
-# def banks():
-#     model.banks = [Bank(model) for _ in range(model.get_num_banks())]
-#     return model.banks
-#
-#
-# @pytest.fixture
-# def employers(banks):
-#     model.employers = [Employer(model) for _ in range(model.get_num_employers())]
-#     return model.employers
-#
-
-# @pytest.fixture
-# def merchants():
-#     return Merchant(model, 'store', 100, 300)
-
-
 def test_put_employers_in_model():
     model._put_employers_in_model()
     assert len([agent for agent in model.schedule.agents if isinstance(agent, Employer)]) == model._num_employers
@@ -63,6 +41,15 @@ def test_employers_are_not_on_grid():
     random_employer = random.choice(employers_list) if employers_list != [] else None
     assert random_employer not in model.get_all_agents_on_grid()
 
+
+def test_people_are_on_grid():
+    if model.schedule.agents:
+        for agent in model.schedule.agents:
+            model.schedule.remove(agent)
+    model._put_people_in_model(initial_money)
+    people_list = [agent for agent in model.schedule.agents if isinstance(agent, Person)]
+    random_person = random.choice(people_list)
+    assert random_person in model.get_all_agents_on_grid()
 
 
 
