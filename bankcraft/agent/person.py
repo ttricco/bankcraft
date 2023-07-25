@@ -9,7 +9,6 @@ from bankcraft.config import steps
 from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
 
 
-
 class Person(GeneralAgent):
     def __init__(self, model,
                  initial_money):
