@@ -14,8 +14,8 @@ class visualization():
     def __init__(self, model, agents, transactions):
         self.model = model
         self.STEPS = 1008
-        self.WIDTH = 50
-        self.HEIGHT = 50
+        self.WIDTH = 15
+        self.HEIGHT = 15
         self.COLORS = {"person": "red", "merchant": "black"}
         self.pallet = sns.color_palette("tab10")
         self.agents = agents

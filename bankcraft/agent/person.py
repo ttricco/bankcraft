@@ -92,9 +92,15 @@ class Person(GeneralAgent):
             # get the agent in this location
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
-            if isinstance(agent, Merchant) and self.wealth >= agent.price:
-                self.pay(agent.price, agent,'ACH' ,motivation)
-                self.motivation.update_motivation(motivation, -15)     
+            if isinstance(agent, Merchant):
+                hunger = self.motivation.get_motivation(motivation)
+                if hunger > 100:
+                    price = hunger
+                else:
+                    price = np.random.beta(a=9, b=2, size=1)[0] * (hunger)
+                
+                self.pay(price, agent,'ACH' ,motivation)
+                self.motivation.update_motivation(motivation, -price)     
                               
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
@@ -124,21 +130,25 @@ class Person(GeneralAgent):
     def socialize(self):
         #if there is a person in this location
         if not self.model.grid.is_cell_empty(self.pos):
-            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
-            # if the agent is a person
-            if isinstance(agent, Person):
-                self.adjust_social_network(agent)
-                self.motivation.update_motivation('social', social_rate * -10)
-                
+            for agent in self.model.grid.get_cell_list_contents([self.pos]):
+                if isinstance(agent, Person):
+                    self.adjust_social_network(agent)
+                    social_amount = np.random.beta(a=9, b=2, size=1)[0] * (self.motivation.get_motivation('social'))
+                    self.motivation.update_motivation('social', -social_amount)
+                    break       
 
     def motivation_handler(self):
         critical_motivation = self.motivation.get_critical_motivation()
+        print(critical_motivation)
         if critical_motivation is not None:
             self.set_target_location(critical_motivation)
             if critical_motivation == 'hunger':
                 self.buy('hunger')    
             elif critical_motivation == 'fatigue' and self.pos == self.home:
-                self.motivation.update_motivation('fatigue', fatigue_rate * -10)
+                fatigue_amount = np.random.beta(a=9, b=2, size=1)[0] * (self.motivation.get_motivation('fatigue'))
+                self.motivation.update_motivation('fatigue', -fatigue_amount)
+                self.motivation.update_motivation('hunger', hunger_rate * -1)
+                self.motivation.update_motivation('social', social_rate * -1)
             elif critical_motivation == 'social':
                 self.socialize()
             

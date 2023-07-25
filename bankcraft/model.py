@@ -26,7 +26,7 @@ class Model(Model):
         for (u, v) in self.social_grid.edges():
             self.social_grid.edges[u, v]['weight'] = 1 / (num_people - 1)
 
-        self.grid = MultiGrid(width=50, height=50, torus=False)
+        self.grid = MultiGrid(width=15, height=15, torus=False)
         self._put_people_in_model(initial_money, spending_prob, spending_amount)
         self._put_merchants_in_model()
 
