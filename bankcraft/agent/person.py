@@ -7,7 +7,7 @@ from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
 from bankcraft.config import steps
 from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
-
+from bankcraft.config import time_of_the_day, is_weekend
 
 class Person(GeneralAgent):
     def __init__(self, model,
