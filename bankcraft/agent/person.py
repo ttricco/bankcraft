@@ -5,7 +5,7 @@ from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
-from bankcraft.steps import steps
+from bankcraft.config import steps
 from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
 
 
@@ -44,56 +44,35 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
-#########################
+
         self._home = None
         self._work = None
         self._social_node = None
 
     @property
     def home(self):
-        if self._home is None:
-            return 0, 0
-        else:
-            return self._home
+        return self._home
 
     @home.setter
     def home(self, value):
         self._home = value
 
-     # def set_home(self, home):
-     #     self.home = home
-
-##############################
     @property
     def work(self):
-        if self._work is None:
-            return 0, 0
-        else:
-            return self._work
+        return self._work
 
     @work.setter
     def work(self, value):
         self._work = value
 
-    # def set_work(self, work):
-    #     self.work = work
-
-#################################
     @property
     def social_node(self):
-        if self._social_node is None:
-            return 0
-        else:
-            return self._social_node
+        return self._social_node
 
     @social_node.setter
     def social_node(self, value):
         self._social_node = value
 
-    # def set_social_node(self, social_node):
-        # self.social_node = social_node
-
-#################################
     def set_target_location(self, motivation):
         if motivation == 'hunger':
             self._target_location = self.get_nearest(Merchant).pos
@@ -102,8 +81,6 @@ class Person(GeneralAgent):
         elif motivation == 'social':
             self._target_location = self.get_nearest(Person).pos
 
-
-        
     def set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
         #  if the account balance is not enough they must be paid in future including the interest
@@ -124,16 +101,6 @@ class Person(GeneralAgent):
                          description=row['scheduled_expenses'])
 
     def unscheduled_txn(self):
-        #  work with motivation (affected by time and date and previous txns)
-        #  include buying from merchant, car gas, restaurant, medical expenses, recreational activities,
-        #  saving, trip and seasonal expenses
-        for motivation in self.motivation.motivation_list:
-            if self.motivation.get_motivation(motivation) > 20:
-                self._target_location = self.get_nearest(Merchant).pos
-                print(f'{self.unique_id} is going to {self._target_location}')
-                self.buy(motivation)
-                
-    def unscheduled_txn(self):
         if random.random() < 0.1:
             weight = self._social_network_weights
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
@@ -148,7 +115,7 @@ class Person(GeneralAgent):
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
-                self.pay(agent.price, agent,'ACH' ,motivation)
+                self.pay(agent.price, agent, 'ACH', motivation)
                 self.motivation.update_motivation(motivation, -15)
 
     def set_social_network_weights(self):

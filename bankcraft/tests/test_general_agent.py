@@ -7,7 +7,6 @@ from bankcraft.agent.bank import Bank
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
-
 account_initial_balance = 1500
 num_banks = 1
 txn_amount = 300

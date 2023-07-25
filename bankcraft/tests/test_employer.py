@@ -3,7 +3,7 @@ from bankcraft.model import Model
 from bankcraft.agent.person import Person
 from bankcraft.agent.employer import Employer
 from bankcraft.agent.bank import Bank
-from bankcraft.steps import steps
+from bankcraft.config import steps
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 
