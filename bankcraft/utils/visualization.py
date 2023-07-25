@@ -54,7 +54,7 @@ class visualization():
             df = grid_df[grid_df['Step'] == slider]
             for agent in df['AgentID'].unique():
                 label = df[df['AgentID']==agent]['Agent type'].values[0]
-                sns.scatterplot(x='x', y='y', data=df[df['AgentID'] == agent], color=self.agentID_color[agent], label=label, ax=ax[0])
+                sns.scatterplot(x='x', y='y', data=df[df['AgentID'] == agent], color=self.agentID_color[agent], label=label, ax=ax[0], s=100)
 
             ax[0].set_xlim(0, self.WIDTH)
             ax[0].set_ylim(0, self.HEIGHT)
@@ -88,7 +88,7 @@ class visualization():
             ax[1].set_title('Social Network')
 
             # Display the plot
-            #plt.legend()
+            plt.tight_layout()
             plt.grid(True)
             plt.show()
         

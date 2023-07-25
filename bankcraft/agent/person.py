@@ -139,7 +139,6 @@ class Person(GeneralAgent):
 
     def motivation_handler(self):
         critical_motivation = self.motivation.get_critical_motivation()
-        print(critical_motivation)
         if critical_motivation is not None:
             self.set_target_location(critical_motivation)
             if critical_motivation == 'hunger':
