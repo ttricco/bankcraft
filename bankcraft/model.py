@@ -80,10 +80,7 @@ class Model(Model):
     def _put_merchants_in_model(self):
         for _ in range(self._num_merchant):
             merchant = Merchant(self, "Restaurant", 10, 1000)
-            # choosing location
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(merchant, (x, y))
+            self._place_randomly_on_grid(merchant, merchant.location)
             self.schedule.add(merchant)
 
     def step(self):

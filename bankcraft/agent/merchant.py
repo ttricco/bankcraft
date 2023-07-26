@@ -12,3 +12,13 @@ class Merchant(GeneralAgent):
         self.price = price
         self.bank_accounts = self.assign_bank_account(model, self.wealth)
 
+        self._location = None
+
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, value):
+        self._location = value
+

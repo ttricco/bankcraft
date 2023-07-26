@@ -9,6 +9,7 @@ from bankcraft.config import steps
 from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
 from bankcraft.config import time_of_the_day, is_weekend
 
+
 class Person(GeneralAgent):
     def __init__(self, model,
                  initial_money):
@@ -38,7 +39,7 @@ class Person(GeneralAgent):
         # a temporary business for receiving scheduled transactions
         self._payerBusiness = Business(model, business_type='test')
         self.schedule_txn = pd.DataFrame()
-        
+
         self.spending_prob = random.random()
         self.spending_amount = random.randrange(0, 100)
 
@@ -47,6 +48,7 @@ class Person(GeneralAgent):
         self._home = None
         self._work = None
         self._social_node = None
+        self._social_network_weights = None
 
     @property
     def home(self):
@@ -110,9 +112,7 @@ class Person(GeneralAgent):
     def buy(self, motivation):
         # if there is a merchant agent in this location
         if not self.model.grid.is_cell_empty(self.pos):
-            # get the agent in this location
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
-            # if the agent is a merchant
             if isinstance(agent, Merchant) and self.wealth >= agent.price:
                 self.pay(agent.price, agent, 'ACH', motivation)
                 self.motivation.update_motivation(motivation, -15)
@@ -136,11 +136,11 @@ class Person(GeneralAgent):
         self._social_network_weights[other_agent] = min(
             self._social_network_weights[other_agent], 1
         )
-        
+
     def move(self):
         if self._target_location is not None:
             self.move_to(self._target_location)
-            self.motivation.update_motivation('hunger', hunger_rate )
+            self.motivation.update_motivation('hunger', hunger_rate)
 
     def move_to(self, new_position):
         print('moving')
@@ -157,10 +157,10 @@ class Person(GeneralAgent):
             y += 1
         elif y_distance < 0:
             y -= 1
-            
+
         self.model.grid.move_agent(self, (x, y))
         self.pos = (x, y)
-        
+
     def distance_to(self, other_agent):
         x, y = self.pos
         x_other, y_other = other_agent.pos
@@ -181,15 +181,15 @@ class Person(GeneralAgent):
         self.motivation.update_motivation('hunger', hunger_rate)
         self.motivation.update_motivation('fatigue', fatigue_rate)
         self.motivation.update_motivation('social', social_rate)
+
     def socialize(self):
-        #if there is a person in this location
+        # if there is a person in this location
         if not self.model.grid.is_cell_empty(self.pos):
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a person
             if isinstance(agent, Person):
                 self.adjust_social_network(agent)
                 self.motivation.update_motivation('social', social_rate * -10)
-
 
     def motivation_handler(self):
         critical_motivation = self.motivation.get_critical_motivation()
@@ -201,7 +201,6 @@ class Person(GeneralAgent):
                 self.motivation.update_motivation('fatigue', fatigue_rate * -10)
             elif critical_motivation == 'social':
                 self.socialize()
-
 
     def step(self):
         self.live()
