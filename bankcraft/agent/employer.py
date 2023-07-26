@@ -14,6 +14,15 @@ class Employer(GeneralAgent):
         # These are for use of agent reporter and needs to be handled better in the future
         self.wealth = self.initial_fund
         self.motivation = None
+        self._work = None
+
+    @property
+    def work(self):
+        return self._work
+
+    @work.setter
+    def work(self, value):
+        self._work = value
 
     def is_pay_date(self, date):
         return date % self.pay_period == 0

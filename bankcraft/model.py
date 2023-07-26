@@ -46,32 +46,32 @@ class Model(Model):
 
         )
 
+    def _place_randomly_on_grid(self, agent, place):
+        x = self.random.randrange(self.grid.width)
+        y = self.random.randrange(self.grid.height)
+        place = (x, y)
+        self.grid.place_agent(agent, place)
+
     def _put_people_in_model(self, initial_money):
         for i in range(self._num_people):
             person = Person(self, initial_money)
             j = i % self._num_employers
             self.employers[j].add_employee(person)
             person.employer = self.employers[j]
-
-            # add agent to grid in random position
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            person.home = (x, y)
-            self.grid.place_agent(person, (x, y))
-            # choosing another location as work
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            person.work = (x, y)
+            self._place_randomly_on_grid(person, person.home)
             self.schedule.add(person)
             person.social_node = i
-        # set social network weights
+
         for person in self.schedule.agents:
             if isinstance(person, Person):
                 person.set_social_network_weights()
 
     def _put_employers_in_model(self):
-        for i in self.employers:
-            self.schedule.add(i)
+        for employer in self.employers:
+            self._place_randomly_on_grid(employer, employer.work)
+            self.schedule.add(employer)
+            for employee in employer.employees:
+                employee.work = employer.work
 
     def _put_banks_in_model(self):
         for i in self.banks:
