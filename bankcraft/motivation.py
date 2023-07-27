@@ -1,4 +1,6 @@
 from bankcraft.config import motivation_threshold
+
+
 class Motivation:
     def __init__(self):
         self.hunger = 1
@@ -21,7 +23,6 @@ class Motivation:
         
     def get_motivation(self, key):
         return getattr(self, key) if hasattr(self, key) else "Invalid key"
-        
 
     def get_critical_motivation(self):
         # find maximum motivation if above threshold

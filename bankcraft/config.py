@@ -12,16 +12,16 @@ steps['month'] = 30 * 24 * 6 * steps['10min']
 steps['year'] = 365 * 24 * 6 * steps['10min']
 
 
-def time_of_the_day(step):
+def is_work_hour(step):
     day_time = step % steps['day']
-    if 6*steps['hour'] <= day_time <= 9*steps['hour']:
-        return 'breakfast time'
-    elif 12*steps['hour'] <= day_time <= 13*steps['hour']:
-        return 'lunch time'
-    elif 17*steps['hour'] <= day_time <= 20*steps['hour']:
-        return 'supper time'
-    else:
-        return 'None'
+    return not is_weekend(step) and (9*steps['hour'] <= day_time <= 12*steps['hour'] or
+                                     13*steps['hour'] <= day_time <= 17*steps['hour'])
+
+
+def is_bed_time(step):
+    day_time = step % steps['day']
+    return (0 <= day_time <= 6*steps['hour'] or
+            22*steps['hour'] <= day_time <= 24*steps['hour'])
 
 
 def is_weekend(step):

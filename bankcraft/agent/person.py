@@ -7,7 +7,7 @@ from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
 from bankcraft.config import steps
 from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
-from bankcraft.config import time_of_the_day, is_weekend
+from bankcraft.config import is_work_hour, is_bed_time, is_weekend
 
 
 class Person(GeneralAgent):
@@ -203,8 +203,9 @@ class Person(GeneralAgent):
                 self.socialize()
 
     def step(self):
-        self.live()
-        self.motivation_handler()
-        self.move()
         self.pay_schedule_txn()
-        self.unscheduled_txn()
+        if not is_bed_time(self.model.schedule.steps) and not is_work_hour(self.model.schedule.steps):
+            self.live()
+            self.motivation_handler()
+            self.move()
+            self.unscheduled_txn()
