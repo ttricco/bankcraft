@@ -14,7 +14,7 @@ steps['year'] = 365 * 24 * 6 * steps['10min']
 
 def is_work_hour(step):
     day_time = step % steps['day']
-    return not is_weekend(step) and (9*steps['hour'] <= day_time <= 12*steps['hour'] or
+    return (not is_weekend(step)) and (9*steps['hour'] <= day_time <= 12*steps['hour'] or
                                      13*steps['hour'] <= day_time <= 17*steps['hour'])
 
 
