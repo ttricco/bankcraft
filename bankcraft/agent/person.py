@@ -7,7 +7,7 @@ from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
 from bankcraft.config import steps
 from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
-from bankcraft.config import is_work_hour, is_bed_time, is_weekend
+from bankcraft.config import is_work_hour, is_bed_time, is_weekend, is_weekday_evening
 
 
 class Person(GeneralAgent):
@@ -42,6 +42,7 @@ class Person(GeneralAgent):
 
         self.spending_prob = random.random()
         self.spending_amount = random.randrange(0, 100)
+        self.action = True
 
         self._target_location = None
 
@@ -109,12 +110,12 @@ class Person(GeneralAgent):
             if random.random() < self.spending_prob:
                 self.pay(self.spending_amount, recipient, 'ACH', 'social')
 
-    def buy(self, motivation):
+    def buy(self, motivation, pay_amount):
         # if there is a merchant agent in this location
         if not self.model.grid.is_cell_empty(self.pos):
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
-            if isinstance(agent, Merchant) and self.wealth >= agent.price:
-                self.pay(agent.price, agent, 'ACH', motivation)
+            if isinstance(agent, Merchant) and self.wealth >= pay_amount:
+                self.pay(pay_amount, agent, 'ACH', motivation)
                 self.motivation.update_motivation(motivation, -15)
 
     def set_social_network_weights(self):
@@ -196,16 +197,45 @@ class Person(GeneralAgent):
         if critical_motivation is not None:
             self.set_target_location(critical_motivation)
             if critical_motivation == 'hunger':
-                self.buy('hunger')
+                self.buy('hunger', pay_amount=random.randrange(1,20))
+                self.action_step += 0.5 * steps['hour']
             elif critical_motivation == 'fatigue' and self.pos == self.home:
                 self.motivation.update_motivation('fatigue', fatigue_rate * -10)
+                self.action_step += 6 * steps['hour']
             elif critical_motivation == 'social':
                 self.socialize()
+                self.action_step += 1 * steps['hour']
+
+    def action_is_authorized(self):
+        return self.model.schedule.steps >= self.action_step
+
+    def action_pause(self, interval):
+        self.action_step = self.model.schedule.steps + interval
 
     def step(self):
-        self.pay_schedule_txn()
-        if not is_bed_time(self.model.schedule.steps) and not is_work_hour(self.model.schedule.steps):
-            self.live()
-            self.motivation_handler()
-            self.move()
-            self.unscheduled_txn()
+        if self.action_is_authorized():
+            self.pay_schedule_txn()
+            if is_bed_time(self.model.schedule.steps):
+                # self.move_to(self.home)
+                self.action_pause(8*steps['hour'])
+            elif (is_weekend(self.model.schedule.steps)) or (is_weekday_evening(self.model.schedule.steps)):
+                self.live()
+                self.motivation_handler()
+                self.move()
+                self.unscheduled_txn()
+            else:
+                self.workday_routine_no_motivation()
+
+    def workday_routine_no_motivation(self):
+        if self.model.schedule.steps == (8 * steps['hour']):
+            # if the person wants to buy breakfast: move_to_a_restaurant_on_the_way_to_work
+            # self.buy('hunger', pay_amount=random.randrange(1, 20))
+            # self.move_to(self.work)
+            self.action_pause(4*steps['hour'])
+        elif self.model.schedule.steps == (12 * steps['hour']):
+            # if the person wants to buy lunch: move_to_a_restaurant_close_to_self.work
+            # self.buy('hunger', pay_Amount=random.randrange(10, 40))
+            # moveto(self.work)
+            self.action_pause(1 * steps['hour'])
+        elif self.model.schedule.steps == (13 * steps['hour']):
+            self.action_pause(4 * steps['hour'])

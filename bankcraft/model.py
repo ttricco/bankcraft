@@ -10,7 +10,7 @@ from bankcraft.agent.employer import Employer
 
 
 class Model(Model):
-    def __init__(self, num_people=15, num_merchant=2, initial_money=1000,
+    def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
                  num_employers=2, num_banks=1):
         super().__init__()
 
@@ -90,9 +90,9 @@ class Model(Model):
     def run(self, no_steps):
         for _ in range(no_steps):
             self.step()
-        return self.get_agents_info(), self.get_txn_info()
+        return self.get_agents_info(), self.get_transactions()
 
-    def get_txn_info(self):
+    def get_transactions(self):
         return self.datacollector.get_table_dataframe("transactions")
     
     def get_agents_info(self):
