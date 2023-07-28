@@ -13,6 +13,7 @@ class GeneralAgent(Agent):
         self.bank_accounts = None
         self.wealth = 0
         self.txn_counter = 0
+        self.action_step = self.model.schedule.steps
 
     def step(self):
         pass

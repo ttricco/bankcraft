@@ -12,10 +12,14 @@ steps['month'] = 30 * 24 * 6 * steps['10min']
 steps['year'] = 365 * 24 * 6 * steps['10min']
 
 
+def is_weekend(step):
+    return (step % (steps['week'])) > (5*steps['day'])
+
+
 def is_work_hour(step):
     day_time = step % steps['day']
     return (not is_weekend(step)) and (9*steps['hour'] <= day_time <= 12*steps['hour'] or
-                                     13*steps['hour'] <= day_time <= 17*steps['hour'])
+                                       13*steps['hour'] <= day_time <= 17*steps['hour'])
 
 
 def is_bed_time(step):
@@ -24,7 +28,9 @@ def is_bed_time(step):
             22*steps['hour'] <= day_time <= 24*steps['hour'])
 
 
-def is_weekend(step):
-    return (step % (steps['week'])) > (5*steps['day'])
+def is_weekday_evening(step):
+    day_time = step % steps['day']
+    return (not is_weekend(step)) and (17 * steps['hour'] < day_time < 22 * steps['hour'])
+
 
 
