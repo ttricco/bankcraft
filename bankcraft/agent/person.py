@@ -162,3 +162,4 @@ class Person(GeneralAgent):
         self.move()
         self.pay_schedule_txn()
         self.unscheduled_txn()
+        
