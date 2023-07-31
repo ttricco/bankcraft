@@ -15,6 +15,7 @@ class Employer(GeneralAgent):
         self.wealth = self.initial_fund
         self.motivation = None
         self.type = 'employer'
+        self.location = None
 
     def is_pay_date(self, date):
         return date % self.pay_period == 0
