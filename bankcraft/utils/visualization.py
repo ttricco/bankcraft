@@ -11,18 +11,18 @@ import warnings
 warnings.filterwarnings("ignore")
 
 class visualization():
-    def __init__(self, model, agents, transactions):
+    def __init__(self, model):
         self.model = model
         self.STEPS = 1008
         self.WIDTH = 15
         self.HEIGHT = 15
         self.COLORS = {"person": "red", "merchant": "black"}
         self.pallet = sns.color_palette("tab10")
-        self.agents = agents
-        self.transactions = transactions
+        self.agents = model.get_agents().reset_index()
+        self.transactions = model.get_transactions()
         self.agentID_color = {}
-        for i, agentID in enumerate(agents["AgentID"].unique()):
-            if agents[agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
+        for i, agentID in enumerate(self.agents["AgentID"].unique()):
+            if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
                 self.agentID_color[agentID] = self.pallet[i]
             else:
                 self.agentID_color[agentID] = "black"

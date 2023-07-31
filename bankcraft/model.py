@@ -89,7 +89,7 @@ class Model(Model):
     def run(self, no_steps):
         for _ in range(no_steps):
             self.step()
-        return 
+        return self
 
     def get_transactions(self):
         return self.datacollector.get_table_dataframe("transactions")
