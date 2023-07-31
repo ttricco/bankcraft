@@ -14,6 +14,8 @@ class Clock:
     def tick(self):
         self.clock += 1
         self.hour = self.clock // self.hour_steps
+        # set hour to 0 when it reaches 24
+        self.hour = self.hour % 24
         self.day = self.hour // 24
         self.week = self.day // 7
         self.month = self.week // 4
