@@ -160,11 +160,7 @@ class Person(GeneralAgent):
                 self.motivation.update_motivation('social', social_rate * -1)
             elif critical_motivation == 'social':
                 self.socialize()
-            
-    def work(self):
-        self.working = True
-        self.set_target_location('work')
-                
+                           
     def step(self):
         self.live()
         self.motivation_handler()
@@ -173,4 +169,7 @@ class Person(GeneralAgent):
         self.unscheduled_txn()
         # 9am-12pm and 1pm-5pm
         if self.clock.hour in range(9, 12) or self.clock.hour in range(13, 17):
-            self.work()
+            self.working = True
+            self.set_target_location('work')
+        else:
+            self.working = False
