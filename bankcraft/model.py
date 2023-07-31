@@ -7,6 +7,7 @@ from bankcraft.agent.merchant import Merchant
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
+from bankcraft.clock import Clock
 
 
 class Model(Model):
@@ -14,7 +15,7 @@ class Model(Model):
                  spending_prob=0.5, spending_amount=100,
                  num_employers=2, num_banks=1):
         super().__init__()
-
+        self.clock = Clock()
         self._num_people = num_people
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
@@ -89,6 +90,7 @@ class Model(Model):
             person_agents[i+1].set_best_friend(person_agents[i])
             
     def step(self):
+        self.clock.tick()
         self.schedule.step()
         self.datacollector.collect(self)
 
