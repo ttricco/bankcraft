@@ -10,7 +10,7 @@ from bankcraft.agent.employer import Employer
 
 
 class Model(Model):
-    def __init__(self, num_people=5, num_merchant=2, initial_money=1000,
+    def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
                  spending_prob=0.5, spending_amount=100,
                  num_employers=2, num_banks=1):
         super().__init__()
@@ -29,7 +29,7 @@ class Model(Model):
         self.grid = MultiGrid(width=15, height=15, torus=False)
         self._put_people_in_model(initial_money, spending_prob, spending_amount)
         self._put_merchants_in_model()
-
+        self._set_best_friends()
         self.datacollector = DataCollector(
             agent_reporters={"wealth": lambda a: a.wealth,
                              'location': lambda a: a.pos,
@@ -81,6 +81,12 @@ class Model(Model):
             self.grid.place_agent(merchant, (x, y))
             # add to data collector
             self.schedule.add(merchant)
+            
+    def _set_best_friends(self):
+        person_agents = [agent for agent in self.schedule.agents if isinstance(agent, Person)]
+        for i in range(0,len(person_agents),2):
+            person_agents[i].set_best_friend(person_agents[i+1])
+            person_agents[i+1].set_best_friend(person_agents[i])
             
     def step(self):
         self.schedule.step()
