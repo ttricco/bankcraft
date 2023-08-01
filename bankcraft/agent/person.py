@@ -45,6 +45,8 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
+        self.clock = model.clock
+        self.working = False
 
     def set_home(self, home):
         self.home = home
@@ -56,16 +58,20 @@ class Person(GeneralAgent):
         self.social_node = social_node
 
     def set_target_location(self, motivation):
-        if motivation == 'hunger':
-            self._target_location = self.get_nearest(Merchant).pos
-        elif motivation == 'fatigue':
-            self._target_location = self.home
-        elif motivation == 'social':
-            #self._target_location = self.get_nearest(Person).pos
-            self._target_location = self.best_friend.pos
+        if self.working is False:
+            if motivation == 'hunger':
+                self._target_location = self.get_nearest(Merchant).pos
+            elif motivation == 'fatigue':
+                self._target_location = self.home
+            elif motivation == 'social':
+                #self._target_location = self.get_nearest(Person).pos
+                self._target_location = self.best_friend.pos
+        else:
+            #self._target_location = self.employer.pos
+            self._target_location = self._work
             
     def set_work(self, work):
-        self.work = work
+        self._work = work
         
     def set_schedule_txn(self):
         txn_list = [['schedule_type', 'Amount', 'pay_date', 'Receiver'],
@@ -154,11 +160,16 @@ class Person(GeneralAgent):
                 self.motivation.update_motivation('social', social_rate * -1)
             elif critical_motivation == 'social':
                 self.socialize()
-            
-                
+                           
     def step(self):
         self.live()
         self.motivation_handler()
         self.move()
         self.pay_schedule_txn()
         self.unscheduled_txn()
+        # 9am-12pm and 1pm-5pm
+        if self.clock.hour in range(9, 12) or self.clock.hour in range(13, 17):
+            self.working = True
+            self.set_target_location('work')
+        else:
+            self.working = False

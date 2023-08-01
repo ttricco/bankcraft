@@ -7,6 +7,7 @@ from bankcraft.agent.merchant import Merchant
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
+from bankcraft.clock import Clock
 
 
 class Model(Model):
@@ -14,7 +15,7 @@ class Model(Model):
                  spending_prob=0.5, spending_amount=100,
                  num_employers=2, num_banks=1):
         super().__init__()
-
+        self.clock = Clock()
         self._num_people = num_people
         self.num_merchant = num_merchant
         self.schedule = RandomActivation(self)
@@ -27,6 +28,7 @@ class Model(Model):
             self.social_grid.edges[u, v]['weight'] = 1 / (num_people - 1)
 
         self.grid = MultiGrid(width=15, height=15, torus=False)
+        self._put_employer_in_model()
         self._put_people_in_model(initial_money, spending_prob, spending_amount)
         self._put_merchants_in_model()
         self._set_best_friends()
@@ -45,6 +47,15 @@ class Model(Model):
 
         )
 
+    def _put_employer_in_model(self):
+        for employer in self.employers:
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            employer.location = (x, y)
+            self.grid.place_agent(employer, (x, y))
+            self.schedule.add(employer)
+            
+            
     def _put_people_in_model(self, initial_money, spending_prob, spending_amount):
         for i in range(self._num_people):
             person = Person(self, initial_money)
@@ -54,19 +65,15 @@ class Model(Model):
             elif i % 2 == 1:
                 self.employers[1].add_employee(person)
                 person.employer = self.employers[1]
+            person.set_work(person.employer.location)
             # add agent to grid in random position
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             person.set_home((x, y))
             self.grid.place_agent(person, (x, y))
-            # choosing another location as work
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            person.set_work((x, y))
+
             self.schedule.add(person)
             person.set_social_node(i)
-        for i in self.employers:
-            self.schedule.add(i)
         # set social network weights
         for person in self.schedule.agents:
             if isinstance(person, Person):
@@ -89,6 +96,7 @@ class Model(Model):
             person_agents[i+1].set_best_friend(person_agents[i])
             
     def step(self):
+        self.clock.tick()
         self.schedule.step()
         self.datacollector.collect(self)
 
