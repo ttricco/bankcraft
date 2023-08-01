@@ -49,6 +49,9 @@ class Person(GeneralAgent):
     def set_home(self, home):
         self.home = home
 
+    def set_best_friend(self, best_friend):
+        self.best_friend = best_friend
+        
     def set_social_node(self, social_node):
         self.social_node = social_node
 
@@ -58,7 +61,8 @@ class Person(GeneralAgent):
         elif motivation == 'fatigue':
             self._target_location = self.home
         elif motivation == 'social':
-            self._target_location = self.get_nearest(Person).pos
+            #self._target_location = self.get_nearest(Person).pos
+            self._target_location = self.best_friend.pos
             
     def set_work(self, work):
         self.work = work
