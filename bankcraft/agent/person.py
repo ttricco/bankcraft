@@ -5,27 +5,28 @@ from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
-from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate,steps
-
+from bankcraft.config import steps
+from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
 
 
 class Person(GeneralAgent):
     def __init__(self, model,
                  initial_money):
         super().__init__(model)
-        self.type = 'person'
-        self.monthly_housing_cost = np.random.normal(2000, 650)
-        self.housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
-        self.housing_cost_per_pay = self.monthly_housing_cost * self.housing_cost_frequency / steps['month']
 
-        self.monthly_salary = self.monthly_housing_cost / 0.34  # or np.random.normal(5500, 1800)
-        self.salary_frequency = random.choice([steps['biweekly'], steps['month']])
-        self.salary_per_pay = self.monthly_salary * self.salary_frequency / steps['month']
+        self._monthly_housing_cost = np.random.normal(2000, 650)
+        self._housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
+        self._housing_cost_per_pay = self._monthly_housing_cost * self._housing_cost_frequency / steps['month']
 
-        self.has_subscription = random.randint(0, 1)
-        self.subscription_amount = self.has_subscription * random.randrange(0, 100)
-        self.has_membership = random.randint(0, 1)
-        self.membership_amount = self.has_membership * random.randrange(0, 100)
+        self._yearly_income = np.random.normal(66800, 9000)
+        self._salary_frequency = random.choice([steps['biweekly'], steps['month']])
+        self._num_pays_per_year = steps['year'] // self._salary_frequency
+        self.salary_per_pay = self._yearly_income / self._num_pays_per_year
+
+        self._has_subscription = random.randint(0, 1)
+        self._subscription_amount = self._has_subscription * random.randrange(0, 100)
+        self._has_membership = random.randint(0, 1)
+        self._membership_amount = self._has_membership * random.randrange(0, 100)
 
         self.employer = None
 
@@ -35,12 +36,11 @@ class Person(GeneralAgent):
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
-        self.txn_counter = 0
-        self.landlord = Business(model, business_type='Landlord')
+        self._landlord = Business(model, business_type='Landlord')
         # a temporary business for receiving scheduled transactions
         self._payerBusiness = Business(model, business_type='test')
         self.schedule_txn = pd.DataFrame()
-        
+
         self.spending_prob = random.random()
         self.spending_amount = random.randrange(0, 100)
 
@@ -48,14 +48,37 @@ class Person(GeneralAgent):
         self.clock = model.clock
         self.working = False
 
-    def set_home(self, home):
-        self.home = home
+        self._home = None
+        self._work = None
+        self._social_node = None
+        self._social_network_weights = None
+
+    @property
+    def home(self):
+        return self._home
+
+    @home.setter
+    def home(self, value):
+        self._home = value
+
+    @property
+    def work(self):
+        return self._work
+
+    @work.setter
+    def work(self, value):
+        self._work = value
+
+    @property
+    def social_node(self):
+        return self._social_node
+
+    @social_node.setter
+    def social_node(self, value):
+        self._social_node = value
 
     def set_best_friend(self, best_friend):
         self.best_friend = best_friend
-        
-    def set_social_node(self, social_node):
-        self.social_node = social_node
 
     def set_target_location(self, motivation):
         if self.working is False:
@@ -74,21 +97,25 @@ class Person(GeneralAgent):
         self._work = work
         
     def set_schedule_txn(self):
-        txn_list = [['schedule_type', 'Amount', 'pay_date', 'Receiver'],
-                    ['Rent/Mortgage', self.housing_cost_per_pay, self.housing_cost_frequency, self.landlord],
+        #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
+        #  if the account balance is not enough they must be paid in future including the interest
+        txn_list = [['scheduled_expenses', 'Amount', 'pay_date', 'Receiver'],
+                    ['Rent/Mortgage', self._housing_cost_per_pay, self._housing_cost_frequency, self._landlord],
                     ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
-                    ['Memberships', self.membership_amount, steps['month'], 'Business'],
-                    ['Subscriptions', self.subscription_amount, steps['month'], 'Business'],
+                    ['Memberships', self._membership_amount, steps['month'], 'Business'],
+                    ['Subscriptions', self._subscription_amount, steps['month'], 'Business'],
                     ['Bills', random.randrange(10, 300), steps['month'], 'Business']]
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
-        # for all types of txn if the probability is met and step is a multiple of frequency do the txn
         for index, row in self.schedule_txn.iterrows():
             if self.model.schedule.steps % row['Frequency'] == 0:
-                self.pay(row['Amount'], row['Receiver'], "ACH", row['schedule_type'])
+                self.pay(amount=row['Amount'],
+                         receiver=row['Receiver'],
+                         txn_type="ACH",
+                         description=row['scheduled_expenses'])
 
-    def unscheduled_txn(self):                     
+    def unscheduled_txn(self):
         if random.random() < 0.1:
             weight = self._social_network_weights
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
@@ -99,7 +126,6 @@ class Person(GeneralAgent):
     def buy(self, motivation):
         # if there is a merchant agent in this location
         if not self.model.grid.is_cell_empty(self.pos):
-            # get the agent in this location
             agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
             if isinstance(agent, Merchant):
