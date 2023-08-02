@@ -31,8 +31,6 @@ class Person(GeneralAgent):
         self.employer = None
 
         self.motivation = Motivation()
-        self.txn_motivation = None
-        self.txn_motivation_score = 1
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
@@ -92,10 +90,7 @@ class Person(GeneralAgent):
         else:
             #self._target_location = self.employer.pos
             self._target_location = self._work
-            
-    def set_work(self, work):
-        self._work = work
-        
+
     def set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
         #  if the account balance is not enough they must be paid in future including the interest
@@ -135,7 +130,7 @@ class Person(GeneralAgent):
                 else:
                     price = np.random.beta(a=9, b=2, size=1)[0] * (hunger)
                 
-                self.pay(price, agent,'ACH' ,motivation)
+                self.pay(price, agent, 'ACH', motivation)
                 self.motivation.update_motivation(motivation, -price)     
                               
     def set_social_network_weights(self):
