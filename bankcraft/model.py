@@ -17,19 +17,21 @@ class Model(Model):
         super().__init__()
         self.clock = Clock()
         self._num_people = num_people
-        self.num_merchant = num_merchant
+        self._num_merchant = num_merchant
+        self._num_banks = num_banks
         self.schedule = RandomActivation(self)
-        self.banks = [Bank(self) for _ in range(num_banks)]
-        self.num_employers = num_employers
-        self.employers = [Employer(self) for _ in range(self.num_employers)]
+        self.banks = [Bank(self) for _ in range(self._num_banks)]
+        self._num_employers = num_employers
+        self.employers = [Employer(self) for _ in range(self._num_employers)]
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
         for (u, v) in self.social_grid.edges():
-            self.social_grid.edges[u, v]['weight'] = 1 / (num_people - 1)
+            self.social_grid.edges[u, v]['weight'] = 1 / (self._num_people - 1)
 
         self.grid = MultiGrid(width=15, height=15, torus=False)
-        self._put_employer_in_model()
-        self._put_people_in_model(initial_money, spending_prob, spending_amount)
+        self._put_people_in_model(initial_money)
+        self._put_employers_in_model()
+        self._put_banks_in_model()
         self._put_merchants_in_model()
         self._set_best_friends()
         self.datacollector = DataCollector(
@@ -47,48 +49,42 @@ class Model(Model):
 
         )
 
-    def _put_employer_in_model(self):
+    def _place_randomly_on_grid(self, agent, place):
+        x = self.random.randrange(self.grid.width)
+        y = self.random.randrange(self.grid.height)
+        place = (x, y)
+        self.grid.place_agent(agent, place)
+
+    def _put_employers_in_model(self):
         for employer in self.employers:
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            employer.location = (x, y)
-            self.grid.place_agent(employer, (x, y))
+            self._place_randomly_on_grid(employer, employer.location)
             self.schedule.add(employer)
-            
-            
+
     def _put_people_in_model(self, initial_money, spending_prob, spending_amount):
         for i in range(self._num_people):
             person = Person(self, initial_money)
-            if i % 2 == 0:
-                self.employers[0].add_employee(person)
-                person.employer = self.employers[0]
-            elif i % 2 == 1:
-                self.employers[1].add_employee(person)
-                person.employer = self.employers[1]
-            person.set_work(person.employer.location)
-            # add agent to grid in random position
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            person.set_home((x, y))
-            self.grid.place_agent(person, (x, y))
-
+            j = i % self._num_employers
+            self.employers[j].add_employee(person)
+            person.employer = self.employers[j]
+            person.work = person.employer.location
+            self._place_randomly_on_grid(person, person.home)
             self.schedule.add(person)
-            person.set_social_node(i)
-        # set social network weights
+            person.social_node = i
+
         for person in self.schedule.agents:
             if isinstance(person, Person):
                 person.set_social_network_weights()
 
     def _put_merchants_in_model(self):
-        for _ in range(self.num_merchant):
+        for _ in range(self._num_merchant):
             merchant = Merchant(self, "Restaurant", 10, 1000)
-            # choosing location
-            x = self.random.randrange(self.grid.width)
-            y = self.random.randrange(self.grid.height)
-            self.grid.place_agent(merchant, (x, y))
-            # add to data collector
+            self._place_randomly_on_grid(merchant, merchant.location)
             self.schedule.add(merchant)
-            
+
+    def _put_banks_in_model(self):
+        for i in self.banks:
+            self.schedule.add(i)
+
     def _set_best_friends(self):
         person_agents = [agent for agent in self.schedule.agents if isinstance(agent, Person)]
         for i in range(0,len(person_agents),2):
@@ -111,7 +107,7 @@ class Model(Model):
     def get_agents(self):
         return self.datacollector.get_agent_vars_dataframe()
 
-    def get_all_agents(self):
+    def get_all_agents_on_grid(self):
         all_agents = []
         for cell in self.grid.coord_iter():
             cell_content, x, y = cell
