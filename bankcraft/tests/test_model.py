@@ -49,8 +49,3 @@ def test_people_are_on_grid():
     model5._put_people_in_model(initial_money)
     people_list = [agent for agent in model5.schedule.agents if isinstance(agent, Person)]
     assert all(agent in model5.get_all_agents_on_grid() for agent in people_list)
-
-
-
-
-
