@@ -15,7 +15,6 @@ class GeneralAgent(Agent):
         self.bank_accounts = None
         self.wealth = 0
         self.txn_counter = 0
-        self.action_step = self.model.schedule.steps
 
     def step(self):
         pass
@@ -87,7 +86,7 @@ class GeneralAgent(Agent):
     def get_nearest(self, agent_type):
         closest = float('inf')
         closest_agent = None
-        for agent in self.model.get_all_agents():
+        for agent in self.model.get_all_agents_on_grid():
             if isinstance(agent, agent_type):
                 distance = self.distance_to(agent)
                 if distance < closest:

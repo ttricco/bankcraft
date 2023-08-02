@@ -31,7 +31,6 @@ class Model(Model):
         self.grid = MultiGrid(width=15, height=15, torus=False)
         self._put_people_in_model(initial_money)
         self._put_employers_in_model()
-        self._put_banks_in_model()
         self._put_merchants_in_model()
         self._set_best_friends()
         self.datacollector = DataCollector(
@@ -60,7 +59,7 @@ class Model(Model):
             self._place_randomly_on_grid(employer, employer.location)
             self.schedule.add(employer)
 
-    def _put_people_in_model(self, initial_money, spending_prob, spending_amount):
+    def _put_people_in_model(self, initial_money):
         for i in range(self._num_people):
             person = Person(self, initial_money)
             j = i % self._num_employers
@@ -81,13 +80,9 @@ class Model(Model):
             self._place_randomly_on_grid(merchant, merchant.location)
             self.schedule.add(merchant)
 
-    def _put_banks_in_model(self):
-        for i in self.banks:
-            self.schedule.add(i)
-
     def _set_best_friends(self):
         person_agents = [agent for agent in self.schedule.agents if isinstance(agent, Person)]
-        for i in range(0,len(person_agents),2):
+        for i in range(0, len(person_agents), 2):
             person_agents[i].set_best_friend(person_agents[i+1])
             person_agents[i+1].set_best_friend(person_agents[i])
             
