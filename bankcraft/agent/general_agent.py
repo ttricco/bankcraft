@@ -9,13 +9,12 @@ import numpy as np
 
 class GeneralAgent(Agent):
     def __init__(self, model):
-        # todo "need an easy to read short version id"
+        # todo "need an easy-to-read short version id"
         self.unique_id = uuid4().int
         super().__init__(self.unique_id, model)
         self.bank_accounts = None
         self.wealth = 0
         self.txn_counter = 0
-        self.type = 'general_agent'
 
     def step(self):
         pass
@@ -34,29 +33,24 @@ class GeneralAgent(Agent):
     def pay(self, amount, receiver, txn_type, description):
         if type(receiver) == str:
             receiver = self._payerBusiness
-        transaction = Transaction(self.bank_accounts[0][0],
-                                  receiver.bank_accounts[0][0],
+        transaction = Transaction(self,
+                                  receiver,
                                   amount,
-                                  self.model.schedule.steps,
-                                  self.unique_id,
                                   self.txn_counter,
                                   txn_type)
         if transaction.txn_type_is_defined() and transaction.txn_is_authorized():
             transaction.do_transaction()
             self.update_records(receiver, amount, txn_type, "chequing", description)
-            self.txn_counter += 1
-            self.update_wealth()
-            receiver.update_wealth()
 
-    def update_records(self, other_agent, amount, transaction_type, account_type, description):
+    def update_records(self, other_agent, amount, txn_type, senders_account_type, description):
         transaction_data = {
             "sender": self.unique_id,
             "receiver": other_agent.unique_id,
             "amount": amount,
             "step": self.model.schedule.time,
             "txn_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
-            "txn_type": transaction_type,
-            "sender_account_type": account_type,
+            "txn_type": txn_type,
+            "sender_account_type": senders_account_type,
             "description": description,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)
@@ -92,7 +86,7 @@ class GeneralAgent(Agent):
     def get_nearest(self, agent_type):
         closest = float('inf')
         closest_agent = None
-        for agent in self.model.get_all_agents():
+        for agent in self.model.get_all_agents_on_grid():
             if isinstance(agent, agent_type):
                 distance = self.distance_to(agent)
                 if distance < closest:
