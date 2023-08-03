@@ -26,6 +26,8 @@ class Employer(GeneralAgent):
 
     def add_employee(self, person):
         self.employees.append(person)
+        person.employer = self
+        person.work = self.location
 
     def remove_employee(self, person):
         self.employees.remove(person)

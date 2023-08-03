@@ -6,10 +6,12 @@ from bankcraft.model import Model
 from bankcraft.agent.bank import Bank
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
+from bankcraft.clock import Clock
 
 account_initial_balance = 1500
 num_banks = 1
 txn_amount = 300
+Model.clock = Clock()
 Model.schedule = RandomActivation(Model)
 Model.datacollector = \
     DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
@@ -32,34 +34,41 @@ def other_agent():
     return GeneralAgent(Model)
 
 
+def test_bank_account_is_none_before_assigning(agent, banks):
+    assert agent.bank_accounts is None
+
+
 def test_bank_account_is_not_none_after_assigning(agent, banks):
     agent.bank_accounts = agent.assign_bank_account(Model, account_initial_balance)
     assert agent.bank_accounts is not None
 
 
-def test_update_wealth_after_assigning_bank_account(agent, banks):
+def test_update_wealth_is_needed_after_assigning_bank_account(agent, banks):
     agent_default_wealth = agent.wealth
     agent.bank_accounts = agent.assign_bank_account(Model, account_initial_balance)
+    agent_wealth_before_update = agent.wealth
     agent.update_wealth()
-    assert (agent_default_wealth == 0 and
+    assert (agent_default_wealth == 0 and agent_wealth_before_update == agent_default_wealth and
             agent.wealth == num_banks*account_initial_balance)
 
 
-def test_pay_changes_chequing_balance(banks, agent, other_agent):
+def test_pay_changes_wealth(banks, agent, other_agent):
     agent.bank_accounts = agent.assign_bank_account(Model, account_initial_balance)
     other_agent.bank_accounts = other_agent.assign_bank_account(Model, account_initial_balance)
     agent.pay(txn_amount, other_agent, "cash", "gift")
-    assert (agent.bank_accounts[0][0].balance == account_initial_balance - txn_amount and
-            other_agent.bank_accounts[0][0].balance == account_initial_balance + txn_amount)
+    assert (agent.wealth == num_banks * account_initial_balance - txn_amount and
+            other_agent.wealth == num_banks * account_initial_balance + txn_amount)
 
 
 def test_undefined_tnx_type_does_not_change_wealth(banks, agent, other_agent):
     agent.bank_accounts = agent.assign_bank_account(Model, account_initial_balance)
     agent.update_wealth()
-    pre_txn_wealth = agent.wealth
+    agents_initial_wealth = agent.wealth
     other_agent.bank_accounts = other_agent.assign_bank_account(Model, account_initial_balance)
+    other_agent.update_wealth()
+    other_agent_initial_wealth = other_agent.wealth
     agent.pay(txn_amount, other_agent, "e-transfer", "gift")
-    assert pre_txn_wealth == agent.wealth
+    assert agents_initial_wealth == agent.wealth and other_agent_initial_wealth == other_agent.wealth
 
 
 def test_updating_txn_records(agent, other_agent):

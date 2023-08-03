@@ -12,6 +12,7 @@ account_initial_balance = 1500
 num_banks = 1
 txn_amount = 300
 
+
 @pytest.fixture
 def agent():
     return GeneralAgent(Model)
@@ -23,7 +24,7 @@ def banks():
     return Model.banks
 
 
-def test_do_transaction(agent, banks):
+def test_do_transaction_changes_senders_and_receivers_wealth(agent, banks):
     agent.bank_accounts = agent.assign_bank_account(Model, account_initial_balance)
     agent.update_wealth()
     agents_initial_wealth = agent.wealth
@@ -37,7 +38,5 @@ def test_do_transaction(agent, banks):
                               agent.txn_counter,
                               txn_type='ACH')
     transaction.do_transaction()
-    agents_wealth = agent.wealth
-    another_agents_wealth = another_agent.wealth
-    assert (agents_initial_wealth != agents_wealth and
-            agents_initial_wealth + another_agents_initial_wealth == agents_wealth + another_agents_wealth)
+    assert (agents_initial_wealth != agent.wealth and
+            agents_initial_wealth + another_agents_initial_wealth == agent.wealth + another_agent.wealth)

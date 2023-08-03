@@ -6,10 +6,12 @@ from bankcraft.agent.bank import Bank
 from bankcraft.config import steps
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
+from bankcraft.clock import Clock
 
 
 num_banks = 1
 Model.schedule = RandomActivation(Model)
+Model.clock = Clock()
 Model.datacollector = \
     DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
                                            "txn_type", "sender_account_type", "description"]})
@@ -54,7 +56,7 @@ def test_pay_period_is_biweekly_or_month(employers):
     assert employers[0].pay_period == steps['biweekly'] or employers[0].pay_period == steps['month']
 
 
-def test_after_30weeks_is_pay_date(employers):
+def test_15biweekly_is_7months_pay_date(employers):
     step = 30/2 * steps['biweekly']
     assert employers[0].is_pay_date(step)
 
