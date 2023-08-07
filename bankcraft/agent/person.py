@@ -111,6 +111,7 @@ class Person(GeneralAgent):
                          description=row['scheduled_expenses'])
 
     def unscheduled_txn(self):
+        # brainstorming on what to include in business class
         if random.random() < 0.1:
             weight = self._social_network_weights
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
