@@ -85,8 +85,8 @@ class Model(Model):
     def _set_best_friends(self):
         person_agents = [agent for agent in self.schedule.agents if isinstance(agent, Person)]
         for i in range(0, len(person_agents), 2):
-            person_agents[i].best_friend(person_agents[i+1])
-            person_agents[i+1].best_friend(person_agents[i])
+            person_agents[i].best_friend = person_agents[i+1]
+            person_agents[i+1].best_friend = person_agents[i]
 
     def step(self):
         self.schedule.step()
