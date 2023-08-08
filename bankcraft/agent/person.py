@@ -43,7 +43,6 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
-        self.clock = model.clock
         self.working = False
 
         self._home = None
@@ -89,7 +88,7 @@ class Person(GeneralAgent):
                 self._target_location = self.best_friend.pos
         else:
             #self._target_location = self.employer.pos
-            self._target_location = self._work
+            self._target_location = self.work
 
     def set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
@@ -111,7 +110,6 @@ class Person(GeneralAgent):
                          description=row['scheduled_expenses'])
 
     def unscheduled_txn(self):
-        # brainstorming on what to include in business class
         if random.random() < 0.1:
             weight = self._social_network_weights
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
@@ -192,7 +190,6 @@ class Person(GeneralAgent):
         # 9am-12pm and 1pm-5pm
         if self.model.current_time.weekday() < 5 and\
                 (9 <= self.model.current_time.hour <= 12 or 13 <= self.model.current_time.hour <= 17):
-        # if self.clock.hour in range(9, 12) or self.clock.hour in range(13, 17):
             self.working = True
             self.set_target_location('work')
         else:

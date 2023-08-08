@@ -7,15 +7,14 @@ from bankcraft.agent.merchant import Merchant
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
-from bankcraft.clock import Clock
 import datetime
+
 
 class Model(Model):
     def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
                  spending_prob=0.5, spending_amount=100,
                  num_employers=2, num_banks=1):
         super().__init__()
-        self.clock = Clock()
         self._num_people = num_people
         self._num_merchant = num_merchant
         self._num_banks = num_banks
@@ -91,10 +90,9 @@ class Model(Model):
             person_agents[i+1].set_best_friend(person_agents[i])
 
     def step(self):
-        self.current_time += self._one_step_time
-        # self.clock.tick()
         self.schedule.step()
         self.datacollector.collect(self)
+        self.current_time += self._one_step_time
 
     def run(self, no_steps):
         for _ in range(no_steps):
