@@ -8,7 +8,7 @@ from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
 from bankcraft.clock import Clock
-
+import datetime
 
 class Model(Model):
     def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
@@ -33,6 +33,10 @@ class Model(Model):
         self._put_employers_in_model()
         self._put_merchants_in_model()
         self._set_best_friends()
+        self._start_time = datetime.datetime(2023, 1, 1, 0, 0, 0)
+        self._one_step_time = datetime.timedelta(minutes=10)
+        # end_time = start_time + datetime.timedelta(days = no_steps/steps['days'])
+        self.current_time = self._start_time
         self.datacollector = DataCollector(
             agent_reporters={"wealth": lambda a: a.wealth,
                              'location': lambda a: a.pos,
@@ -43,7 +47,7 @@ class Model(Model):
                              'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
                              'consumerism level': lambda a: a.motivation.consumer_needs if isinstance(a, Person) else None,
                              },
-            tables={"transactions": ["sender", "receiver", "amount", "step",
+            tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"]}
 
         )
@@ -85,9 +89,10 @@ class Model(Model):
         for i in range(0, len(person_agents), 2):
             person_agents[i].set_best_friend(person_agents[i+1])
             person_agents[i+1].set_best_friend(person_agents[i])
-            
+
     def step(self):
-        self.clock.tick()
+        self.current_time += self._one_step_time
+        # self.clock.tick()
         self.schedule.step()
         self.datacollector.collect(self)
 

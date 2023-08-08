@@ -48,6 +48,7 @@ class GeneralAgent(Agent):
             "receiver": other_agent.unique_id,
             "amount": amount,
             "step": self.model.schedule.time,
+            "date_time": self.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
             "txn_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
             "txn_type": txn_type,
             "sender_account_type": senders_account_type,

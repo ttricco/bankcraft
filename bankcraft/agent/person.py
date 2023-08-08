@@ -190,7 +190,9 @@ class Person(GeneralAgent):
         self.pay_schedule_txn()
         self.unscheduled_txn()
         # 9am-12pm and 1pm-5pm
-        if self.clock.hour in range(9, 12) or self.clock.hour in range(13, 17):
+        if self.model.current_time.weekday() < 5 and\
+                (9 <= self.model.current_time.hour <= 12 or 13 <= self.model.current_time.hour <= 17):
+        # if self.clock.hour in range(9, 12) or self.clock.hour in range(13, 17):
             self.working = True
             self.set_target_location('work')
         else:
