@@ -59,7 +59,7 @@ class GeneralAgent(Agent):
     def move(self):
         if self._target_location is not None:
             self.move_to(self._target_location)
-            self.motivation.update_motivation('hunger', hunger_rate )
+            self.motivation.update_motivation('hunger', hunger_rate)
             
     def move_to(self, new_position):
         x, y = self.pos

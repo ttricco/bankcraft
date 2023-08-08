@@ -34,7 +34,6 @@ class Model(Model):
         self._set_best_friends()
         self._start_time = datetime.datetime(2023, 1, 1, 0, 0, 0)
         self._one_step_time = datetime.timedelta(minutes=10)
-        # end_time = start_time + datetime.timedelta(days = no_steps/steps['days'])
         self.current_time = self._start_time
         self.datacollector = DataCollector(
             agent_reporters={"wealth": lambda a: a.wealth,
@@ -86,8 +85,8 @@ class Model(Model):
     def _set_best_friends(self):
         person_agents = [agent for agent in self.schedule.agents if isinstance(agent, Person)]
         for i in range(0, len(person_agents), 2):
-            person_agents[i].set_best_friend(person_agents[i+1])
-            person_agents[i+1].set_best_friend(person_agents[i])
+            person_agents[i].best_friend(person_agents[i+1])
+            person_agents[i+1].best_friend(person_agents[i])
 
     def step(self):
         self.schedule.step()
