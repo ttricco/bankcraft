@@ -36,7 +36,8 @@ class Model(Model):
         self._one_step_time = datetime.timedelta(minutes=10)
         self.current_time = self._start_time
         self.datacollector = DataCollector(
-            agent_reporters={"wealth": lambda a: a.wealth,
+            agent_reporters={'date_time': lambda a: a.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
+                             'wealth': lambda a: a.wealth,
                              'location': lambda a: a.pos,
                              'Agent type': lambda a: a.type,
                              'account_balance': lambda a: a.bank_accounts[0][0].balance,

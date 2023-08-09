@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 import numpy as np
 import mesa
@@ -21,12 +22,18 @@ class Visualization:
         self.agents = model.get_agents().reset_index()
         self.transactions = model.get_transactions()
         self.agentID_color = {}
+        self.agentID_symbol = {}
 
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
             if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
                 self.agentID_color[agentID] = self.pallet[i]
+                self.agentID_symbol[agentID] = "o"
+            elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "employer":
+                self.agentID_color[agentID] = "c"
+                self.agentID_symbol[agentID] = "D"
             else:
                 self.agentID_color[agentID] = "black"
+                self.agentID_symbol[agentID] = "s"
 
     def line_plot(self):
         fig, ax = plt.subplots(figsize=(15, 6))
@@ -56,14 +63,16 @@ class Visualization:
             df = grid_df[grid_df['Step'] == slider]
             for agent in df['AgentID'].unique():
                 label = df[df['AgentID'] == agent]['Agent type'].values[0]
-                sns.scatterplot(x='x', y='y', data=df[df['AgentID'] == agent], color=self.agentID_color[agent],
+                date = df['date_time'].iloc[0]
+                sns.scatterplot(x='x', y='y', data=df[df['AgentID'] == agent],
+                                color=self.agentID_color[agent],
+                                marker=self.agentID_symbol[agent],
                                 label=label, ax=ax[0], s=100)
-
+                ax[0].set_title('Agent Movements in the Grid, at : ' + str(date))
             ax[0].set_xlim(0, self.WIDTH)
             ax[0].set_ylim(0, self.HEIGHT)
 
             # Set plot title and labels
-            ax[0].set_title('Agent Movements in the Grid')
             ax[0].set_xlabel('X-coordinate')
             ax[0].set_ylabel('Y-coordinate')
 
