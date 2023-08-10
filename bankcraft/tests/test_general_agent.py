@@ -6,17 +6,18 @@ from bankcraft.model import Model
 from bankcraft.agent.bank import Bank
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
-from bankcraft.clock import Clock
+import datetime
 
 account_initial_balance = 1500
 num_banks = 1
 txn_amount = 300
-Model.clock = Clock()
 Model.schedule = RandomActivation(Model)
 Model.datacollector = \
-    DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
+    DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "date_time", "txn_id",
                                            "txn_type", "sender_account_type", "description"]})
 
+Model.start_time = datetime.datetime(2023, 1, 1, 0, 0, 0)
+Model.current_time = Model.start_time
 
 @pytest.fixture
 def banks():
@@ -73,7 +74,7 @@ def test_undefined_tnx_type_does_not_change_wealth(banks, agent, other_agent):
 
 def test_updating_txn_records(agent, other_agent):
     Model.datacollector = \
-        DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
+        DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "date_time", "txn_id",
                                                "txn_type", "sender_account_type", "description"]})
     agent.update_records(other_agent, txn_amount, "cheque", "chequing", "debt")
     Model.datacollector.collect(Model)
@@ -82,6 +83,7 @@ def test_updating_txn_records(agent, other_agent):
         "receiver": other_agent.unique_id,
         "amount": txn_amount,
         "step": 0,
+        "date_time": Model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
         "txn_id": f"{str(agent.unique_id)}_{str(agent.txn_counter)}",
         "txn_type": "cheque",
         "sender_account_type": "chequing",

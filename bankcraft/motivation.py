@@ -5,7 +5,8 @@ class Motivation:
         self.fatigue = 1
         self.social = 1
         self.consumer_needs = 1
-        self.motivation_list = ['hunger', 'fatigue', 'social', 'consumer_needs']
+        self.work = 1
+        self.motivation_list = ['hunger', 'fatigue', 'social', 'consumer_needs', 'work']
 
     def update_motivation(self, key, amount):
         if hasattr(self, key):
@@ -18,6 +19,7 @@ class Motivation:
         self.fatigue = 1
         self.social = 1
         self.consumer_needs = 1
+        self.work = 1
         
     def get_motivation(self, key):
         return getattr(self, key) if hasattr(self, key) else "Invalid key"
