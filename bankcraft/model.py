@@ -29,8 +29,8 @@ class Model(Model):
             self.social_grid.edges[u, v]['weight'] = 1 / (self._num_people - 1)
 
         self.grid = MultiGrid(width=15, height=15, torus=False)
-        self._put_people_in_model(initial_money)
         self._put_employers_in_model()
+        self._put_people_in_model(initial_money)
         self._put_merchants_in_model()
         self._set_best_friends()
         self.datacollector = DataCollector(
@@ -48,15 +48,15 @@ class Model(Model):
 
         )
 
-    def _place_randomly_on_grid(self, agent, place):
+    def _place_randomly_on_grid(self, agent):
         x = self.random.randrange(self.grid.width)
         y = self.random.randrange(self.grid.height)
-        place = (x, y)
-        self.grid.place_agent(agent, place)
+        self.grid.place_agent(agent, (x, y))
+        return x, y
 
     def _put_employers_in_model(self):
         for employer in self.employers:
-            self._place_randomly_on_grid(employer, employer.location)
+            employer.location = self._place_randomly_on_grid(employer )
             self.schedule.add(employer)
 
     def _put_people_in_model(self, initial_money):
@@ -66,7 +66,7 @@ class Model(Model):
             self.employers[j].add_employee(person)
             person.employer = self.employers[j]
             person.work = person.employer.location
-            self._place_randomly_on_grid(person, person.home)
+            person.home = self._place_randomly_on_grid(person)
             self.schedule.add(person)
             person.social_node = i
 
@@ -77,7 +77,7 @@ class Model(Model):
     def _put_merchants_in_model(self):
         for _ in range(self._num_merchant):
             merchant = Merchant(self, "Restaurant", 10, 1000)
-            self._place_randomly_on_grid(merchant, merchant.location)
+            merchant.location = self._place_randomly_on_grid(merchant)
             self.schedule.add(merchant)
 
     def _set_best_friends(self):

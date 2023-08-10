@@ -78,17 +78,16 @@ class Person(GeneralAgent):
         self.best_friend = best_friend
 
     def set_target_location(self, motivation):
-        if self.working is False:
-            if motivation == 'hunger':
-                self._target_location = self.get_nearest(Merchant).pos
-            elif motivation == 'fatigue':
-                self._target_location = self.home
-            elif motivation == 'social':
-                #self._target_location = self.get_nearest(Person).pos
-                self._target_location = self.best_friend.pos
-        else:
-            #self._target_location = self.employer.pos
-            self._target_location = self._work
+        if motivation == 'hunger':
+            self._target_location = self.get_nearest(Merchant).pos
+        elif motivation == 'fatigue':
+            self._target_location = self.home
+        elif motivation == 'social':
+            #self._target_location = self.get_nearest(Person).pos
+            self._target_location = self.best_friend.pos
+        elif motivation == 'work':
+            self._target_location = self.work
+
 
     def set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)

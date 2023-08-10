@@ -16,16 +16,23 @@ class visualization():
         self.STEPS = 1008
         self.WIDTH = 15
         self.HEIGHT = 15
-        self.COLORS = {"person": "red", "merchant": "black"}
         self.pallet = sns.color_palette("tab10")
         self.agents = model.get_agents().reset_index()
         self.transactions = model.get_transactions()
         self.agentID_color = {}
+        self.agentID_marker = {}
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
             if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
                 self.agentID_color[agentID] = self.pallet[i]
-            else:
-                self.agentID_color[agentID] = "black"
+                self.agentID_marker[agentID] = 'o'
+                
+            elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "merchant":
+                self.agentID_color[agentID] = 'black'
+                self.agentID_marker[agentID] = 'X'
+                
+            elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "employer":
+                self.agentID_color[agentID] = 'black'
+                self.agentID_marker[agentID] = 's'
             
     def line_plot(self):
         fig, ax = plt.subplots(figsize=(15, 6))
@@ -53,11 +60,20 @@ class visualization():
             # extract the agents at the current step
             df = grid_df[grid_df['Step'] == slider]
             for agent in df['AgentID'].unique():
-                label = df[df['AgentID']==agent]['Agent type'].values[0]
-                sns.scatterplot(x='x', y='y', data=df[df['AgentID'] == agent], color=self.agentID_color[agent], label=label, ax=ax[0], s=100)
+                label = df[df['AgentID'] == agent]['Agent type'].values[0]
+                x = df[df['AgentID']==agent]['x']
+                y = df[df['AgentID']==agent]['y']
+                def jitter(values,j):
+                    return values + np.random.normal(j,0.1,values.shape)
+   
+                sns.scatterplot(x=jitter(x,0.1), y=jitter(y,0.1), data=df[df['AgentID'] == agent],
+                                color=self.agentID_color[agent], 
+                                marker=self.agentID_marker[agent],
+                                ax=ax[0], s=100, label = label)
 
             ax[0].set_xlim(0, self.WIDTH)
             ax[0].set_ylim(0, self.HEIGHT)
+            ax[0].legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
 
             # Set plot title and labels
             ax[0].set_title('Agent Movements in the Grid')
@@ -92,15 +108,6 @@ class visualization():
             plt.grid(True)
             plt.show()
         
-
-    # def distribution_plot(self):
-    #     fig, ax = plt.subplots(figsize=(15, 6))
-    #     df = self.agents[self.agents["Agent type"] == "person"]
-    #     df = df.groupby(['AgentID', 'Step']).last().reset_index()
-    #     sns.distplot(df['wealth'], ax=ax)
-    #     ax.set_title("Money Distribution")
-    #     ax.set_ylabel("Density")
-    #     ax.set_xlabel("Money")
     
     def sender_bar_plot(self,include='all'):
         if include == 'all':
