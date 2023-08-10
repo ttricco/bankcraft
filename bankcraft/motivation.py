@@ -38,4 +38,6 @@ class Motivation:
                 max_motivation = motivation
                 max_motivation_value = self.get_motivation(motivation)
         return max_motivation, max_motivation_value
-                
+    
+    def reset_one_motivation(self, motivation):
+        setattr(self, motivation, 1)
