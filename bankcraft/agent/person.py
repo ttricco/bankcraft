@@ -44,7 +44,6 @@ class Person(GeneralAgent):
 
         self._target_location = None
         self.clock = model.clock
-        self.working = False
 
         self._home = None
         self._work = None
@@ -169,6 +168,12 @@ class Person(GeneralAgent):
                     break       
 
     def motivation_handler(self):
+        # 9am-12pm and 1pm-5pm
+        if self.clock.hour in range(9, 12) or self.clock.hour in range(13, 17):
+            self.motivation.update_motivation('work', motivation_threshold)
+        else:
+            self.motivation.reset_one_motivation('work')
+            
         critical_motivation = self.motivation.get_critical_motivation()
         if critical_motivation is not None:
             self.set_target_location(critical_motivation)
@@ -188,9 +193,4 @@ class Person(GeneralAgent):
         self.move()
         self.pay_schedule_txn()
         self.unscheduled_txn()
-        # 9am-12pm and 1pm-5pm
-        if self.clock.hour in range(9, 12) or self.clock.hour in range(13, 17):
-            self.working = True
-            self.set_target_location('work')
-        else:
-            self.working = False
+
