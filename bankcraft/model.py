@@ -7,7 +7,7 @@ from bankcraft.agent.merchant import Merchant
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
-from bankcraft.clock import Clock
+import datetime
 
 
 class Model(Model):
@@ -15,7 +15,6 @@ class Model(Model):
                  spending_prob=0.5, spending_amount=100,
                  num_employers=2, num_banks=1):
         super().__init__()
-        self.clock = Clock()
         self._num_people = num_people
         self._num_merchant = num_merchant
         self._num_banks = num_banks
@@ -33,8 +32,12 @@ class Model(Model):
         self._put_employers_in_model()
         self._put_merchants_in_model()
         self._set_best_friends()
+        self._start_time = datetime.datetime(2023, 1, 1, 0, 0, 0)
+        self._one_step_time = datetime.timedelta(minutes=10)
+        self.current_time = self._start_time
         self.datacollector = DataCollector(
-            agent_reporters={"wealth": lambda a: a.wealth,
+            agent_reporters={'date_time': lambda a: a.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
+                             'wealth': lambda a: a.wealth,
                              'location': lambda a: a.pos,
                              'Agent type': lambda a: a.type,
                              'account_balance': lambda a: a.bank_accounts[0][0].balance,
@@ -43,7 +46,7 @@ class Model(Model):
                              'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
                              'consumerism level': lambda a: a.motivation.consumer_needs if isinstance(a, Person) else None,
                              },
-            tables={"transactions": ["sender", "receiver", "amount", "step",
+            tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"]}
 
         )
@@ -83,13 +86,13 @@ class Model(Model):
     def _set_best_friends(self):
         person_agents = [agent for agent in self.schedule.agents if isinstance(agent, Person)]
         for i in range(0, len(person_agents), 2):
-            person_agents[i].set_best_friend(person_agents[i+1])
-            person_agents[i+1].set_best_friend(person_agents[i])
-            
+            person_agents[i].best_friend = person_agents[i+1]
+            person_agents[i+1].best_friend = person_agents[i]
+
     def step(self):
-        self.clock.tick()
         self.schedule.step()
         self.datacollector.collect(self)
+        self.current_time += self._one_step_time
 
     def run(self, no_steps):
         for _ in range(no_steps):

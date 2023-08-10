@@ -9,13 +9,20 @@ class Employer(GeneralAgent):
         super().__init__(model)
         self.pay_period = random.choice([steps['biweekly'], steps['month']])
         self.employees = []
-        self.initial_fund = 1000000
-        self.bank_accounts = self.assign_bank_account(model, self.initial_fund)
+        self._initial_fund = 1000000
+        self.bank_accounts = self.assign_bank_account(model, self._initial_fund)
         # These are for use of agent reporter and needs to be handled better in the future
-        self.wealth = self.initial_fund
-        self.motivation = None
+        self.wealth = self._initial_fund
         self.type = 'employer'
-        self.location = None
+        self._location = None
+
+    @property
+    def location(self):
+        return self._location
+
+    @location.setter
+    def location(self, value):
+        self._location = value
 
     def is_pay_date(self, date):
         return date % self.pay_period == 0
