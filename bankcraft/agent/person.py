@@ -43,7 +43,7 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
-
+        self.clock = model.clock
 
         self._home = None
         self._work = None
