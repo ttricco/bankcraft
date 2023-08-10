@@ -87,17 +87,16 @@ class Person(GeneralAgent):
         # self.best_friend = best_friend
 
     def set_target_location(self, motivation):
-        if self.working is False:
-            if motivation == 'hunger':
-                self._target_location = self.get_nearest(Merchant).pos
-            elif motivation == 'fatigue':
-                self._target_location = self.home
-            elif motivation == 'social':
-                #self._target_location = self.get_nearest(Person).pos
-                self._target_location = self.best_friend.pos
-        else:
-            #self._target_location = self.employer.pos
+        if motivation == 'hunger':
+            self._target_location = self.get_nearest(Merchant).pos
+        elif motivation == 'fatigue':
+            self._target_location = self.home
+        elif motivation == 'social':
+            #self._target_location = self.get_nearest(Person).pos
+            self._target_location = self.best_friend.pos
+        elif motivation == 'work':
             self._target_location = self.work
+
 
     def set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
@@ -178,7 +177,8 @@ class Person(GeneralAgent):
 
     def motivation_handler(self):
         # 9am-12pm and 1pm-5pm
-        if self.clock.hour in range(9, 12) or self.clock.hour in range(13, 17):
+        if self.model.current_time.weekday() < 5 and\
+                (9 <= self.model.current_time.hour <= 12 or 13 <= self.model.current_time.hour <= 17):
             self.motivation.update_motivation('work', motivation_threshold)
         else:
             self.motivation.reset_one_motivation('work')
