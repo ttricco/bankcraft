@@ -6,15 +6,15 @@ from bankcraft.agent.bank import Bank
 from bankcraft.config import steps
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
-from bankcraft.clock import Clock
-
+import datetime
 
 num_banks = 1
 Model.schedule = RandomActivation(Model)
-Model.clock = Clock()
 Model.datacollector = \
-    DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "txn_id",
+    DataCollector(tables={"transactions": ["sender", "receiver", "amount", "step", "date_time", "txn_id",
                                            "txn_type", "sender_account_type", "description"]})
+Model.start_time = datetime.datetime(2023, 1, 1, 0, 0, 0)
+Model.current_time = Model.start_time
 
 
 @pytest.fixture

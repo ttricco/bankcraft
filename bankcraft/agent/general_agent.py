@@ -48,6 +48,7 @@ class GeneralAgent(Agent):
             "receiver": other_agent.unique_id,
             "amount": amount,
             "step": self.model.schedule.time,
+            "date_time": self.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
             "txn_id": f"{str(self.unique_id)}_{str(self.txn_counter)}",
             "txn_type": txn_type,
             "sender_account_type": senders_account_type,
@@ -58,7 +59,7 @@ class GeneralAgent(Agent):
     def move(self):
         if self._target_location is not None:
             self.move_to(self._target_location)
-            self.motivation.update_motivation('hunger', hunger_rate )
+            self.motivation.update_motivation('hunger', hunger_rate)
             
     def move_to(self, new_position):
         x, y = self.pos

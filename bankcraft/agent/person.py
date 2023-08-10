@@ -43,12 +43,14 @@ class Person(GeneralAgent):
         self.spending_amount = random.randrange(0, 100)
 
         self._target_location = None
+
         self.clock = model.clock
 
         self._home = None
         self._work = None
         self._social_node = None
         self._social_network_weights = None
+        self._best_friend = None
 
     @property
     def home(self):
@@ -74,8 +76,16 @@ class Person(GeneralAgent):
     def social_node(self, value):
         self._social_node = value
 
-    def set_best_friend(self, best_friend):
-        self.best_friend = best_friend
+    @property
+    def best_friend(self):
+        return self._best_friend
+
+    @best_friend.setter
+    def best_friend(self, person):
+        self._best_friend = person
+
+    # def set_best_friend(self, best_friend):
+        # self.best_friend = best_friend
 
     def set_target_location(self, motivation):
         if motivation == 'hunger':

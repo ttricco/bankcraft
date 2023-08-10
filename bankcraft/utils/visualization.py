@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 import numpy as np
 import mesa
@@ -10,7 +11,8 @@ from ipywidgets import widgets, interact, interactive, fixed, interact_manual
 import warnings
 warnings.filterwarnings("ignore")
 
-class visualization():
+
+class Visualization:
     def __init__(self, model):
         self.model = model
         self.STEPS = 1008
@@ -20,6 +22,7 @@ class visualization():
         self.agents = model.get_agents().reset_index()
         self.transactions = model.get_transactions()
         self.agentID_color = {}
+
         self.agentID_marker = {}
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
             if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
@@ -28,12 +31,12 @@ class visualization():
                 
             elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "merchant":
                 self.agentID_color[agentID] = 'black'
-                self.agentID_marker[agentID] = 'X'
+                self.agentID_marker[agentID] = 'D'
                 
             elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "employer":
                 self.agentID_color[agentID] = 'black'
                 self.agentID_marker[agentID] = 's'
-            
+
     def line_plot(self):
         fig, ax = plt.subplots(figsize=(15, 6))
         df = self.agents[self.agents["Agent type"] == "person"]
@@ -47,16 +50,17 @@ class visualization():
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         
     def grid_plot(self):
-        grid_df =  self.agents[~self.agents['location'].isnull()]
+        grid_df = self.agents[~self.agents['location'].isnull()]
         grid_df['x'] = grid_df['location'].apply(lambda x: x[0])
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
         pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['Agent type'] == 'person']['AgentID'].unique()))
         slider = widgets.IntSlider(value=10, min=1, max=self.STEPS, step=1, description='Step')
+
         @interact(slider=slider)
         def grid_plot(slider):
-            fig, ax = plt.subplots(1,2, figsize=(15, 6))
+            fig, ax = plt.subplots(1, 2, figsize=(15, 6))
             # extract the agents at the current step
             df = grid_df[grid_df['Step'] == slider]
             for agent in df['AgentID'].unique():
@@ -76,10 +80,8 @@ class visualization():
             ax[0].legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
 
             # Set plot title and labels
-            ax[0].set_title('Agent Movements in the Grid')
             ax[0].set_xlabel('X-coordinate')
             ax[0].set_ylabel('Y-coordinate')
-
 
             node = df[df['Agent type'] == 'person']['AgentID'].unique()
             # edge being the transaction
@@ -97,7 +99,7 @@ class visualization():
                                    pos=pos,
                                    node_color=[self.agentID_color[node] for node in node],
                                    node_size=[df[df['AgentID'] == node]['wealth'] for node in node],
-                                   ax = ax[1])
+                                   ax=ax[1])
 
             nx.draw_networkx_edges(edge, pos=pos, ax=ax[1])
             nx.draw_networkx_edges(edge, pos=pos, edgelist=transaction_edges, ax=ax[1], width=2.0)
@@ -107,8 +109,7 @@ class visualization():
             plt.tight_layout()
             plt.grid(True)
             plt.show()
-        
-    
+
     def sender_bar_plot(self,include='all'):
         if include == 'all':
             df = self.transactions
@@ -118,11 +119,12 @@ class visualization():
         df = df.groupby(['sender', 'description']).sum().reset_index()
         fig, ax = plt.subplots(figsize=(15, 6))
         sns.barplot(x='sender', y='amount', hue='description', data=df, ax=ax)
-        ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.sender.unique()], rotation=45, horizontalalignment='right')
+        ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.sender.unique()],
+                           rotation=45, horizontalalignment='right')
 
         plt.show()
 
-    def receiver_bar_plot(self,include='all'):
+    def receiver_bar_plot(self, include='all'):
         if include == 'all':
             df = self.transactions
         else:
@@ -130,7 +132,8 @@ class visualization():
         df = df.groupby(['receiver', 'description']).sum().reset_index()
         fig, ax = plt.subplots(figsize=(15, 6))
         sns.barplot(x='receiver', y='amount', hue='description', data=df, ax=ax)
-        ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.receiver.unique()], rotation=45, horizontalalignment='right')
+        ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.receiver.unique()],
+                           rotation=45, horizontalalignment='right')
         plt.show()
         
     def motivation_plot(self, agentID):
