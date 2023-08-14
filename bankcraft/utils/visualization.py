@@ -50,9 +50,8 @@ class Visualization:
         ax.set_title("Money over time")
         ax.set_ylabel("Money")
         ax.set_xlabel("Step")
-
-        #legend outside
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
+        return fig, ax
         
     def grid_plot(self):
         grid_df = self.agents[~self.agents['location'].isnull()]
@@ -112,6 +111,7 @@ class Visualization:
             plt.tight_layout()
             plt.grid(True)
             plt.show()
+            
 
     def sender_bar_plot(self,include='all'):
         if include == 'all':
@@ -126,6 +126,7 @@ class Visualization:
                            rotation=45, horizontalalignment='right')
 
         plt.show()
+        return fig, ax
 
     def receiver_bar_plot(self, include='all'):
         if include == 'all':
@@ -138,6 +139,7 @@ class Visualization:
         ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.receiver.unique()],
                            rotation=45, horizontalalignment='right')
         plt.show()
+        return fig, ax
         
     def motivation_plot(self, agentID):
         df = self.agents[self.agents['AgentID'] == agentID]
@@ -149,5 +151,6 @@ class Visualization:
         ax.set_ylabel("Motivation")
         ax.set_xlabel("Step")
         ax.legend(['hunger level', 'fatigue level', 'social level'])
+        return fig, ax
         
 
