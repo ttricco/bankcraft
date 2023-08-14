@@ -56,13 +56,16 @@ class Visualization:
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
         pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['Agent type'] == 'person']['AgentID'].unique()))
-        slider = widgets.IntSlider(value=10, min=1, max=self.STEPS, step=1, description='Step')
-
+        slider = widgets.SelectionSlider(
+            options = list(grid_df['date_time'].unique()),
+            description = 'Time:',
+            layout={'width': '500px'},
+        )
         @interact(slider=slider)
         def grid_plot(slider):
             fig, ax = plt.subplots(1, 2, figsize=(15, 6))
             # extract the agents at the current step
-            df = grid_df[grid_df['Step'] == slider]
+            df = grid_df[grid_df['date_time'] == slider]
             for agent in df['AgentID'].unique():
                 label = df[df['AgentID'] == agent]['Agent type'].values[0]
                 x = df[df['AgentID']==agent]['x']
@@ -74,29 +77,23 @@ class Visualization:
                                 color=self.agentID_color[agent], 
                                 marker=self.agentID_marker[agent],
                                 ax=ax[0], s=100, label = label)
-                date = df['date_time'].iloc[0]
-                ax[0].set_title(f'Agent Movements in the Grid, at : {str(date)}')
+                ax[0].set_title('Agent Movements in the Grid')
 
             ax[0].set_xlim(0, self.WIDTH)
             ax[0].set_ylim(0, self.HEIGHT)
-            ax[0].legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), ncol=3)
+            ax[0].legend(loc='upper center', bbox_to_anchor=(0.5, -0.09), ncol=3)
 
-            # Set plot title and labels
             ax[0].set_xlabel('X-coordinate')
             ax[0].set_ylabel('Y-coordinate')
 
             node = df[df['Agent type'] == 'person']['AgentID'].unique()
-            # edge being the transaction
             trans = self.transactions[self.transactions['step'] == slider]
             transaction_edges = []
             for _, row in trans.iterrows():
                 if row['sender'] in node and row['receiver'] in node:
                     transaction_edges.append((row['sender'], row['receiver']))
 
-            # complete graph edge
             edge = nx.complete_graph(node)
-            # if there is a transaction between two agents, bold the edge
-
             nx.draw_networkx_nodes(node,
                                    pos=pos,
                                    node_color=[self.agentID_color[node] for node in node],
