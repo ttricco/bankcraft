@@ -22,20 +22,25 @@ class Visualization:
         self.agents = model.get_agents().reset_index()
         self.transactions = model.get_transactions()
         self.agentID_color = {}
-
+        self.agentID_jitter = {}
         self.agentID_marker = {}
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
             if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
                 self.agentID_color[agentID] = self.pallet[i]
                 self.agentID_marker[agentID] = 'o'
+                self.agentID_jitter[agentID] = np.random.normal(0,0.1,1)
                 
             elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "merchant":
                 self.agentID_color[agentID] = 'black'
                 self.agentID_marker[agentID] = 'D'
+                self.agentID_jitter[agentID] = 0
+                
                 
             elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "employer":
                 self.agentID_color[agentID] = 'black'
                 self.agentID_marker[agentID] = 's'
+                self.agentID_jitter[agentID] = 0
+
 
     def line_plot(self):
         fig, ax = plt.subplots(figsize=(15, 6))
@@ -70,10 +75,9 @@ class Visualization:
                 label = df[df['AgentID'] == agent]['Agent type'].values[0]
                 x = df[df['AgentID']==agent]['x']
                 y = df[df['AgentID']==agent]['y']
-                def jitter(values,j):
-                    return values + np.random.normal(j,0.1,values.shape)
 
-                sns.scatterplot(x=jitter(x,0.1), y=jitter(y,0.1), data=df[df['AgentID'] == agent],
+
+                sns.scatterplot(x=x+self.agentID_jitter[agent], y=y+self.agentID_jitter[agent], data=df[df['AgentID'] == agent],
                                 color=self.agentID_color[agent], 
                                 marker=self.agentID_marker[agent],
                                 ax=ax[0], s=100, label = label)
