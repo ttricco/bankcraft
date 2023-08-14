@@ -158,7 +158,11 @@ class Visualization:
         df = self.transactions
         df = df.groupby(['txn_type']).sum().reset_index()
         fig, ax = plt.subplots(figsize=(15, 6))
-        sns.barplot(x='txn Type', y='Total Amount', data=df, ax=ax)
+        sns.barplot(x='txn_type', y='amount', data=df, ax=ax)
+        ax.set_title("Transaction type")
+        ax.set_ylabel("Total Amount")
+        ax.set_xlabel("Transaction type")
         plt.show()
         return fig, ax
-    x
+    
+    
