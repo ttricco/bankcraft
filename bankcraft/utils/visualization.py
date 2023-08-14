@@ -24,7 +24,7 @@ class Visualization:
         self.agentID_color = {}
         self.agentID_jitter = {}
         self.agentID_marker = {}
-        self.persons = self.agents[self.agents["Agent type"] == "person"]
+        self.persons = self.agents[self.agents["Agent type"] == "person"]['AgentID'].unique()
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
             if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
                 self.agentID_color[agentID] = self.pallet[i]
@@ -130,10 +130,8 @@ class Visualization:
         return fig, ax
 
     def receiver_bar_plot(self, include='all'):
-        if include == 'all':
-            df = self.transactions
-        else:
-            df = self.transactions[self.transactions['receiver'] == include]
+        df = self.transactions[self.transactions['receiver'].isin(self.persons)]
+        df = df if include == 'all' else df[df['receiver'] == include]
         df = df.groupby(['receiver', 'description']).sum().reset_index()
         fig, ax = plt.subplots(figsize=(15, 6))
         sns.barplot(x='receiver', y='amount', hue='description', data=df, ax=ax)
