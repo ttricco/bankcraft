@@ -27,7 +27,7 @@ class Visualization:
         self.persons = self.agents[self.agents["Agent type"] == "person"]['AgentID'].unique()
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
             if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
-                self.agentID_color[agentID] = self.pallet[i]
+                self.agentID_color[agentID] = self.pallet[i%9]
                 self.agentID_marker[agentID] = 'o'
                 self.agentID_jitter[agentID] = np.random.normal(0,0.1,1)
                 
@@ -115,18 +115,19 @@ class Visualization:
             
 
     def sender_bar_plot(self,include='all'):
-        if include == 'all':
-            df = self.transactions
-        else:
-            df = self.transactions[self.transactions['sender'] == include]  
-            
+        df = self.transactions[self.transactions['sender'].isin(self.persons)]
+        df = df if include == 'all' else df[df['sender'] == include]
         df = df.groupby(['sender', 'description']).sum().reset_index()
         fig, ax = plt.subplots(figsize=(15, 6))
         sns.barplot(x='sender', y='amount', hue='description', data=df, ax=ax)
-        ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.sender.unique()],
+        for xtick in ax.get_xticklabels():
+            xtick.set_color(self.agentID_color[int(xtick.get_text())])
+            
+        ax.set_xticklabels([f"{str(agent)[:7]}..." for agent in df.sender.unique()],
                            rotation=45, horizontalalignment='right')
-
-        plt.show()
+        ax.set_title('Sender Bar Plot')
+        ax.set_ylabel('Total Amount')
+        ax.set_xlabel('Sender')
         return fig, ax
 
     def receiver_bar_plot(self, include='all'):
@@ -134,10 +135,16 @@ class Visualization:
         df = df if include == 'all' else df[df['receiver'] == include]
         df = df.groupby(['receiver', 'description']).sum().reset_index()
         fig, ax = plt.subplots(figsize=(15, 6))
-        sns.barplot(x='receiver', y='amount', hue='description', data=df, ax=ax)
-        ax.set_xticklabels([f"{str(agent)[:4]}..." for agent in df.receiver.unique()],
+        sns.barplot(x='receiver', y='amount', hue='description', data=df, ax=ax,)
+
+        for xtick in ax.get_xticklabels():
+            xtick.set_color(self.agentID_color[int(xtick.get_text())])
+        
+        ax.set_xticklabels([f"{str(agent)[:7]}..." for agent in df.receiver.unique()],
                            rotation=45, horizontalalignment='right')
-        plt.show()
+        ax.set_title('Receiver Bar Plot')
+        ax.set_ylabel('Total Amount')
+        ax.set_xlabel('Receiver')
         return fig, ax
         
     def motivation_plot(self, agentID):
@@ -160,7 +167,6 @@ class Visualization:
         ax.set_title("Transaction type")
         ax.set_ylabel("Total Amount")
         ax.set_xlabel("Transaction type")
-        plt.show()
         return fig, ax
     
     
