@@ -24,6 +24,7 @@ class Visualization:
         self.agentID_color = {}
         self.agentID_jitter = {}
         self.agentID_marker = {}
+        self.persons = self.agents[self.agents["Agent type"] == "person"]
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
             if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
                 self.agentID_color[agentID] = self.pallet[i]
@@ -153,4 +154,11 @@ class Visualization:
         ax.legend(['hunger level', 'fatigue level', 'social level'])
         return fig, ax
         
-
+    def transaction_type_bar_plot(self):
+        df = self.transactions
+        df = df.groupby(['txn_type']).sum().reset_index()
+        fig, ax = plt.subplots(figsize=(15, 6))
+        sns.barplot(x='txn Type', y='Total Amount', data=df, ax=ax)
+        plt.show()
+        return fig, ax
+    x
