@@ -69,11 +69,13 @@ class Visualization:
                 y = df[df['AgentID']==agent]['y']
                 def jitter(values,j):
                     return values + np.random.normal(j,0.1,values.shape)
-   
+
                 sns.scatterplot(x=jitter(x,0.1), y=jitter(y,0.1), data=df[df['AgentID'] == agent],
                                 color=self.agentID_color[agent], 
                                 marker=self.agentID_marker[agent],
                                 ax=ax[0], s=100, label = label)
+                date = df['date_time'].iloc[0]
+                ax[0].set_title(f'Agent Movements in the Grid, at : {str(date)}')
 
             ax[0].set_xlim(0, self.WIDTH)
             ax[0].set_ylim(0, self.HEIGHT)
@@ -90,11 +92,11 @@ class Visualization:
             for _, row in trans.iterrows():
                 if row['sender'] in node and row['receiver'] in node:
                     transaction_edges.append((row['sender'], row['receiver']))
-            
+
             # complete graph edge
             edge = nx.complete_graph(node)
             # if there is a transaction between two agents, bold the edge
-            
+
             nx.draw_networkx_nodes(node,
                                    pos=pos,
                                    node_color=[self.agentID_color[node] for node in node],
