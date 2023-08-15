@@ -82,8 +82,6 @@ class Person(GeneralAgent):
     def best_friend(self, person):
         self._best_friend = person
 
-    # def set_best_friend(self, best_friend):
-        # self.best_friend = best_friend
 
     def set_target_location(self, motivation):
         if motivation == 'hunger':
@@ -165,10 +163,8 @@ class Person(GeneralAgent):
             self.motivation.update_motivation('fatigue', fatigue_rate)
             self.motivation.update_motivation('social', social_rate)
             
-
         
     def socialize(self):
-        #if there is a person in this location
         if not self.model.grid.is_cell_empty(self.pos):
             for agent in self.model.grid.get_cell_list_contents([self.pos]):
                 if isinstance(agent, Person):
@@ -178,7 +174,6 @@ class Person(GeneralAgent):
                     break       
 
     def motivation_handler(self):
-        # 9am-12pm and 1pm-5pm
         if self.model.current_time.weekday() < 5 and\
                 (9 <= self.model.current_time.hour <= 12 or 13 <= self.model.current_time.hour <= 17):
             self.motivation.update_motivation('work', motivation_threshold)
@@ -191,7 +186,6 @@ class Person(GeneralAgent):
             if critical_motivation == 'hunger':
                 self.buy('hunger')    
             elif critical_motivation == 'fatigue' and self.pos == self.home:
-                #fatigue_amount = np.random.beta(a=9, b=2, size=1)[0] * (self.motivation.get_motivation('fatigue'))
                 self.motivation.update_motivation('fatigue', -2 * fatigue_rate)
             elif critical_motivation == 'social':
                 self.socialize()
