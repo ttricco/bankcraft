@@ -153,6 +153,7 @@ class Visualization:
         ax.plot(df['Step'], df['hunger level'], color='red')
         ax.plot(df['Step'], df['fatigue level'], color='blue')
         ax.plot(df['Step'], df['social level'], color='green')
+        ax.axhline(y=20, color='grey', linestyle='--')
         ax.set_title("Motivation over time")
         ax.set_ylabel("Motivation")
         ax.set_xlabel("Step")

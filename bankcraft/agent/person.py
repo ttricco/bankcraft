@@ -160,9 +160,12 @@ class Person(GeneralAgent):
         )
         
     def live(self):
-        self.motivation.update_motivation('hunger', hunger_rate)
-        self.motivation.update_motivation('fatigue', fatigue_rate)
-        self.motivation.update_motivation('social', social_rate)
+        if self.pos != self.home:
+            self.motivation.update_motivation('hunger', hunger_rate)
+            self.motivation.update_motivation('fatigue', fatigue_rate)
+            self.motivation.update_motivation('social', social_rate)
+            
+
         
     def socialize(self):
         #if there is a person in this location
@@ -188,10 +191,8 @@ class Person(GeneralAgent):
             if critical_motivation == 'hunger':
                 self.buy('hunger')    
             elif critical_motivation == 'fatigue' and self.pos == self.home:
-                fatigue_amount = np.random.beta(a=9, b=2, size=1)[0] * (self.motivation.get_motivation('fatigue'))
-                self.motivation.update_motivation('fatigue', -fatigue_amount)
-                self.motivation.update_motivation('hunger', hunger_rate * -1)
-                self.motivation.update_motivation('social', social_rate * -1)
+                #fatigue_amount = np.random.beta(a=9, b=2, size=1)[0] * (self.motivation.get_motivation('fatigue'))
+                self.motivation.update_motivation('fatigue', -2 * fatigue_rate)
             elif critical_motivation == 'social':
                 self.socialize()
                            
