@@ -3,7 +3,7 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import MultiGrid
 import networkx as nx
-from bankcraft.agent.merchant import Merchant
+from bankcraft.agent.merchant import Merchant, Food, Clothes
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
@@ -30,8 +30,8 @@ class Model(Model):
         self.grid = MultiGrid(width=15, height=15, torus=False)
         self._put_employers_in_model()
         self._put_people_in_model(initial_money)
-        self._put_merchants_in_model(type='food',number=self._num_merchant)
-        self._put_merchants_in_model(type='other',number=self._num_merchant//2)
+        self._put_clothes_merchants_in_model()
+        self._put_food_merchants_in_model()
         self._set_best_friends()
         self._start_time = datetime.datetime(2023, 1, 1, 0, 0, 0)
         self._one_step_time = datetime.timedelta(minutes=10)
@@ -78,12 +78,17 @@ class Model(Model):
             if isinstance(person, Person):
                 person.set_social_network_weights()
 
-    def _put_merchants_in_model(self,type,number):
-        for _ in range(number):
-            merchant = Merchant(self, type, 10, 1000)
+    def _put_food_merchants_in_model(self):
+        for _ in range(self._num_merchant):
+            merchant = Food(self,  10, 1000)
             merchant.location = self._place_randomly_on_grid(merchant)
             self.schedule.add(merchant)
-
+    def _put_clothes_merchants_in_model(self):
+        for _ in range(self._num_merchant//2):
+            merchant = Clothes(self,  10, 1000)
+            merchant.location = self._place_randomly_on_grid(merchant)
+            self.schedule.add(merchant)
+            
     def _set_best_friends(self):
         person_agents = [agent for agent in self.schedule.agents if isinstance(agent, Person)]
         for i in range(0, len(person_agents), 2):

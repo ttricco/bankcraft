@@ -21,4 +21,22 @@ class Merchant(GeneralAgent):
     @location.setter
     def location(self, value):
         self._location = value
+        
+class Food(Merchant):
+    def __init__(self, model,
+                 type,
+                 price,
+                 initial_money):
+        super().__init__(model, type, price, initial_money)
+        self.type = 'food'
+        self._location = None
+
+class Clothes(Merchant):
+    def __init__(self, model,
+                 type,
+                 price,
+                 initial_money):
+        super().__init__(model, type, price, initial_money)
+        self.type = 'clothes'
+        self._location = None
 
