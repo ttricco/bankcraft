@@ -149,6 +149,7 @@ class Visualization:
         
     def motivation_plot(self, agentID):
         df = self.agents[self.agents['AgentID'] == agentID]
+        color = self.agentID_color[agentID]
         fig, ax = plt.subplots(figsize=(15, 6))
         ax.plot(df['Step'], df['hunger level'], color='red')
         ax.plot(df['Step'], df['fatigue level'], color='blue')
@@ -157,7 +158,8 @@ class Visualization:
         ax.set_title("Motivation over time")
         ax.set_ylabel("Motivation")
         ax.set_xlabel("Step")
-        ax.legend(['hunger level', 'fatigue level', 'social level'])
+        ax.legend(['hunger level', 'fatigue level', 'social level'],facecolor=color, framealpha=1)
+        
         return fig, ax
         
     def transaction_type_bar_plot(self):
