@@ -6,7 +6,7 @@ from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant
 from bankcraft.motivation import Motivation
 from bankcraft.config import steps
-from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate
+from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate, consumerism_rate
 
 
 class Person(GeneralAgent):
@@ -162,7 +162,7 @@ class Person(GeneralAgent):
             self.motivation.update_motivation('hunger', hunger_rate)
             self.motivation.update_motivation('fatigue', fatigue_rate)
             self.motivation.update_motivation('social', social_rate)
-            
+            self.motivation.update_motivation('consumerism', consumerism_rate)
         
     def socialize(self):
         if not self.model.grid.is_cell_empty(self.pos):
@@ -189,6 +189,8 @@ class Person(GeneralAgent):
                 self.motivation.update_motivation('fatigue', -2 * fatigue_rate)
             elif critical_motivation == 'social':
                 self.socialize()
+            elif critical_motivation == 'consumerism':
+                self.buy('consumerism')
                            
     def step(self):
         self.live()
