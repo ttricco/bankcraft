@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
-from bankcraft.agent.merchant import Merchant
+from bankcraft.agent.merchant import Merchant, Food, Clothes
 from bankcraft.motivation import Motivation
 from bankcraft.config import steps
 from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate, consumerism_rate
@@ -85,7 +85,7 @@ class Person(GeneralAgent):
 
     def set_target_location(self, motivation):
         if motivation == 'hunger':
-            self._target_location = self.get_nearest(Merchant).pos
+            self._target_location = self.get_nearest(Food).pos
         elif motivation == 'fatigue':
             self._target_location = self.home
         elif motivation == 'social':
@@ -93,6 +93,8 @@ class Person(GeneralAgent):
             self._target_location = self.best_friend.pos
         elif motivation == 'work':
             self._target_location = self.work
+        elif motivation == 'consumerism':
+            self._target_location = self.get_nearest(Clothes).pos
 
 
     def set_schedule_txn(self):
@@ -128,15 +130,15 @@ class Person(GeneralAgent):
             return
         agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
-        if isinstance(agent, Merchant):
-            if motivation == 'hunger':
-                value = self.motivation.get_motivation(motivation)
-                price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
-            else:
-                price = self.motivation.get_motivation(motivation)
+        price = 0
+        if motivation == 'hunger' and isinstance(agent, Food):
+            value = self.motivation.get_motivation(motivation)
+            price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+        elif motivation == 'consumerism' and isinstance(agent, Clothes):
+            price = self.motivation.get_motivation(motivation)
 
-            self.pay(price, agent, 'ACH', motivation)
-            self.motivation.update_motivation(motivation, -price)     
+        self.pay(price, agent, 'ACH', motivation)
+        self.motivation.update_motivation(motivation, -price)     
                               
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
