@@ -155,7 +155,7 @@ class Visualization:
         ax.plot(df['Step'], df['fatigue level'], color='blue')
         ax.plot(df['Step'], df['social level'], color='green')
         ax.axhline(y=20, color='grey', linestyle='--')
-        ax.set_title("Motivation over time")
+        ax.set_title("Motivation over time for agent {}".format(agentID))
         ax.set_ylabel("Motivation")
         ax.set_xlabel("Step")
         ax.legend(['hunger level', 'fatigue level', 'social level'],facecolor=color, framealpha=1)
