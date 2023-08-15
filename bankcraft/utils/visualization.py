@@ -159,8 +159,7 @@ class Visualization:
         ax.set_title(f"Motivation over time for agent {agentID}")
         ax.set_ylabel("Motivation")
         ax.set_xlabel("Step")
-        ax.legend(['hunger level', 'fatigue level', 'social level','consumerism level'],facecolor=color, framealpha=1)
-
+        ax.legend(['hunger level', 'fatigue level', 'social level','consumerism level'],frameon =True)#,facecolor=color, framealpha=1)
         return fig, ax
         
     def transaction_type_bar_plot(self):

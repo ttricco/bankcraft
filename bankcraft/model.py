@@ -30,7 +30,8 @@ class Model(Model):
         self.grid = MultiGrid(width=15, height=15, torus=False)
         self._put_employers_in_model()
         self._put_people_in_model(initial_money)
-        self._put_merchants_in_model()
+        self._put_merchants_in_model(type='food',number=self._num_merchant)
+        self._put_merchants_in_model(type='other',number=self._num_merchant//2)
         self._set_best_friends()
         self._start_time = datetime.datetime(2023, 1, 1, 0, 0, 0)
         self._one_step_time = datetime.timedelta(minutes=10)
@@ -77,9 +78,9 @@ class Model(Model):
             if isinstance(person, Person):
                 person.set_social_network_weights()
 
-    def _put_merchants_in_model(self):
-        for _ in range(self._num_merchant):
-            merchant = Merchant(self, "Restaurant", 10, 1000)
+    def _put_merchants_in_model(self,type,number):
+        for _ in range(number):
+            merchant = Merchant(self, type, 10, 1000)
             merchant.location = self._place_randomly_on_grid(merchant)
             self.schedule.add(merchant)
 
