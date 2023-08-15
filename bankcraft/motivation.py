@@ -4,9 +4,9 @@ class Motivation:
         self.hunger = 1
         self.fatigue = 1
         self.social = 1
-        self.consumer_needs = 1
+        self.consumerism = 1
         self.work = 1
-        self.motivation_list = ['hunger', 'fatigue', 'social', 'consumer_needs', 'work']
+        self.motivation_list = ['hunger', 'fatigue', 'social', 'consumerism', 'work']
 
     def update_motivation(self, key, amount):
         if hasattr(self, key):
