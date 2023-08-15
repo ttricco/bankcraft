@@ -124,18 +124,19 @@ class Person(GeneralAgent):
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
-        if not self.model.grid.is_cell_empty(self.pos):
-            agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+        if self.model.grid.is_cell_empty(self.pos):
+            return
+        agent = self.model.grid.get_cell_list_contents([self.pos])[0]
             # if the agent is a merchant
-            if isinstance(agent, Merchant):
-                hunger = self.motivation.get_motivation(motivation)
-                if hunger > 100:
-                    price = hunger
-                else:
-                    price = np.random.beta(a=9, b=2, size=1)[0] * (hunger)
-                
-                self.pay(price, agent, 'ACH', motivation)
-                self.motivation.update_motivation(motivation, -price)     
+        if isinstance(agent, Merchant):
+            if motivation == 'hunger':
+                value = self.motivation.get_motivation(motivation)
+                price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+            else:
+                price = self.motivation.get_motivation(motivation)
+
+            self.pay(price, agent, 'ACH', motivation)
+            self.motivation.update_motivation(motivation, -price)     
                               
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
