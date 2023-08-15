@@ -31,16 +31,17 @@ class GeneralAgent(Agent):
         self.wealth = sum(account.balance for account in itertools.chain.from_iterable(self.bank_accounts))
 
     def pay(self, amount, receiver, txn_type, description):
-        if type(receiver) == str:
-            receiver = self._payerBusiness
+        # if type(receiver) == str:
+        #     receiver = self.model.businesses[0]
+        # receiver = self._payerBusiness
         transaction = Transaction(self,
                                   receiver,
                                   amount,
                                   self.txn_counter,
                                   txn_type)
-        if transaction.txn_type_is_defined() and transaction.txn_is_authorized():
-            transaction.do_transaction()
-            self.update_records(receiver, amount, txn_type, "chequing", description)
+        # if transaction.txn_type_is_defined() and transaction.txn_is_authorized():
+        transaction.do_transaction()
+        self.update_records(receiver, amount, txn_type, "chequing", description)
 
     def update_records(self, other_agent, amount, txn_type, senders_account_type, description):
         transaction_data = {

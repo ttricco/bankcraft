@@ -34,9 +34,6 @@ class Person(GeneralAgent):
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
-        self._landlord = Business(model, business_type='Landlord')
-        # a temporary business for receiving scheduled transactions
-        self._payerBusiness = Business(model, business_type='test')
         self.schedule_txn = pd.DataFrame()
 
         self.spending_prob = random.random()
@@ -49,6 +46,7 @@ class Person(GeneralAgent):
         self._social_node = None
         self._social_network_weights = None
         self._best_friend = None
+        self._set_schedule_txn()
 
     @property
     def home(self):
@@ -97,23 +95,24 @@ class Person(GeneralAgent):
             self._target_location = self.get_nearest(Clothes).pos
 
 
-    def set_schedule_txn(self):
+    def _set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
         #  if the account balance is not enough they must be paid in future including the interest
         txn_list = [['scheduled_expenses', 'Amount', 'pay_date', 'Receiver'],
-                    ['Rent/Mortgage', self._housing_cost_per_pay, self._housing_cost_frequency, self._landlord],
-                    ['Utilities', np.random.normal(loc=200, scale=50), steps['month'], 'Utility Company'],
-                    ['Memberships', self._membership_amount, steps['month'], 'Business'],
-                    ['Subscriptions', self._subscription_amount, steps['month'], 'Business'],
-                    ['Bills', random.randrange(10, 300), steps['month'], 'Business']]
+                    ['Rent/Mortgage', self._housing_cost_per_pay, self._housing_cost_frequency, self.model.invoicer["rent/mortgage"]],
+                    ['Utilities', np.random.normal(loc=200, scale=50), steps['week'], self.model.invoicer["utilities"]],
+                    ['Memberships', self._membership_amount, steps['month'], self.model.invoicer["membership"]],
+                    ['Subscriptions', self._subscription_amount, steps['month'], self.model.invoicer["subscription"]],
+                    ['Providers', random.randrange(10, 300), steps['month'], self.model.invoicer["net_providers"]]
+                    ]
         self.schedule_txn = pd.DataFrame(txn_list[1:], columns=txn_list[0])
 
     def pay_schedule_txn(self):
         for index, row in self.schedule_txn.iterrows():
-            if self.model.schedule.steps % row['Frequency'] == 0:
+            if self.model.schedule.steps % row['pay_date'] == 0:
                 self.pay(amount=row['Amount'],
                          receiver=row['Receiver'],
-                         txn_type="ACH",
+                         txn_type='online',
                          description=row['scheduled_expenses'])
 
     def unscheduled_txn(self):
@@ -121,8 +120,11 @@ class Person(GeneralAgent):
             weight = self._social_network_weights
             recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
             self.adjust_social_network(recipient)
-            if random.random() < self.spending_prob:
-                self.pay(self.spending_amount, recipient, 'ACH', 'social')
+            if random.random() >= self.spending_prob:
+                self.pay(amount=self.spending_amount,
+                         receiver=recipient,
+                         txn_type='ACH',
+                         description='social')
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
