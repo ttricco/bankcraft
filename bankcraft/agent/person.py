@@ -180,7 +180,7 @@ class Person(GeneralAgent):
 
     def motivation_handler(self):
         if self.model.current_time.weekday() < 5 and\
-                (9 <= self.model.current_time.hour <= 12 or 13 <= self.model.current_time.hour <= 17):
+                (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
             self.motivation.update_motivation('work', motivation_threshold)
         else:
             self.motivation.reset_one_motivation('work')

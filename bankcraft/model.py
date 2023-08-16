@@ -13,7 +13,6 @@ import datetime
 
 class Model(Model):
     def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
-                 spending_prob=0.5, spending_amount=100,
                  num_employers=2, num_banks=1):
         super().__init__()
         self._num_people = num_people
@@ -88,6 +87,7 @@ class Model(Model):
             merchant = Food(self,  10, 1000)
             merchant.location = self._place_randomly_on_grid(merchant)
             self.schedule.add(merchant)
+
     def _put_clothes_merchants_in_model(self):
         for _ in range(self._num_merchant//2):
             merchant = Clothes(self,  10, 1000)
