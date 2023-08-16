@@ -19,10 +19,12 @@ class Model(Model):
         self._num_people = num_people
         self._num_merchant = num_merchant
         self._num_banks = num_banks
-        business_types = ["rent/mortgage", "utility", "subscription", "net_providers", "membership"]
-        self.invoicer = {b_type: Business(self, b_type) for b_type in business_types}
-        self.schedule = RandomActivation(self)
         self.banks = [Bank(self) for _ in range(self._num_banks)]
+
+        business_types = ["rent/mortgage", "utilities", "subscription", "membership", "net_providers"]
+        self.invoicer = {b_type: Business(self, b_type) for b_type in business_types}
+
+        self.schedule = RandomActivation(self)
         self._num_employers = num_employers
         self.employers = [Employer(self) for _ in range(self._num_employers)]
         # adding a complete graph with equal weights
