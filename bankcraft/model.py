@@ -64,7 +64,7 @@ class Model(Model):
 
     def _put_employers_in_model(self):
         for employer in self.employers:
-            employer.location = self._place_randomly_on_grid(employer )
+            employer.location = self._place_randomly_on_grid(employer)
             self.schedule.add(employer)
 
     def _put_people_in_model(self, initial_money):
