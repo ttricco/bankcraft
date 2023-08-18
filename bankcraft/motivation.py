@@ -1,4 +1,6 @@
 from bankcraft.config import motivation_threshold
+
+
 class Motivation:
     def __init__(self):
         self.hunger = 1
@@ -18,7 +20,7 @@ class Motivation:
         self.hunger = 1
         self.fatigue = 1
         self.social = 1
-        self.consumer_needs = 1
+        self.consumerism = 1
         self.work = 1
         
     def get_motivation(self, key):
