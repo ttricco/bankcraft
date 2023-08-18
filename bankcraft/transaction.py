@@ -22,4 +22,4 @@ class Transaction:
         return str(self._txn_type).lower() in ["cash", "wire", "online", "ach", "cheque"]
 
     def txn_is_authorized(self):
-        return True
+        return self.amount > 0
