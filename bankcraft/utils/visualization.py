@@ -147,19 +147,23 @@ class Visualization:
         
     def motivation_plot(self, agentID):
         df = self.agents[self.agents['AgentID'] == agentID]
+        df['date_time'] = pd.to_datetime(df['date_time'])
         df = df.set_index('date_time')
         color = self.agentID_color[agentID]
         fig, ax = plt.subplots(figsize=(15, 6))
-        ax.plot(df.index, df['consumerism level'], color='orange')
-        ax.plot(df.index, df['hunger level'], color='red')
-        ax.plot(df.index, df['fatigue level'], color='blue')
-        ax.plot(df.index, df['social level'], color='green')
+        ax.plot(df['consumerism level'], color='orange')
+        ax.plot(df['hunger level'], color='red')
+        ax.plot(df['fatigue level'], color='blue')
+        ax.plot(df['social level'], color='green')
         ax.axhline(y=20, color='grey', linestyle='--')
-        # ax.xaxis.set_major_locator(mdates.DayLocator())
-        # ax.set_xticklabels(pd.to_datetime(df['date_time']).dt.minute, rotation=45)
+        labels = ax.get_xticklabels()
+        ax.set_xticklabels(labels, rotation=45)
+        xticks = ax.get_xticks()
+        ax.vlines(xticks, 0, 80, linestyles='dashed', colors='black')
+        ax.locator_params(axis='x', nbins=10)
         ax.set_title(f"Motivation over time for agent {agentID}")
         ax.set_ylabel("Motivation")
-        ax.set_xlabel("date_of_the_month")
+        ax.set_xlabel("date")
         ax.legend(['consumerism level','hunger level', 'fatigue level', 'social level'], frameon=True)#,facecolor=color, framealpha=1)
         return fig, ax
         
