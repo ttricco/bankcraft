@@ -50,6 +50,7 @@ class Model(Model):
                              'fatigue level': lambda a: a.motivation.fatigue if isinstance(a, Person) else None,
                              'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
                              'consumerism level': lambda a: a.motivation.consumerism if isinstance(a, Person) else None,
+                             'work level': lambda a: a.motivation.work if isinstance(a, Person) else None,
                              },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"]}
