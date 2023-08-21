@@ -12,7 +12,10 @@ class Motivation:
 
     def update_motivation(self, key, amount):
         if hasattr(self, key):
-            setattr(self, key, getattr(self, key) + amount)
+            if getattr(self, key) + amount > 0:
+                setattr(self, key, getattr(self, key) + amount)
+            else:
+                setattr(self, key, 0)
         else:
             return "Invalid key"
 

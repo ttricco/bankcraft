@@ -6,7 +6,7 @@ from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant, Food, Clothes
 from bankcraft.motivation import Motivation
 from bankcraft.config import steps
-from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate, consumerism_rate
+from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate, work_rate, consumerism_rate
 
 
 class Person(GeneralAgent):
@@ -47,6 +47,7 @@ class Person(GeneralAgent):
         self._social_network_weights = None
         self._best_friend = None
         self._set_schedule_txn()
+        self.active_step = 0
 
     @property
     def home(self):
@@ -112,6 +113,7 @@ class Person(GeneralAgent):
                          receiver=row['Receiver'],
                          txn_type='online',
                          description=row['scheduled_expenses'])
+                self.activity_interval(duration=0)
 
     def unscheduled_txn(self):
         if random.random() < 0.1:
@@ -123,6 +125,7 @@ class Person(GeneralAgent):
                          receiver=recipient,
                          txn_type='ACH',
                          description='social')
+                self.activity_interval(duration=0)
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
@@ -138,7 +141,8 @@ class Person(GeneralAgent):
             price = self.motivation.get_motivation(motivation)
 
         self.pay(price, agent, 'ACH', motivation)
-        self.motivation.update_motivation(motivation, -price)     
+        self.motivation.update_motivation(motivation, -price)
+        self.activity_interval(duration=0)
                               
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
@@ -159,13 +163,23 @@ class Person(GeneralAgent):
         self._social_network_weights[other_agent] = min(
             self._social_network_weights[other_agent], 1
         )
-        
+
+    def activity_interval(self, duration):
+        self.active_step = self.model.schedule.time + duration
+
     def live(self):
-        if self.pos != self.home:
+        # if self.pos != self.home:
+        if self.model.current_time.hour < 5:
+            self.motivation.update_motivation('hunger', hunger_rate/4)
+            self.motivation.update_motivation('fatigue', -4*fatigue_rate)
+            if self.model.current_time.weekday() < 5:
+                self.motivation.update_motivation('work', work_rate)
+        else:
             self.motivation.update_motivation('hunger', hunger_rate)
             self.motivation.update_motivation('fatigue', fatigue_rate)
             self.motivation.update_motivation('social', social_rate)
             self.motivation.update_motivation('consumerism', consumerism_rate)
+            self.motivation.update_motivation('work', -work_rate/4)
         
     def socialize(self):
         if not self.model.grid.is_cell_empty(self.pos):
@@ -174,14 +188,21 @@ class Person(GeneralAgent):
                     self.adjust_social_network(agent)
                     social_amount = np.random.beta(a=9, b=2, size=1)[0] * (self.motivation.get_motivation('social'))
                     self.motivation.update_motivation('social', -social_amount)
+                    self.activity_interval(duration=0)
                     break       
 
     def motivation_handler(self):
-        if self.model.current_time.weekday() < 5 and\
+        if self.model.current_time.hour < 5:
+            self.activity_interval(duration=0)
+            self.move_to(self.home)
+        elif self.model.current_time.weekday() < 5 and\
                 (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
-            self.motivation.update_motivation('work', motivation_threshold)
-        else:
-            self.motivation.reset_one_motivation('work')
+            self.move_to(self.work)
+            self.activity_interval(duration=0)
+
+            # self.motivation.update_motivation('work', motivation_threshold)
+        # else:
+        #     self.motivation.reset_one_motivation('work')
             
         critical_motivation = self.motivation.get_critical_motivation()
         if critical_motivation is not None:
@@ -194,11 +215,15 @@ class Person(GeneralAgent):
                 self.socialize()
             elif critical_motivation == 'consumerism':
                 self.buy('consumerism')
-                           
+            elif critical_motivation == 'work':
+                self.move_to(self.work)
+
+
     def step(self):
         self.live()
-        self.motivation_handler()
-        self.move()
         self.pay_schedule_txn()
-        self.unscheduled_txn()
+        if self.model.schedule.time >= self.active_step:
+            self.motivation_handler()
+            self.move()
+            self.unscheduled_txn()
 
