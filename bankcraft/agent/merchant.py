@@ -19,13 +19,15 @@ class Merchant(GeneralAgent):
     @location.setter
     def location(self, value):
         self._location = value
-        
+
+
 class Food(Merchant):
     def __init__(self, model,
                  price,
                  initial_money):
         super().__init__(model, price, initial_money)
         self._location = None
+
 
 class Clothes(Merchant):
     def __init__(self, model,
