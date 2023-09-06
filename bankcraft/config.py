@@ -2,6 +2,7 @@ hunger_rate = 0.3 # threshold * 3 * (1/step['day'])
 fatigue_rate = 0.2 # threshold * 3 * (1/step['day'])* 0.5
 social_rate = 0.1
 consumerism_rate = 0.03
+work_rate = 0.55
 motivation_threshold = 20
 
 steps = {'10min': 1}

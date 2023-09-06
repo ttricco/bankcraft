@@ -4,9 +4,11 @@ import numpy as np
 from bankcraft.agent.business import Business
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant, Food, Clothes
-from bankcraft.motivation import Motivation
+# from bankcraft.motivation import Motivation
 from bankcraft.config import steps
 from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate, consumerism_rate
+from bankcraft.motivation.motivation import Motivation
+from bankcraft.motivation.motivation_state import NeutralState
 
 
 class Person(GeneralAgent):
@@ -30,7 +32,8 @@ class Person(GeneralAgent):
 
         self.employer = None
 
-        self.motivation = Motivation()
+        self.motivation = Motivation(None)
+        self.motivation.state = NeutralState(self.motivation)
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
@@ -80,18 +83,18 @@ class Person(GeneralAgent):
     def best_friend(self, person):
         self._best_friend = person
 
-    def set_target_location(self, motivation):
-        if motivation == 'hunger':
-            self._target_location = self.get_nearest(Food).pos
-        elif motivation == 'fatigue':
-            self._target_location = self.home
-        elif motivation == 'social':
-            #self._target_location = self.get_nearest(Person).pos
-            self._target_location = self.best_friend.pos
-        elif motivation == 'work':
-            self._target_location = self.work
-        elif motivation == 'consumerism':
-            self._target_location = self.get_nearest(Clothes).pos
+    # def set_target_location(self, motivation):
+    #     if motivation == 'hunger':
+    #         self._target_location = self.get_nearest(Food).pos
+    #     elif motivation == 'fatigue':
+    #         self._target_location = self.home
+    #     elif motivation == 'social':
+    #         #self._target_location = self.get_nearest(Person).pos
+    #         self._target_location = self.best_friend.pos
+    #     elif motivation == 'work':
+    #         self._target_location = self.work
+    #     elif motivation == 'consumerism':
+    #         self._target_location = self.get_nearest(Clothes).pos
 
     def _set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
@@ -113,33 +116,33 @@ class Person(GeneralAgent):
                          txn_type='online',
                          description=row['scheduled_expenses'])
 
-    def unscheduled_txn(self):
-        if random.random() < 0.1:
-            weight = self._social_network_weights
-            recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
-            self.adjust_social_network(recipient)
-            if random.random() >= self.spending_prob:
-                self.pay(amount=self.spending_amount,
-                         receiver=recipient,
-                         txn_type='ACH',
-                         description='social')
+    # def unscheduled_txn(self):
+    #     if random.random() < 0.1:
+    #         weight = self._social_network_weights
+    #         recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+    #         self.adjust_social_network(recipient)
+    #         if random.random() >= self.spending_prob:
+    #             self.pay(amount=self.spending_amount,
+    #                      receiver=recipient,
+    #                      txn_type='ACH',
+    #                      description='social')
 
-    def buy(self, motivation):
-        # if there is a merchant agent in this location
-        if self.model.grid.is_cell_empty(self.pos):
-            return
-        agent = self.model.grid.get_cell_list_contents([self.pos])[0]
-            # if the agent is a merchant
-        price = 0
-        if motivation == 'hunger' and isinstance(agent, Food):
-            value = self.motivation.get_motivation(motivation)
-            price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
-        elif motivation == 'consumerism' and isinstance(agent, Clothes):
-            price = self.motivation.get_motivation(motivation)
-
-        self.pay(price, agent, 'ACH', motivation)
-        self.motivation.update_motivation(motivation, -price)     
-                              
+    # def buy(self, motivation):
+    #     # if there is a merchant agent in this location
+    #     if self.model.grid.is_cell_empty(self.pos):
+    #         return
+    #     agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+    #         # if the agent is a merchant
+    #     price = 0
+    #     if motivation == 'hunger' and isinstance(agent, Food):
+    #         value = self.motivation.get_motivation(motivation)
+    #         price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+    #     elif motivation == 'consumerism' and isinstance(agent, Clothes):
+    #         price = self.motivation.get_motivation(motivation)
+    #
+    #     self.pay(price, agent, 'ACH', motivation)
+    #     self.motivation.update_motivation(motivation, -price)
+    #
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
@@ -160,45 +163,45 @@ class Person(GeneralAgent):
             self._social_network_weights[other_agent], 1
         )
         
-    def live(self):
-        if self.pos != self.home:
-            self.motivation.update_motivation('hunger', hunger_rate)
-            self.motivation.update_motivation('fatigue', fatigue_rate)
-            self.motivation.update_motivation('social', social_rate)
-            self.motivation.update_motivation('consumerism', consumerism_rate)
-        
-    def socialize(self):
-        if not self.model.grid.is_cell_empty(self.pos):
-            for agent in self.model.grid.get_cell_list_contents([self.pos]):
-                if isinstance(agent, Person):
-                    self.adjust_social_network(agent)
-                    social_amount = np.random.beta(a=9, b=2, size=1)[0] * (self.motivation.get_motivation('social'))
-                    self.motivation.update_motivation('social', -social_amount)
-                    break       
+    # def live(self):
+    #     if self.pos != self.home:
+    #         self.motivation.update_motivation('hunger', hunger_rate)
+    #         self.motivation.update_motivation('fatigue', fatigue_rate)
+    #         self.motivation.update_motivation('social', social_rate)
+    #         self.motivation.update_motivation('consumerism', consumerism_rate)
+    #
+    # def socialize(self):
+    #     if not self.model.grid.is_cell_empty(self.pos):
+    #         for agent in self.model.grid.get_cell_list_contents([self.pos]):
+    #             if isinstance(agent, Person):
+    #                 self.adjust_social_network(agent)
+    #                 social_amount = np.random.beta(a=9, b=2, size=1)[0] * (self.motivation.get_motivation('social'))
+    #                 self.motivation.update_motivation('social', -social_amount)
+    #                 break
 
-    def motivation_handler(self):
-        if self.model.current_time.weekday() < 5 and\
-                (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
-            self.motivation.update_motivation('work', motivation_threshold)
-        else:
-            self.motivation.reset_one_motivation('work')
-            
-        critical_motivation = self.motivation.get_critical_motivation()
-        if critical_motivation is not None:
-            self.set_target_location(critical_motivation)
-            if critical_motivation == 'hunger':
-                self.buy('hunger')    
-            elif critical_motivation == 'fatigue' and self.pos == self.home:
-                self.motivation.update_motivation('fatigue', -2 * fatigue_rate)
-            elif critical_motivation == 'social':
-                self.socialize()
-            elif critical_motivation == 'consumerism':
-                self.buy('consumerism')
+    # def motivation_handler(self):
+    #     if self.model.current_time.weekday() < 5 and\
+    #             (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
+    #         self.motivation.update_motivation('work', motivation_threshold)
+    #     else:
+    #         self.motivation.reset_one_motivation('work')
+    #
+    #     critical_motivation = self.motivation.get_critical_motivation()
+    #     if critical_motivation is not None:
+    #         self.set_target_location(critical_motivation)
+    #         if critical_motivation == 'hunger':
+    #             self.buy('hunger')
+    #         elif critical_motivation == 'fatigue' and self.pos == self.home:
+    #             self.motivation.update_motivation('fatigue', -2 * fatigue_rate)
+    #         elif critical_motivation == 'social':
+    #             self.socialize()
+    #         elif critical_motivation == 'consumerism':
+    #             self.buy('consumerism')
                            
     def step(self):
-        self.live()
-        self.motivation_handler()
-        self.move()
+        # self.live()
+        # self.motivation_handler()
+        # self.move()
         self.pay_schedule_txn()
-        self.unscheduled_txn()
-
+        # self.unscheduled_txn()
+        self.motivation.step()
