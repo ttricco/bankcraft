@@ -66,10 +66,10 @@ class Motivation:
         return self._state
 
     def live(self):
-        self.update_motivation('hunger', 100*hunger_rate)
-        self.update_motivation('fatigue', 100*fatigue_rate)
-        self.update_motivation('social', 100*social_rate)
-        self.update_motivation('consumerism', 10*consumerism_rate)
+        self.update_motivation('hunger', hunger_rate)
+        self.update_motivation('fatigue', fatigue_rate)
+        self.update_motivation('social', social_rate)
+        self.update_motivation('consumerism', consumerism_rate)
 
     def step(self):
         self.live()
@@ -85,7 +85,8 @@ class Motivation:
             self.set_state(SocialState(self))
         elif self.critical_motivation == 'work':
             self.set_state(WorkState(self))
-
+        else:
+            self.set_state(NeutralState(self))
         print(f"{self}")
         self.set_transaction()
         self.set_motion()
