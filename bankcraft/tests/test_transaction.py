@@ -38,5 +38,6 @@ def test_do_transaction_changes_senders_and_receivers_wealth(agent, banks):
                               agent.txn_counter,
                               txn_type='ACH')
     transaction.do_transaction()
-    assert (agents_initial_wealth != agent.wealth and
-            agents_initial_wealth + another_agents_initial_wealth == agent.wealth + another_agent.wealth)
+    assert agents_initial_wealth == account_initial_balance and \
+           agent.wealth == agents_initial_wealth - txn_amount and \
+           agents_initial_wealth + another_agents_initial_wealth == agent.wealth + another_agent.wealth

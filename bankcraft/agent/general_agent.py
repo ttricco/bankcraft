@@ -31,8 +31,6 @@ class GeneralAgent(Agent):
         self.wealth = sum(account.balance for account in itertools.chain.from_iterable(self.bank_accounts))
 
     def pay(self, amount, receiver, txn_type, description):
-        if type(receiver) == str:
-            receiver = self._payerBusiness
         transaction = Transaction(self,
                                   receiver,
                                   amount,

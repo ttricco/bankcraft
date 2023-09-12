@@ -7,19 +7,23 @@ from bankcraft.agent.merchant import Merchant, Food, Clothes
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
+from bankcraft.agent.business import Business
 import datetime
 
 
 class Model(Model):
     def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
-                 spending_prob=0.5, spending_amount=100,
                  num_employers=2, num_banks=1):
         super().__init__()
         self._num_people = num_people
         self._num_merchant = num_merchant
         self._num_banks = num_banks
-        self.schedule = RandomActivation(self)
         self.banks = [Bank(self) for _ in range(self._num_banks)]
+
+        business_types = ["rent/mortgage", "utilities", "subscription", "membership", "net_providers"]
+        self.invoicer = {b_type: Business(self, b_type) for b_type in business_types}
+
+        self.schedule = RandomActivation(self)
         self._num_employers = num_employers
         self.employers = [Employer(self) for _ in range(self._num_employers)]
         # adding a complete graph with equal weights
@@ -46,6 +50,7 @@ class Model(Model):
                              'fatigue level': lambda a: a.motivation.fatigue if isinstance(a, Person) else None,
                              'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
                              'consumerism level': lambda a: a.motivation.consumerism if isinstance(a, Person) else None,
+                             'work level': lambda a: a.motivation.work if isinstance(a, Person) else None,
                              },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"]}
@@ -60,7 +65,7 @@ class Model(Model):
 
     def _put_employers_in_model(self):
         for employer in self.employers:
-            employer.location = self._place_randomly_on_grid(employer )
+            employer.location = self._place_randomly_on_grid(employer)
             self.schedule.add(employer)
 
     def _put_people_in_model(self, initial_money):
@@ -83,6 +88,7 @@ class Model(Model):
             merchant = Food(self,  10, 1000)
             merchant.location = self._place_randomly_on_grid(merchant)
             self.schedule.add(merchant)
+
     def _put_clothes_merchants_in_model(self):
         for _ in range(self._num_merchant//2):
             merchant = Clothes(self,  10, 1000)

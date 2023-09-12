@@ -3,6 +3,7 @@ from bankcraft.model import Model
 from bankcraft.agent.person import Person
 from bankcraft.agent.employer import Employer
 from bankcraft.agent.bank import Bank
+from bankcraft.agent.business import Business
 from bankcraft.config import steps
 from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
@@ -23,7 +24,7 @@ def person():
 
 
 @pytest.fixture
-def employers(banks):
+def employers(banks, invoicer):
     Model.employers = [Employer(Model) for _ in range(1)]
     return Model.employers
 
@@ -34,13 +35,20 @@ def banks():
     return Model.banks
 
 
-def test_add_employee(employers, person, banks):
+@pytest.fixture
+def invoicer():
+    business_types = ["rent/mortgage", "utilities", "subscription", "membership", "net_providers"]
+    Model.invoicer = {b_type: Business(Model, b_type) for b_type in business_types}
+    return Model.invoicer
+
+
+def test_add_employee(employers, person):
     initial_num_employees = len(employers[0].employees)
     employers[0].add_employee(person)
     assert len(employers[0].employees) == initial_num_employees + 1
 
 
-def test_remove_employee(employers, person, banks):
+def test_remove_employee(employers, person):
     employers[0].add_employee(person)
     second_person = Person(Model, 500)
     third_person = Person(Model, 500)

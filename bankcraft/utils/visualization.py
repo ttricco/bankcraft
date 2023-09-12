@@ -1,5 +1,6 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+import matplotlib.dates as mdates
 import pandas as pd
 import seaborn as sns
 import numpy as np
@@ -35,13 +36,11 @@ class Visualization:
                 self.agentID_color[agentID] = 'black'
                 self.agentID_marker[agentID] = 'D'
                 self.agentID_jitter[agentID] = 0
-                
-                
+
             elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "employer":
                 self.agentID_color[agentID] = 'black'
                 self.agentID_marker[agentID] = 's'
                 self.agentID_jitter[agentID] = 0
-
 
     def line_plot(self):
         fig, ax = plt.subplots(figsize=(15, 6))
@@ -66,6 +65,7 @@ class Visualization:
             description = 'Time:',
             layout={'width': '500px'},
         )
+
         @interact(slider=slider)
         def grid_plot(slider):
             fig, ax = plt.subplots(1, 2, figsize=(15, 6))
@@ -75,7 +75,6 @@ class Visualization:
                 label = df[df['AgentID'] == agent]['Agent type'].values[0]
                 x = df[df['AgentID']==agent]['x']
                 y = df[df['AgentID']==agent]['y']
-
 
                 sns.scatterplot(x=x+self.agentID_jitter[agent], y=y+self.agentID_jitter[agent], data=df[df['AgentID'] == agent],
                                 color=self.agentID_color[agent], 
@@ -112,9 +111,23 @@ class Visualization:
             plt.tight_layout()
             plt.grid(True)
             plt.show()
-            
 
-    def sender_bar_plot(self,include='all'):
+    def location_plot(self):
+        df = self.agents.reset_index()
+        df = df[df['Agent type'] == 'person']
+        df["x"] = df["location"].apply(lambda x: x[0])
+        df["y"] = df["location"].apply(lambda x: x[1])
+        fig, ax = plt.subplots(figsize=(7, 7))
+        line_styles = ['.', '-.', '*-', 'o-', '--', 's-', 'P-']
+        for (i, person) in zip(range(len(df["AgentID"].unique())), df["AgentID"].unique()):
+            df_agent = df[df["AgentID"] == person]
+            ax.plot(df_agent["x"], df_agent["y"], line_styles[i % len(line_styles)], label=f"Agent {i}", color=self.agentID_color[person])
+        ax.set_xlabel("X")
+        ax.set_ylabel("Y")
+        plt.legend()
+        return fig, ax
+
+    def sender_bar_plot(self, include='all'):
         df = self.transactions[self.transactions['sender'].isin(self.persons)]
         df = df if include == 'all' else df[df['sender'] == include]
         df = df.groupby(['sender', 'description']).sum().reset_index()
@@ -149,17 +162,25 @@ class Visualization:
         
     def motivation_plot(self, agentID):
         df = self.agents[self.agents['AgentID'] == agentID]
+        df['date_time'] = pd.to_datetime(df['date_time'])
+        df = df.set_index('date_time')
         color = self.agentID_color[agentID]
         fig, ax = plt.subplots(figsize=(15, 6))
-        ax.plot(df['Step'], df['consumerism level'], color='orange')
-        ax.plot(df['Step'], df['hunger level'], color='red')
-        ax.plot(df['Step'], df['fatigue level'], color='blue')
-        ax.plot(df['Step'], df['social level'], color='green')
+        ax.plot(df['consumerism level'], color='orange')
+        ax.plot(df['hunger level'], color='red')
+        ax.plot(df['fatigue level'], color='blue')
+        ax.plot(df['social level'], color='green')
+        ax.plot(df['work level'], color='m')
         ax.axhline(y=20, color='grey', linestyle='--')
+        labels = ax.get_xticklabels()
+        ax.set_xticklabels(labels, rotation=45)
+        xticks = ax.get_xticks()
+        ax.vlines(xticks, 0, 20, linestyles='dashed', colors='grey')
+        ax.locator_params(axis='x', nbins=10)
         ax.set_title(f"Motivation over time for agent {agentID}")
         ax.set_ylabel("Motivation")
-        ax.set_xlabel("Step")
-        ax.legend(['hunger level', 'fatigue level', 'social level','consumerism level'],frameon =True)#,facecolor=color, framealpha=1)
+        ax.set_xlabel("date")
+        ax.legend(['consumerism level','hunger level', 'fatigue level', 'social level', 'work level'], frameon=True)#,facecolor=color, framealpha=1)
         return fig, ax
         
     def transaction_type_bar_plot(self):

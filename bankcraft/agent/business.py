@@ -7,8 +7,14 @@ class Business(GeneralAgent):
     def __init__(self, model, business_type):
         super().__init__(model)
         self._employees = []
+        self._customers = []
         self._name = "Business" + str(self.unique_id)
-        self._type = business_type
+        self.type = business_type
         self.initial_money = 0
         self.bank_accounts = self.assign_bank_account(model, self.initial_money)
 
+    def add_customer(self, person):
+        self._customers.append(person)
+
+    def remove_customer(self, person):
+        self._customers.remove(person)
