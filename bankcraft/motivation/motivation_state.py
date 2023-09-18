@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from bankcraft.agent.merchant import Food
+from bankcraft.agent.merchant import Clothes, Food
 
 # from bankcraft.motivation.motivation import Motivation
 from bankcraft.config import *
@@ -33,17 +33,13 @@ class MotivationState(ABC):
 
 class HungerState(MotivationState):
         
-    def switch_state(self):
-        self.motivation.state = FatigueState(self.motivation)
-
     def set_transaction(self) -> None:
-        # amount = self.person.buy('hunger')
-        print('go and buy something to eat')
-        self.motivation.agent.target_location = self.motivation.agent.get_nearest(Food).pos
-        self.motivation.update_motivation('hunger', -hunger_rate)
+        self.motivation.agent.buy('hunger')
+        self.update_value(-hunger_rate)
 
     def set_motion(self) -> None:
-        print('move to the closest restaurant')
+        self.motivation.agent.target_location = self.motivation.agent.get_nearest(Food).pos
+
 
 #################################################
 
@@ -51,13 +47,10 @@ class HungerState(MotivationState):
 class FatigueState(MotivationState):
 
     def set_transaction(self) -> None:
-        # self.person.rest()
-        print('too tired to do any transactions')
-        self.motivation.update_motivation('fatigue', -fatigue_rate)
-
+        return
     def set_motion(self) -> None:
-        print('go home and rest')
-        # self.person._target_location = self.person.home
+        self.motivation.agent.target_location = self.motivation.agent.home
+        self.update_value(-fatigue_rate)
 
 ####################################################
 
@@ -65,12 +58,11 @@ class FatigueState(MotivationState):
 class ConsumerismState(MotivationState):
 
     def set_transaction(self) -> None:
-        print('go and buy some stuff')
-        # amount = self.person.buy('consumerism')
-        self.motivation.update_motivation('consumerism', consumerism_rate)
+        self.motivation.agent.buy('consumerism')
+        self.update_value(-consumerism_rate)
 
     def set_motion(self) -> None:
-        print('go to the closest merchant')
+        self.motivation.agent.target_location = self.motivation.agent.get_nearest(Clothes).pos
 
 ##################################################
 
@@ -78,27 +70,23 @@ class ConsumerismState(MotivationState):
 class SocialState(MotivationState):
 
     def set_transaction(self) -> None:
-        print('pay some money to your best_Friend')
-        # amount = self.person.socialize()
-        self.motivation.update_motivation('social', amount=20)
-        # self.person.best_friend.motivation.update_motivation('social', amount)
+        if self.motivation.agent.pos == self.motivation.agent.best_friend.pos:
+            self.motivation.agent.pay(20, self.motivation.agent.best_friend, 'ACH', 'social')
+            self.update_value(-social_rate)
 
     def set_motion(self) -> None:
-        print('visit your best_friend')
-        # self.person._target_location = self.best_friend.pos
+        self.motivation.agent.target_location = self.motivation.agent.best_friend.pos
 ###################################################
 
 
 class WorkState(MotivationState):
 
     def set_transaction(self) -> None:
-        print('work work work')
+        return
+    
+    def set_motion(self) -> None:
         self.motivation.agent.target_location = self.motivation.agent.work
         self.update_value(-work_rate)
-
-    def set_motion(self) -> None:
-        print('go to work place')
-        # self.person._target_location = self.person.work
 
 ###################################################
 
@@ -106,7 +94,9 @@ class WorkState(MotivationState):
 class NeutralState(MotivationState):
 
     def set_transaction(self) -> None:
-        print('no txn in Neutral state')
-
+        #print('no txn in Neutral state')
+        return
+    
     def set_motion(self) -> None:
-        print('no motion in Neutral state')
+        #print('no motion in Neutral state')
+        return

@@ -47,7 +47,7 @@ class Model(Model):
                              'location': lambda a: a.pos,
                              'agent_type': lambda a: a.type,
                              'account_balance': lambda a: a.bank_accounts[0][0].balance,
-                             'motivations': lambda a: a.motivation.state_values() if isinstance(a, Person) else None,
+                             'motivations': lambda a: a.motivation.state_values() if isinstance(a, Person) else 'N/A',
                              },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"]}
