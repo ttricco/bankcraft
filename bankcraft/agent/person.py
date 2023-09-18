@@ -32,8 +32,7 @@ class Person(GeneralAgent):
 
         self.employer = None
 
-        self.motivation = Motivation(None)
-        self.motivation.state = NeutralState(self.motivation)
+        self.motivation = Motivation(NeutralState)
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 

@@ -8,6 +8,7 @@ class MotivationState(ABC):
 
     def __init__(self, motivation):
         self.motivation = motivation
+        self.__value = 1
 
     def __str__(self):
         return self.__class__.__name__
@@ -19,12 +20,19 @@ class MotivationState(ABC):
     @abstractmethod
     def set_motion(self) -> None:
         pass
+    
+    def get_value(self):
+        return self.__value
+    
+    def update_value(self, amount):
+        self.__value += amount
+        print(self.__value)
 
 ########################################
 
 
 class HungerState(MotivationState):
-
+        
     def switch_state(self):
         self.motivation.state = FatigueState(self.motivation)
 
