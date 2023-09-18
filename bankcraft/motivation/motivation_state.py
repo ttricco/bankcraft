@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from bankcraft.agent.merchant import Food
 
 # from bankcraft.motivation.motivation import Motivation
 from bankcraft.config import *
@@ -26,7 +27,6 @@ class MotivationState(ABC):
     
     def update_value(self, amount):
         self.__value += amount
-        print(self.__value)
 
 ########################################
 
@@ -39,6 +39,7 @@ class HungerState(MotivationState):
     def set_transaction(self) -> None:
         # amount = self.person.buy('hunger')
         print('go and buy something to eat')
+        self.motivation.agent.target_location = self.motivation.agent.get_nearest(Food).pos
         self.motivation.update_motivation('hunger', -hunger_rate)
 
     def set_motion(self) -> None:
@@ -91,9 +92,9 @@ class SocialState(MotivationState):
 class WorkState(MotivationState):
 
     def set_transaction(self) -> None:
-        # self.person.work()
         print('work work work')
-        self.motivation.update_motivation('work', -work_rate)
+        self.motivation.agent.target_location = self.motivation.agent.work
+        self.update_value(-work_rate)
 
     def set_motion(self) -> None:
         print('go to work place')

@@ -5,11 +5,11 @@ from bankcraft.motivation.motivation_state import *
 
 class Motivation:
 
-    def __init__(self, state) -> None:
+    def __init__(self, state, agent) -> None:
         self._state = state
         self.set_state(NeutralState)
         self.critical_motivation = None
-        
+        self.agent = agent
         self.states_rate = {HungerState(self): hunger_rate,
                             FatigueState(self): fatigue_rate,
                             ConsumerismState(self): consumerism_rate,
@@ -65,7 +65,7 @@ class Motivation:
         self.critical_motivation= self.get_critical_motivation()
         if self.critical_motivation is not None:
             print('The critical motivation is: ', self.critical_motivation)
-            self.set_state(self.critical_motivation)  # Set the critical motivation state
+            self.agent.set_state(self.critical_motivation)  # Set the critical motivation state
             print(f"{self}")
-            self.set_transaction()
-            self.set_motion()
+            self.critical_motivation.set_transaction()
+            self.critical_motivation.set_motion()

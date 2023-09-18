@@ -32,7 +32,7 @@ class Person(GeneralAgent):
 
         self.employer = None
 
-        self.motivation = Motivation(NeutralState)
+        self.motivation = Motivation(NeutralState,self)
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
@@ -41,7 +41,7 @@ class Person(GeneralAgent):
         self.spending_prob = random.random()
         self.spending_amount = random.randrange(0, 100)
 
-        self._target_location = None
+        self.target_location = None
 
         self._home = None
         self._work = None
@@ -81,19 +81,6 @@ class Person(GeneralAgent):
     @best_friend.setter
     def best_friend(self, person):
         self._best_friend = person
-
-    # def set_target_location(self, motivation):
-    #     if motivation == 'hunger':
-    #         self._target_location = self.get_nearest(Food).pos
-    #     elif motivation == 'fatigue':
-    #         self._target_location = self.home
-    #     elif motivation == 'social':
-    #         #self._target_location = self.get_nearest(Person).pos
-    #         self._target_location = self.best_friend.pos
-    #     elif motivation == 'work':
-    #         self._target_location = self.work
-    #     elif motivation == 'consumerism':
-    #         self._target_location = self.get_nearest(Clothes).pos
 
     def _set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
@@ -161,14 +148,8 @@ class Person(GeneralAgent):
         self._social_network_weights[other_agent] = min(
             self._social_network_weights[other_agent], 1
         )
-      
-    # def live(self):
-    #     if self.pos != self.home:
-    #         self.motivation.update_motivation('hunger', hunger_rate)
-    #         self.motivation.update_motivation('fatigue', fatigue_rate)
-    #         self.motivation.update_motivation('social', social_rate)
-    #         self.motivation.update_motivation('consumerism', consumerism_rate)
-    #
+    def set_state(self, state):
+        self.motivation = Motivation(state, self).set_state(state)
     # def socialize(self):
     #     if not self.model.grid.is_cell_empty(self.pos):
     #         for agent in self.model.grid.get_cell_list_contents([self.pos]):
