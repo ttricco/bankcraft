@@ -161,7 +161,7 @@ class Person(GeneralAgent):
         self._social_network_weights[other_agent] = min(
             self._social_network_weights[other_agent], 1
         )
-        
+      
     # def live(self):
     #     if self.pos != self.home:
     #         self.motivation.update_motivation('hunger', hunger_rate)

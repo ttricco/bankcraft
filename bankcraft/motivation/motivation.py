@@ -10,7 +10,6 @@ class Motivation:
         self.set_state(NeutralState)
         self.critical_motivation = None
         
-        #self.states = [HungerState(self), FatigueState(self), ConsumerismState(self), SocialState(self), WorkState(self)]
         self.states_rate = {HungerState(self): hunger_rate,
                             FatigueState(self): fatigue_rate,
                             ConsumerismState(self): consumerism_rate,
@@ -58,7 +57,9 @@ class Motivation:
         for state in self.states_rate.keys():
             state.update_value(self.states_rate[state])
 
-
+    def state_values(self):
+        return {str(state): state.get_value() for state in self.states_rate.keys()}
+    
     def step(self):
         self.live()
         self.critical_motivation= self.get_critical_motivation()

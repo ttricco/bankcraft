@@ -9,6 +9,7 @@ from bankcraft.agent.bank import Bank
 from bankcraft.agent.employer import Employer
 from bankcraft.agent.business import Business
 import datetime
+import pandas as pd
 
 
 class Model(Model):
@@ -44,13 +45,9 @@ class Model(Model):
             agent_reporters={'date_time': lambda a: a.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
                              'wealth': lambda a: a.wealth,
                              'location': lambda a: a.pos,
-                             'Agent type': lambda a: a.type,
+                             'agent_type': lambda a: a.type,
                              'account_balance': lambda a: a.bank_accounts[0][0].balance,
-                            #  'hunger level': lambda a: a.motivation._state.hunger if isinstance(a, Person) else None,
-                            #  'fatigue level': lambda a: a.motivation.fatigue if isinstance(a, Person) else None,
-                            #  'social level': lambda a: a.motivation.social if isinstance(a, Person) else None,
-                            #  'consumerism level': lambda a: a.motivation.consumerism if isinstance(a, Person) else None,
-                            #  'work level': lambda a: a.motivation.work if isinstance(a, Person) else None,
+                             'motivations': lambda a: a.motivation.state_values() if isinstance(a, Person) else None,
                              },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"]}
@@ -115,7 +112,12 @@ class Model(Model):
         return self.datacollector.get_table_dataframe("transactions")
     
     def get_agents(self):
-        return self.datacollector.get_agent_vars_dataframe()
+        agents = self.datacollector.get_agent_vars_dataframe()
+        motivations = agents['motivations'].apply(pd.Series)
+        agents = pd.concat([agents, motivations], axis=1)
+        agents = agents.drop(columns=['motivations'])
+        return agents
+    
 
     def get_all_agents_on_grid(self):
         all_agents = []
