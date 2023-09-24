@@ -65,8 +65,6 @@ class WorkState(MotivationState):
     
     def set_motion(self) -> None:
         self.motivation.agent.target_location = self.motivation.agent.work
-        self.update_value(-work_rate)
-
 ###################################################
 
 
