@@ -60,6 +60,7 @@ class Motivation:
     def state_values(self):
         return {str(state): state.get_value() for state in self.states_rate.keys()}
     
+    
     def step(self):
         self.live()
         self.critical_motivation= self.get_critical_motivation()

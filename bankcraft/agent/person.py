@@ -117,14 +117,15 @@ class Person(GeneralAgent):
         # if there is a merchant agent in this location
         if self.model.grid.is_cell_empty(self.pos):
             return
-        agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+        agents = self.model.grid.get_cell_list_contents([self.pos])
             # if the agent is a merchant
         price = 0
-        if motivation == 'hunger' and isinstance(agent, Food):
-            value = self.motivation.get_motivation(motivation)
-            price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
-        elif motivation == 'consumerism' and isinstance(agent, Clothes):
-            price = self.motivation.get_motivation(motivation)
+        for agent in agents:          
+            if motivation == 'hunger' and isinstance(agent, Food):
+                value = self.motivation.state_values()['HungerState']
+                price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+            elif motivation == 'consumerism' and isinstance(agent, Clothes):
+                price = self.motivation.get_motivation(motivation)
     
         self.pay(price, agent, 'ACH', motivation)
     

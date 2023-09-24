@@ -35,7 +35,7 @@ class HungerState(MotivationState):
         
     def set_transaction(self) -> None:
         self.motivation.agent.buy('hunger')
-        self.update_value(-hunger_rate)
+        self.update_value(-self.get_value())
 
     def set_motion(self) -> None:
         self.motivation.agent.target_location = self.motivation.agent.get_nearest(Food).pos
@@ -47,10 +47,11 @@ class HungerState(MotivationState):
 class FatigueState(MotivationState):
 
     def set_transaction(self) -> None:
+        self.update_value(-fatigue_rate)
         return
     def set_motion(self) -> None:
         self.motivation.agent.target_location = self.motivation.agent.home
-        self.update_value(-fatigue_rate)
+        #self.update_value(-fatigue_rate)
 
 ####################################################
 
