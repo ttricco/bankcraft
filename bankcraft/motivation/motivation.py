@@ -48,11 +48,11 @@ class Motivation:
 
         return max_motivation, max_value
 
-    def reset_one_motivation(self, motivation):
-        setattr(self, motivation, 1)
+    def reset_one_motivation(self, state):
+        self.states_rate[state][0].update_value(1)
 
     def present_state(self):
-        return self._state
+        return str(self._state)
 
     def live(self):
         for state,rate in self.states_rate.values():

@@ -155,21 +155,29 @@ class Person(GeneralAgent):
         This can adjust rates of motivation based on time of day, day of week, etc.
         and also decide whether to buy something or not
         '''
-        if self.target_location == self.pos:
-            if self.pos == self.home:
-                self.motivation.update_state_value('FatigueState', fatigue_rate)
-                # update fatigue
-            elif self.pos == self.work:
-                # update fatigue
-                # update motivation
-                # update salary
-                self.motivation.update_state_value('WorkState', self.salary_per_pay)
-            elif self.pos == self.get_nearest(Food):
-                value = self.buy('hunger')
-                self.motivation.update_state_value('HungerState', -value)
-            elif self.pos == self.get_nearest(Clothes):
-                value = self.buy('consumerism')
-                self.motivation.update_state_value('ConsumerismState', -value)
+        if self.target_location != self.pos:
+            return
+        
+        if self.pos == self.home:
+            self.motivation.update_state_value('FatigueState', -fatigue_rate * 2)
+            # update fatigue
+            
+        elif self.pos == self.work:
+            if self.model.current_time.weekday() < 5 and\
+                    (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
+                self.motivation.update_state_value('WorkState', -0.4)
+            else:
+                self.motivation.reset_one_motivation('WorkState')
+                
+                
+        elif self.motivation.present_state() == 'HungerState':
+            value = self.buy('hunger')
+            self.motivation.update_state_value('HungerState', -value)
+            
+            
+        elif self.motivation.present_state() == 'ConsumerismState':
+            value = self.buy('consumerism')
+            self.motivation.update_state_value('ConsumerismState', -value)
                            
     def step(self):
         # self.motivation_handler()
