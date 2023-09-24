@@ -128,6 +128,7 @@ class Person(GeneralAgent):
                 price = self.motivation.get_motivation(motivation)
     
         self.pay(price, agent, 'ACH', motivation)
+        return price
     
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
@@ -149,8 +150,26 @@ class Person(GeneralAgent):
             self._social_network_weights[other_agent], 1
         )
         
-
-                       
+    def decision_maker(self):
+        '''
+        This can adjust rates of motivation based on time of day, day of week, etc.
+        and also decide whether to buy something or not
+        '''
+        if self.target_location == self.pos:
+            if self.pos == self.home:
+                self.motivation.update_state_value('FatigueState', fatigue_rate)
+                # update fatigue
+            elif self.pos == self.work:
+                # update fatigue
+                # update motivation
+                # update salary
+                self.motivation.update_state_value('WorkState', self.salary_per_pay)
+            elif self.pos == self.get_nearest(Food):
+                value = self.buy('hunger')
+                self.motivation.update_state_value('HungerState', -value)
+            elif self.pos == self.get_nearest(Clothes):
+                value = self.buy('consumerism')
+                self.motivation.update_state_value('ConsumerismState', -value)
                            
     def step(self):
         # self.motivation_handler()
@@ -158,3 +177,4 @@ class Person(GeneralAgent):
         self.pay_schedule_txn()
         # self.unscheduled_txn()
         self.motivation.step()
+        self.decision_maker()
