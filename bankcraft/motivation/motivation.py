@@ -66,5 +66,4 @@ class Motivation:
         self.critical_motivation= self.get_critical_motivation()
         if self.critical_motivation is not None:
             self.set_state(self.critical_motivation)  # Set the critical motivation state
-            self.critical_motivation.set_transaction()
             self.critical_motivation.set_motion()
