@@ -193,4 +193,48 @@ class Visualization:
         ax.set_xlabel("Transaction type")
         return fig, ax
     
-    
+    def location_over_time(self, agentID):
+        grid_df = self.agents[~self.agents['location'].isnull()]
+        grid_df['x'] = grid_df['location'].apply(lambda x: x[0])
+        grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
+        grid_df['x'] = grid_df['x'].astype(int)
+        grid_df['y'] = grid_df['y'].astype(int)
+        pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
+        slider = widgets.SelectionSlider(
+            options = list(grid_df['date_time'].unique()),
+            description = 'Time:',
+            layout={'width': '500px'},
+        )
+        @interact(slider=slider)
+        def plot_agent_trace(slider):
+            # Filter the DataFrame for the specified agent ID
+            df = grid_df[grid_df['AgentID'] == agentID]
+            current_location = df[df['date_time'] == slider]
+
+            fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+
+            # Plot the agent's trace
+            sns.scatterplot(x=df['x'] + self.agentID_jitter[agentID], y=df['y'] + self.agentID_jitter[agentID], data=df,
+                            color=self.agentID_color[agentID],
+                            marker=self.agentID_marker[agentID],
+                            ax=ax, s=100)
+            # Plot the agent's current location as grey circle
+            sns.scatterplot(x=current_location['x'], y=current_location['y'], data=current_location,
+                            color='grey',
+                            marker='o',
+                            ax=ax, s=100)
+            # plt merchandise locations as black diamonds
+            sns.scatterplot(x=grid_df[grid_df['agent_type'] == 'merchant']['x'], y=grid_df[grid_df['agent_type'] == 'merchant']['y'],
+                            data=grid_df[grid_df['agent_type'] == 'merchant'], color='black', marker='D', ax=ax, s=100)
+            
+            # Plot employer locations as black squares
+            sns.scatterplot(x=grid_df[grid_df['agent_type'] == 'employer']['x'], y=grid_df[grid_df['agent_type'] == 'employer']['y'],
+                            data=grid_df[grid_df['agent_type'] == 'employer'], color='black', marker='s', ax=ax, s=100)
+            
+            ax.set_title('Agent Trace')
+            ax.set_xlim(0, self.WIDTH)
+            ax.set_ylim(0, self.HEIGHT)
+            ax.set_xlabel('X-coordinate')
+            ax.set_ylabel('Y-coordinate')
+            
+            plt.show()
