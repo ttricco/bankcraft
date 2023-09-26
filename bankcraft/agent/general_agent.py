@@ -28,13 +28,9 @@ class GeneralAgent(Agent):
         return bank_accounts
     
     def update_wealth(self):
-        print(f"update wealth for agent:{self.unique_id} start")
-        print(self.wealth)
         self.wealth = 0
         for bank_account in itertools.chain(*self.bank_accounts):
             self.wealth += bank_account.balance
-        print(self.wealth)
-        print("update wealth end")
 
     def pay(self, amount, receiver, txn_type, description):
         transaction = Transaction(self,
