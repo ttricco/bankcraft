@@ -31,6 +31,8 @@ class Model(Model):
         self.social_grid = nx.complete_graph(self._num_people)
         for (u, v) in self.social_grid.edges():
             self.social_grid.edges[u, v]['weight'] = 1 / (self._num_people - 1)
+        # random graph with random weights
+        # self.social_grid = nx.gnp_random_graph(self._num_people, 0.5)
 
         self.grid = MultiGrid(width=15, height=15, torus=False)
         self._put_employers_in_model()
@@ -43,7 +45,7 @@ class Model(Model):
         self.current_time = self._start_time
         self.datacollector = DataCollector(
             agent_reporters={'date_time': lambda a: a.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
-                             'wealth': lambda a: a.wealth,
+                             'wealth': lambda a: print(a.wealth) ,
                              'location': lambda a: a.pos,
                              'agent_type': lambda a: a.type,
                              'account_balance': lambda a: a.get_all_bank_accounts(),
