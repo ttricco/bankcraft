@@ -238,3 +238,22 @@ class Visualization:
             ax.set_ylabel('Y-coordinate')
             
             plt.show()
+
+    def account_balance_over_time(self, agentID):
+        df = self.agents[self.agents['AgentID'] == agentID]
+        df['date_time'] = pd.to_datetime(df['date_time'])
+        df = df.groupby(['Step']).last().reset_index()
+        #number of columns starting with account
+        num_accounts = len([col for col in df.columns if col.startswith('account')])
+        fig, ax = plt.subplots(figsize=(15, 6))
+        for i in range(num_accounts):
+            account_df = df[['Step', f'account_{i}']]
+            sns.lineplot(data=account_df, x="Step", y=f"account_{i}", ax=ax, label=f"account_{i}")
+            
+        ax.legend()    
+        ax.set_title(f"Account balance over time for agent {agentID}")
+        ax.set_ylabel("Account balance")
+        ax.set_xlabel("Step")
+        plt.show()
+        return fig, ax
+                

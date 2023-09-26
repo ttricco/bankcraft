@@ -60,6 +60,11 @@ class GeneralAgent(Agent):
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)
         
+    def get_all_bank_accounts(self):
+        bank_accounts = []
+        for bank_account in itertools.chain(*self.bank_accounts):
+            bank_accounts.append(bank_account.balance)
+        return bank_accounts
     def move(self):
         if self.target_location is not None:
             self.move_to(self.target_location)

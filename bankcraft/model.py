@@ -46,7 +46,7 @@ class Model(Model):
                              'wealth': lambda a: a.wealth,
                              'location': lambda a: a.pos,
                              'agent_type': lambda a: a.type,
-                             'account_balance': lambda a: a.bank_accounts[0][0].balance,
+                             'account_balance': lambda a: a.get_all_bank_accounts(),
                              'motivations': lambda a: a.motivation.state_values() if isinstance(a, Person) else 'N/A',
                              },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
@@ -113,9 +113,13 @@ class Model(Model):
     
     def get_agents(self):
         agents = self.datacollector.get_agent_vars_dataframe()
-        motivations = agents['motivations'].apply(pd.Series)
-        agents = pd.concat([agents, motivations], axis=1)
-        agents = agents.drop(columns=['motivations'])
+        new_column_names = {i: f'account_{i}' for i in range(len(agents["account_balance"]) + 1)}
+        agents = pd.concat([agents.drop(['motivations'], axis=1), agents['motivations'].apply(pd.Series)], axis=1)
+        agents.drop([0], axis=1, inplace=True)
+        accounts = agents["account_balance"].apply(pd.Series)
+        accounts = accounts.rename(columns=new_column_names)
+        agents = pd.concat([agents.drop(['account_balance'], axis=1),accounts], axis=1)
+
         return agents
     
 
