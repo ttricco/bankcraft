@@ -35,7 +35,7 @@ class Person(GeneralAgent):
         self.motivation = Motivation(NeutralState,self)
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
-        self.update_wealth()
+        #self.update_wealth()
 
         self.schedule_txn = pd.DataFrame()
 
@@ -192,7 +192,17 @@ class Person(GeneralAgent):
             
         elif self.motivation.present_state() == 'SocialState':
             self.motivation.update_state_value('SocialState', -social_rate*3)
-                           
+                     
+                     
+    def update_people_records(self):
+        agent_data = {
+            "date_time": self.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
+            "wealth": self.update_wealth(),
+            "location": self.pos,
+            "account_balance": self.get_all_bank_accounts(),
+            "motivations": self.motivation.state_values() ,
+        }
+        self.model.datacollector.add_table_row("people", agent_data, ignore_missing=True)        
     def step(self):
         # self.motivation_handler()
         self.move()
@@ -200,3 +210,4 @@ class Person(GeneralAgent):
         # self.unscheduled_txn()
         self.motivation.step()
         self.decision_maker()
+        self.update_people_records()

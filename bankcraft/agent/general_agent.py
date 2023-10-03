@@ -31,6 +31,7 @@ class GeneralAgent(Agent):
         self.wealth = 0
         for bank_account in itertools.chain(*self.bank_accounts):
             self.wealth += bank_account.balance
+        return self.wealth
 
     def pay(self, amount, receiver, txn_type, description):
         transaction = Transaction(self,
@@ -55,7 +56,8 @@ class GeneralAgent(Agent):
             "description": description,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)
-        
+     
+ 
     def get_all_bank_accounts(self):
         bank_accounts = []
         for bank_account in itertools.chain(*self.bank_accounts):
