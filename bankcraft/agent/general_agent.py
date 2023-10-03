@@ -28,7 +28,13 @@ class GeneralAgent(Agent):
         return bank_accounts
     
     def update_wealth(self):
-        self.wealth = sum(account.balance for account in itertools.chain.from_iterable(self.bank_accounts))
+        print(f"update wealth for agent:{self.unique_id} start")
+        print(self.wealth)
+        self.wealth = 0
+        for bank_account in itertools.chain(*self.bank_accounts):
+            self.wealth += bank_account.balance
+        print(self.wealth)
+        print("update wealth end")
 
     def pay(self, amount, receiver, txn_type, description):
         transaction = Transaction(self,
@@ -54,6 +60,11 @@ class GeneralAgent(Agent):
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)
         
+    def get_all_bank_accounts(self):
+        bank_accounts = []
+        for bank_account in itertools.chain(*self.bank_accounts):
+            bank_accounts.append(bank_account.balance)
+        return bank_accounts
     def move(self):
         if self.target_location is not None:
             self.move_to(self.target_location)

@@ -35,6 +35,7 @@ class Person(GeneralAgent):
         self.motivation = Motivation(NeutralState,self)
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
+        self.update_wealth()
 
         self.schedule_txn = pd.DataFrame()
 
