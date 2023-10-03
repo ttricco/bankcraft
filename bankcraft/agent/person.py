@@ -196,6 +196,7 @@ class Person(GeneralAgent):
                      
     def update_people_records(self):
         agent_data = {
+            "Step": self.model.schedule.steps,
             "AgentID": self.unique_id,
             "date_time": self.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
             "wealth": self.update_wealth(),

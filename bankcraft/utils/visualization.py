@@ -45,7 +45,7 @@ class Visualization:
 
     def line_plot(self):
         fig, ax = plt.subplots(figsize=(15, 6))
-        df = self.agents[self.agents["agent_type"] == "person"]
+        df = self.people
         df = df.groupby(['AgentID', 'Step']).last().reset_index()
         sns.lineplot(data=df, x="Step", y="wealth", hue="AgentID", palette=self.agentID_color, ax=ax)
         ax.set_title("Money over time")
