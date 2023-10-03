@@ -48,8 +48,8 @@ class Visualization:
         df = self.people
         df = df.groupby(['AgentID', 'Step']).last().reset_index()
         sns.lineplot(data=df, x="Step", y="wealth", hue="AgentID", palette=self.agentID_color, ax=ax)
-        ax.set_title("Money over time")
-        ax.set_ylabel("Money")
+        ax.set_title("Wealth over time")
+        ax.set_ylabel("Wealth")
         ax.set_xlabel("Step")
         plt.legend(bbox_to_anchor=(1.05, 1), loc=2, borderaxespad=0.)
         return fig, ax
@@ -89,19 +89,18 @@ class Visualization:
 
             ax[0].set_xlabel('X-coordinate')
             ax[0].set_ylabel('Y-coordinate')
-
-            node = df[df['agent_type'] == 'person']['AgentID'].unique()
+            node = self.people[self.people['date_time'] == slider]['AgentID'].unique()
             trans = self.transactions[self.transactions['step'] == slider]
             transaction_edges = []
             for _, row in trans.iterrows():
                 if row['sender'] in node and row['receiver'] in node:
                     transaction_edges.append((row['sender'], row['receiver']))
-
+            people = self.people[self.people['date_time'] == slider]
             edge = nx.complete_graph(node)
             nx.draw_networkx_nodes(node,
                                    pos=pos,
                                    node_color=[self.agentID_color[node] for node in node],
-                                   node_size=[df[df['AgentID'] == node]['wealth'] for node in node],
+                                   node_size=[people[people['AgentID'] == node]['wealth'] for node in node],
                                    ax=ax[1])
 
             nx.draw_networkx_edges(edge, pos=pos, ax=ax[1])
@@ -162,7 +161,7 @@ class Visualization:
         return fig, ax
         
     def motivation_plot(self, agentID):
-        df = self.agents[self.agents['AgentID'] == agentID]
+        df = self.people[self.people['AgentID'] == agentID]
         df['date_time'] = pd.to_datetime(df['date_time'])
         df = df.set_index('date_time')
         color = self.agentID_color[agentID]
@@ -241,7 +240,7 @@ class Visualization:
             plt.show()
 
     def account_balance_over_time(self, agentID):
-        df = self.agents[self.agents['AgentID'] == agentID]
+        df = self.people[self.people['AgentID'] == agentID]
         df['date_time'] = pd.to_datetime(df['date_time'])
         df = df.groupby(['Step']).last().reset_index()
         #number of columns starting with account
