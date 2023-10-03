@@ -48,7 +48,7 @@ class Model(Model):
                             },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"],
-                    "people": ["date_time", "wealth", "location","account_balance", "motivations"]}
+                    "people": ['AgentID',"date_time", "wealth", "location","account_balance", "motivations"]}
 
         )
 

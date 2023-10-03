@@ -14,18 +14,19 @@ warnings.filterwarnings("ignore")
 
 
 class Visualization:
-    def __init__(self, model):
+    def __init__(self, model , steps=1008, width=15, height=15):
         self.model = model
-        self.STEPS = 1008
-        self.WIDTH = 15
-        self.HEIGHT = 15
+        self.STEPS = steps
+        self.WIDTH = width
+        self.HEIGHT = height
         self.pallet = sns.color_palette("tab10")
         self.agents = model.get_agents().reset_index()
         self.transactions = model.get_transactions()
+        self.people = model.get_people()
         self.agentID_color = {}
         self.agentID_jitter = {}
         self.agentID_marker = {}
-        self.persons = self.agents[self.agents["agent_type"] == "person"]['AgentID'].unique()
+        self.persons = self.people['AgentID'].unique()
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
             if self.agents[self.agents["AgentID"] == agentID]["agent_type"].values[0] == "person":
                 self.agentID_color[agentID] = self.pallet[i%9]
