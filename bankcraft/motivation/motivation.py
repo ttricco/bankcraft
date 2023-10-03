@@ -10,12 +10,13 @@ class Motivation:
         self.set_state(NeutralState)
         self.critical_motivation = None
         self.agent = agent
-        self.states_rate = {HungerState(self): hunger_rate,
-                            FatigueState(self): fatigue_rate,
-                            ConsumerismState(self): consumerism_rate,
-                            SocialState(self): social_rate,
-                            WorkState(self): work_rate}
-
+        self.states_rate = {
+            'HungerState': (HungerState(self), hunger_rate),
+            'FatigueState': (FatigueState(self), fatigue_rate),
+            'ConsumerismState': (ConsumerismState(self), consumerism_rate),
+            'SocialState': (SocialState(self), social_rate),
+            'WorkState': (WorkState(self), work_rate)
+        }
 
     def set_state(self, state: MotivationState):
         self._state = state
@@ -38,7 +39,7 @@ class Motivation:
     def get_max_motivation(self):
         max_value = 0
         max_motivation = None
-        for state_class in self.states_rate.keys():
+        for state_class,rate in self.states_rate.values():
             state = state_class
             value = state.get_value()
             if value > max_value:
@@ -47,23 +48,25 @@ class Motivation:
 
         return max_motivation, max_value
 
-    def reset_one_motivation(self, motivation):
-        setattr(self, motivation, 1)
+    def reset_one_motivation(self, state):
+        self.states_rate[state][0].update_value(1)
 
     def present_state(self):
-        return self._state
+        return str(self._state)
 
     def live(self):
-        for state in self.states_rate.keys():
-            state.update_value(self.states_rate[state])
+        for state,rate in self.states_rate.values():
+            state.update_value(rate)
 
     def state_values(self):
-        return {str(state): state.get_value() for state in self.states_rate.keys()}
+        return {str(state): state.get_value() for state,rate in self.states_rate.values()}
     
+    def update_state_value(self, state, value):
+        self.states_rate[state][0].update_value(value)
+        
     def step(self):
         self.live()
         self.critical_motivation= self.get_critical_motivation()
         if self.critical_motivation is not None:
             self.set_state(self.critical_motivation)  # Set the critical motivation state
-            self.critical_motivation.set_transaction()
             self.critical_motivation.set_motion()

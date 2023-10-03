@@ -117,16 +117,18 @@ class Person(GeneralAgent):
         # if there is a merchant agent in this location
         if self.model.grid.is_cell_empty(self.pos):
             return
-        agent = self.model.grid.get_cell_list_contents([self.pos])[0]
+        agents = self.model.grid.get_cell_list_contents([self.pos])
             # if the agent is a merchant
         price = 0
-        if motivation == 'hunger' and isinstance(agent, Food):
-            value = self.motivation.get_motivation(motivation)
-            price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
-        elif motivation == 'consumerism' and isinstance(agent, Clothes):
-            price = self.motivation.get_motivation(motivation)
+        for agent in agents:          
+            if motivation == 'hunger' and isinstance(agent, Food):
+                value = self.motivation.state_values()['HungerState']
+                price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+            elif motivation == 'consumerism' and isinstance(agent, Clothes):
+                price = self.motivation.get_motivation(motivation)
     
         self.pay(price, agent, 'ACH', motivation)
+        return price
     
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
@@ -148,8 +150,34 @@ class Person(GeneralAgent):
             self._social_network_weights[other_agent], 1
         )
         
-
-                       
+    def decision_maker(self):
+        '''
+        This can adjust rates of motivation based on time of day, day of week, etc.
+        and also decide whether to buy something or not
+        '''
+        if self.target_location != self.pos:
+            return
+        
+        if self.pos == self.home:
+            self.motivation.update_state_value('FatigueState', -fatigue_rate * 2)
+            # update fatigue
+            
+        elif self.pos == self.work:
+            if self.model.current_time.weekday() < 5 and\
+                    (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
+                self.motivation.update_state_value('WorkState', -0.4)
+            else:
+                self.motivation.reset_one_motivation('WorkState')
+                
+                
+        elif self.motivation.present_state() == 'HungerState':
+            value = self.buy('hunger')
+            self.motivation.update_state_value('HungerState', -value)
+            
+            
+        elif self.motivation.present_state() == 'ConsumerismState':
+            value = self.buy('consumerism')
+            self.motivation.update_state_value('ConsumerismState', -value)
                            
     def step(self):
         # self.motivation_handler()
@@ -157,3 +185,4 @@ class Person(GeneralAgent):
         self.pay_schedule_txn()
         # self.unscheduled_txn()
         self.motivation.step()
+        self.decision_maker()
