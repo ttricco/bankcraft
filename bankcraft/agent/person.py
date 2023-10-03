@@ -50,6 +50,8 @@ class Person(GeneralAgent):
         self._social_network_weights = None
         self._best_friend = None
         self._set_schedule_txn()
+        
+        self._friends = []
 
     @property
     def home(self):
@@ -83,6 +85,14 @@ class Person(GeneralAgent):
     def best_friend(self, person):
         self._best_friend = person
 
+    @property
+    def friends(self):
+        return self._friends
+    
+    @friends.setter
+    def friends(self, value):
+        self._friends = value
+        
     def _set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
         #  if the account balance is not enough they must be paid in future including the interest
@@ -179,6 +189,9 @@ class Person(GeneralAgent):
         elif self.motivation.present_state() == 'ConsumerismState':
             value = self.buy('consumerism')
             self.motivation.update_state_value('ConsumerismState', -value)
+            
+        elif self.motivation.present_state() == 'SocialState':
+            self.motivation.update_state_value('SocialState', -social_rate*3)
                            
     def step(self):
         # self.motivation_handler()

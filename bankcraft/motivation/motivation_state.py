@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import random
 from bankcraft.agent.merchant import Clothes, Food
 
 # from bankcraft.motivation.motivation import Motivation
@@ -57,7 +58,9 @@ class ConsumerismState(MotivationState):
 class SocialState(MotivationState):
 
     def set_motion(self) -> None:
-        self.motivation.agent.target_location = self.motivation.agent.best_friend.pos
+        #self.motivation.agent.target_location = self.motivation.agent.best_friend.pos
+        friend = self.motivation.agent.friends[random.randint(0, len(self.motivation.agent.friends)-1)]
+        self.motivation.agent.target_location = friend.pos
 ###################################################
 
 

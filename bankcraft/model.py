@@ -97,6 +97,11 @@ class Model(Model):
         for i in range(0, len(person_agents), 2):
             person_agents[i].best_friend = person_agents[i+1]
             person_agents[i+1].best_friend = person_agents[i]
+            
+        for person in person_agents:
+            number_of_friends = self.random.randint(1, len(person_agents)-1)
+            friends = self.random.sample(person_agents, number_of_friends)
+            person.friends = friends
 
     def step(self):
         self.schedule.step()
