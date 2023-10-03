@@ -55,9 +55,9 @@ class GeneralAgent(Agent):
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)
         
     def move(self):
-        if self._target_location is not None:
-            self.move_to(self._target_location)
-            self.motivation.update_motivation('hunger', hunger_rate)
+        if self.target_location is not None:
+            self.move_to(self.target_location)
+            #self.motivation.update_motivation('hunger', hunger_rate)
             
     def move_to(self, new_position):
         x, y = self.pos

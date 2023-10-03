@@ -25,26 +25,26 @@ class Visualization:
         self.agentID_color = {}
         self.agentID_jitter = {}
         self.agentID_marker = {}
-        self.persons = self.agents[self.agents["Agent type"] == "person"]['AgentID'].unique()
+        self.persons = self.agents[self.agents["agent_type"] == "person"]['AgentID'].unique()
         for i, agentID in enumerate(self.agents["AgentID"].unique()):
-            if self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "person":
+            if self.agents[self.agents["AgentID"] == agentID]["agent_type"].values[0] == "person":
                 self.agentID_color[agentID] = self.pallet[i%9]
                 self.agentID_marker[agentID] = 'o'
                 self.agentID_jitter[agentID] = np.random.normal(0,0.1,1)
                 
-            elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "merchant":
+            elif self.agents[self.agents["AgentID"] == agentID]["agent_type"].values[0] == "merchant":
                 self.agentID_color[agentID] = 'black'
                 self.agentID_marker[agentID] = 'D'
                 self.agentID_jitter[agentID] = 0
 
-            elif self.agents[self.agents["AgentID"] == agentID]["Agent type"].values[0] == "employer":
+            elif self.agents[self.agents["AgentID"] == agentID]["agent_type"].values[0] == "employer":
                 self.agentID_color[agentID] = 'black'
                 self.agentID_marker[agentID] = 's'
                 self.agentID_jitter[agentID] = 0
 
     def line_plot(self):
         fig, ax = plt.subplots(figsize=(15, 6))
-        df = self.agents[self.agents["Agent type"] == "person"]
+        df = self.agents[self.agents["agent_type"] == "person"]
         df = df.groupby(['AgentID', 'Step']).last().reset_index()
         sns.lineplot(data=df, x="Step", y="wealth", hue="AgentID", palette=self.agentID_color, ax=ax)
         ax.set_title("Money over time")
@@ -59,7 +59,7 @@ class Visualization:
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
-        pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['Agent type'] == 'person']['AgentID'].unique()))
+        pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
         slider = widgets.SelectionSlider(
             options = list(grid_df['date_time'].unique()),
             description = 'Time:',
@@ -72,7 +72,7 @@ class Visualization:
             # extract the agents at the current step
             df = grid_df[grid_df['date_time'] == slider]
             for agent in df['AgentID'].unique():
-                label = df[df['AgentID'] == agent]['Agent type'].values[0]
+                label = df[df['AgentID'] == agent]['agent_type'].values[0]
                 x = df[df['AgentID']==agent]['x']
                 y = df[df['AgentID']==agent]['y']
 
@@ -89,7 +89,7 @@ class Visualization:
             ax[0].set_xlabel('X-coordinate')
             ax[0].set_ylabel('Y-coordinate')
 
-            node = df[df['Agent type'] == 'person']['AgentID'].unique()
+            node = df[df['agent_type'] == 'person']['AgentID'].unique()
             trans = self.transactions[self.transactions['step'] == slider]
             transaction_edges = []
             for _, row in trans.iterrows():
@@ -114,7 +114,7 @@ class Visualization:
 
     def location_plot(self):
         df = self.agents.reset_index()
-        df = df[df['Agent type'] == 'person']
+        df = df[df['agent_type'] == 'person']
         df["x"] = df["location"].apply(lambda x: x[0])
         df["y"] = df["location"].apply(lambda x: x[1])
         fig, ax = plt.subplots(figsize=(7, 7))
@@ -166,11 +166,11 @@ class Visualization:
         df = df.set_index('date_time')
         color = self.agentID_color[agentID]
         fig, ax = plt.subplots(figsize=(15, 6))
-        ax.plot(df['consumerism level'], color='orange')
-        ax.plot(df['hunger level'], color='red')
-        ax.plot(df['fatigue level'], color='blue')
-        ax.plot(df['social level'], color='green')
-        ax.plot(df['work level'], color='m')
+        ax.plot(df['ConsumerismState'], color='orange')
+        ax.plot(df['HungerState'], color='red')
+        ax.plot(df['FatigueState'], color='blue')
+        ax.plot(df['SocialState'], color='green')
+        ax.plot(df['WorkState'], color='m')
         ax.axhline(y=20, color='grey', linestyle='--')
         labels = ax.get_xticklabels()
         ax.set_xticklabels(labels, rotation=45)
