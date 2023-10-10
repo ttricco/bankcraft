@@ -112,20 +112,6 @@ class Visualization:
             plt.grid(True)
             plt.show()
 
-    def location_plot(self):
-        df = self.agents.reset_index()
-        df = df[df['agent_type'] == 'person']
-        df["x"] = df["location"].apply(lambda x: x[0])
-        df["y"] = df["location"].apply(lambda x: x[1])
-        fig, ax = plt.subplots(figsize=(7, 7))
-        line_styles = ['.', '-.', '*-', 'o-', '--', 's-', 'P-']
-        for (i, person) in zip(range(len(df["AgentID"].unique())), df["AgentID"].unique()):
-            df_agent = df[df["AgentID"] == person]
-            ax.plot(df_agent["x"], df_agent["y"], line_styles[i % len(line_styles)], label=f"Agent {i}", color=self.agentID_color[person])
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        plt.legend()
-        return fig, ax
 
     def sender_bar_plot(self, include='all'):
         df = self.transactions[self.transactions['sender'].isin(self.persons)]
@@ -214,13 +200,13 @@ class Visualization:
             fig, ax = plt.subplots(1, 1, figsize=(6, 6))
 
             # Plot the agent's trace
-            sns.scatterplot(x=df['x'] + self.agentID_jitter[agentID], y=df['y'] + self.agentID_jitter[agentID], data=df,
+            sns.scatterplot(x=df['x'] + self.agentID_jitter[agentID], y=df['y'] , data=df,
                             color=self.agentID_color[agentID],
                             marker=self.agentID_marker[agentID],
-                            ax=ax, s=100)
+                            ax=ax, s=100, alpha= 0.5)
             # Plot the agent's current location as grey circle
             sns.scatterplot(x=current_location['x'], y=current_location['y'], data=current_location,
-                            color='grey',
+                            color=self.agentID_color[agentID],
                             marker='o',
                             ax=ax, s=100)
             # plt merchandise locations as black diamonds
