@@ -268,22 +268,53 @@ class Visualization:
         ax[1].set_title('Expenses Breakdown by Percentage of Salary')
         return fig, ax
     
-    def number_of_transactions_per_day(self):
-        transactions = self.transactions.copy()
-        transactions['date_time'] = pd.to_datetime(transactions['date_time'])
-        transactions['date'] = transactions['date_time'].dt.date
-        transactions['date'] = pd.to_datetime(transactions['date'])
-        transactions['day'] = transactions['date'].dt.day
-        transactions['month'] = transactions['date'].dt.month
-        transactions['year'] = transactions['date'].dt.year
+    
+    def transaction_plot(self):
+        df = self.transactions.copy()
+        df['date_time'] = pd.to_datetime(df['date_time'])
+        df['date'] = df['date_time'].dt.date
+        df['date'] = pd.to_datetime(df['date'])
+        df['day'] = df['date'].dt.day
+        df['month'] = df['date'].dt.month
+        df['year'] = df['date'].dt.year
+        df['amount'] = df['amount'].abs()
 
-        transactions_per_day = transactions.groupby(['year','month','day','description']).count().reset_index()
+        view_toggles_buttons = widgets.ToggleButtons(
+            options=['day', 'month'],
+            description='View:',
+            disabled=False
+        )
 
-        transactions_per_day = transactions_per_day.pivot_table(index=['year','month','day'], columns='description', values='sender').reset_index()
-        transactions_per_day.fillna(0, inplace=True)
-        fig, ax = plt.subplots(figsize=(15,5))
-        transactions_per_day.set_index(['year','month','day']).plot(figsize=(15,5), title='Number of transactions per day',kind='bar', stacked=True, ax=ax)
-        ax.set_xlabel('Date')
-        ax.set_ylabel('Number of transactions')
-        
-        return fig, ax 
+        metric_toggles_buttons = widgets.ToggleButtons(
+            options=['number', 'amount'],
+            description='Metric:',
+            disabled=False
+        )
+
+        @widgets.interact(view=view_toggles_buttons, metric=metric_toggles_buttons)
+        def plot(view, metric):
+            fig, ax = plt.subplots(figsize=(15, 5))
+            
+            if view == 'day':
+                data_grouped = df.groupby(['year', 'month', 'day', 'description'])
+            else:
+                data_grouped = df.groupby(['year', 'month', 'description'])
+
+            if metric == 'number':
+                data_to_plot = data_grouped.size().unstack(fill_value=0)
+                title = 'Number of transactions per ' + view
+                y_label = 'Number of transactions'
+            else:
+                data_to_plot = data_grouped['amount'].sum().unstack(fill_value=0)
+                title = 'Amount of transactions per ' + view
+                y_label = 'Amount of transactions'
+
+            data_to_plot.plot(kind='bar', stacked=True, ax=ax)
+            ax.set_xlabel('Date')
+            ax.set_ylabel(y_label)
+            ax.set_title(title)
+
+            # Anchor the legend outside of the plot
+            ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+            plt.show()
