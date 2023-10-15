@@ -135,12 +135,14 @@ class Person(GeneralAgent):
             if motivation == 'hunger' and isinstance(agent, Food):
                 value = self.motivation.state_values()['HungerState']
                 price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+                self.pay(price, agent, 'ACH', motivation)
+                return price
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
                 value = self.motivation.state_values()['ConsumerismState']
                 price = value if value > 500 else np.random.beta(a=9, b=2, size=1)[0] * (value)
-    
-        self.pay(price, agent, 'ACH', motivation)
-        return price
+                self.pay(price, agent, 'ACH', motivation)
+                return price
+        return 0
     
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents

@@ -243,3 +243,25 @@ class Visualization:
         plt.show()
         return fig, ax
                 
+    # def income_outcome_bar_plot(self, agentID):
+    #     income = self.transactions[(self.transactions['description'] == 'salary') & (self.transactions['receiver'] == agentID)]
+    #     outcome = self.transactions[(self.transactions['description'] != 'salary') & ( self.transactions['sender'] == agentID)].groupby(['description']).sum().reset_index()
+    #     outcome['amount'] = -outcome['amount']
+    #     df = pd.concat([income, outcome])
+        
+    #     return fig, ax
+        
+    def expenses_breakdown_plot(self,agentID):
+        df = self.transactions[(self.transactions['sender']==agentID ) | (self.transactions['receiver']==agentID)]
+        df =df.groupby('description').sum().reset_index()
+        salary = df[df['description']=='salary']['amount'].values[0]
+        df = df[df['description']!='salary']
+        df['amount'] = df['amount'].abs().sort_values(ascending=False)
+        df['percentage'] = df['amount'].apply(lambda x: x/salary)
+        fig, ax = plt.subplots(1,2,figsize=(15,5))
+        sns.barplot(x='description',y='amount',data=df,ax=ax[0])
+        # pie chart
+        ax[1].pie(df['percentage'],labels=df['description'],autopct='%1.1f%%', startangle=90, pctdistance=0.85)
+        ax[0].set_title('Expenses Breakdown by Amount')
+        ax[1].set_title('Expenses Breakdown by Percentage of Salary')
+        return fig, ax
