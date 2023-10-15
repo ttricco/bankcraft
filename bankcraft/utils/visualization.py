@@ -267,3 +267,23 @@ class Visualization:
         ax[0].set_title('Expenses Breakdown by Amount')
         ax[1].set_title('Expenses Breakdown by Percentage of Salary')
         return fig, ax
+    
+    def number_of_transactions_per_day(self):
+        transactions = self.transactions.copy()
+        transactions['date_time'] = pd.to_datetime(transactions['date_time'])
+        transactions['date'] = transactions['date_time'].dt.date
+        transactions['date'] = pd.to_datetime(transactions['date'])
+        transactions['day'] = transactions['date'].dt.day
+        transactions['month'] = transactions['date'].dt.month
+        transactions['year'] = transactions['date'].dt.year
+
+        transactions_per_day = transactions.groupby(['year','month','day','description']).count().reset_index()
+
+        transactions_per_day = transactions_per_day.pivot_table(index=['year','month','day'], columns='description', values='sender').reset_index()
+        transactions_per_day.fillna(0, inplace=True)
+        fig, ax = plt.subplots(figsize=(15,5))
+        transactions_per_day.set_index(['year','month','day']).plot(figsize=(15,5), title='Number of transactions per day',kind='bar', stacked=True, ax=ax)
+        ax.set_xlabel('Date')
+        ax.set_ylabel('Number of transactions')
+        
+        return fig, ax 
