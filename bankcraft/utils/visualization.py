@@ -11,6 +11,7 @@ from ..agent.person import Person
 from ipywidgets import widgets, interact, interactive, fixed, interact_manual
 import warnings
 warnings.filterwarnings("ignore")
+import matplotlib.colors as mcolors
 
 
 class Visualization:
@@ -187,6 +188,7 @@ class Visualization:
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
+        grid_df['date_time'] = pd.to_datetime(grid_df['date_time'])
         pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
         slider = widgets.SelectionSlider(
             options = list(grid_df['date_time'].unique()),
@@ -198,14 +200,20 @@ class Visualization:
             # Filter the DataFrame for the specified agent ID
             df = grid_df[grid_df['AgentID'] == agentID]
             current_location = df[df['date_time'] == slider]
-
+            df = df[df['date_time'] <= slider]
             fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+            
+            min_time = df['date_time'].min()
+            max_time = slider
+            if min_time == max_time:
+                df['alpha'] = 1
+            else:
+                df['alpha'] = (df['date_time'] - min_time) / (max_time - min_time)
+            
 
-            # Plot the agent's trace
-            sns.scatterplot(x=df['x'] + self.agentID_jitter[agentID], y=df['y'] , data=df,
-                            color=self.agentID_color[agentID],
-                            marker=self.agentID_marker[agentID],
-                            ax=ax, s=100, alpha= 0.5)
+            # Plot the agent's trace with varying transparency (alpha)
+            sns.scatterplot(x=df['x'], y=df['y'], data=df, color=self.agentID_color[agentID], alpha=df['alpha'], ax=ax)
+        
             # Plot the agent's current location as grey circle
             sns.scatterplot(x=current_location['x'], y=current_location['y'], data=current_location,
                             color=self.agentID_color[agentID],
@@ -226,6 +234,8 @@ class Visualization:
             ax.set_ylabel('Y-coordinate')
             
             plt.show()
+
+
 
     def account_balance_over_time(self, agentID):
         df = self.people[self.people['AgentID'] == agentID]
