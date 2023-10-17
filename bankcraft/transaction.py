@@ -12,11 +12,9 @@ class Transaction:
 
     def do_transaction(self):
         self.sender_account.balance -= self.amount
-        self.sender.update_wealth()
         self.sender.txn_counter += 1
         if self.recipient_account is not None:
             self.recipient_account.balance += self.amount
-            self.recipient.update_wealth()
 
     def txn_type_is_defined(self):
         return str(self._txn_type).lower() in {"cash", "wire", "online", "ach", "cheque"}
