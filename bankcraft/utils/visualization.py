@@ -11,6 +11,7 @@ from ..agent.person import Person
 from ipywidgets import widgets, interact, interactive, fixed, interact_manual
 import warnings
 warnings.filterwarnings("ignore")
+import matplotlib.colors as mcolors
 
 
 class Visualization:
@@ -47,7 +48,9 @@ class Visualization:
         fig, ax = plt.subplots(figsize=(15, 6))
         df = self.people
         df = df.groupby(['AgentID', 'Step']).last().reset_index()
-        sns.lineplot(data=df, x="Step", y="wealth", hue="AgentID", palette=self.agentID_color, ax=ax)
+        df['date_time'] = pd.to_datetime(df['date_time'])
+        df = df.set_index('date_time')
+        sns.lineplot(data=df, x="date_time", y="wealth", hue="AgentID", palette=self.agentID_color, ax=ax)
         ax.set_title("Wealth over time")
         ax.set_ylabel("Wealth")
         ax.set_xlabel("Step")
@@ -112,20 +115,6 @@ class Visualization:
             plt.grid(True)
             plt.show()
 
-    def location_plot(self):
-        df = self.agents.reset_index()
-        df = df[df['agent_type'] == 'person']
-        df["x"] = df["location"].apply(lambda x: x[0])
-        df["y"] = df["location"].apply(lambda x: x[1])
-        fig, ax = plt.subplots(figsize=(7, 7))
-        line_styles = ['.', '-.', '*-', 'o-', '--', 's-', 'P-']
-        for (i, person) in zip(range(len(df["AgentID"].unique())), df["AgentID"].unique()):
-            df_agent = df[df["AgentID"] == person]
-            ax.plot(df_agent["x"], df_agent["y"], line_styles[i % len(line_styles)], label=f"Agent {i}", color=self.agentID_color[person])
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        plt.legend()
-        return fig, ax
 
     def sender_bar_plot(self, include='all'):
         df = self.transactions[self.transactions['sender'].isin(self.persons)]
@@ -199,6 +188,7 @@ class Visualization:
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
+        grid_df['date_time'] = pd.to_datetime(grid_df['date_time'])
         pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
         slider = widgets.SelectionSlider(
             options = list(grid_df['date_time'].unique()),
@@ -210,17 +200,23 @@ class Visualization:
             # Filter the DataFrame for the specified agent ID
             df = grid_df[grid_df['AgentID'] == agentID]
             current_location = df[df['date_time'] == slider]
-
+            df = df[df['date_time'] <= slider]
             fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+            
+            min_time = df['date_time'].min()
+            max_time = slider
+            if min_time == max_time:
+                df['alpha'] = 1
+            else:
+                df['alpha'] = (df['date_time'] - min_time) / (max_time - min_time)
+            
 
-            # Plot the agent's trace
-            sns.scatterplot(x=df['x'] + self.agentID_jitter[agentID], y=df['y'] + self.agentID_jitter[agentID], data=df,
-                            color=self.agentID_color[agentID],
-                            marker=self.agentID_marker[agentID],
-                            ax=ax, s=100)
+            # Plot the agent's trace with varying transparency (alpha)
+            sns.scatterplot(x=df['x'], y=df['y'], data=df, color=self.agentID_color[agentID], alpha=df['alpha'], ax=ax)
+        
             # Plot the agent's current location as grey circle
             sns.scatterplot(x=current_location['x'], y=current_location['y'], data=current_location,
-                            color='grey',
+                            color=self.agentID_color[agentID],
                             marker='o',
                             ax=ax, s=100)
             # plt merchandise locations as black diamonds
@@ -238,6 +234,8 @@ class Visualization:
             ax.set_ylabel('Y-coordinate')
             
             plt.show()
+
+
 
     def account_balance_over_time(self, agentID):
         df = self.people[self.people['AgentID'] == agentID]
@@ -257,3 +255,76 @@ class Visualization:
         plt.show()
         return fig, ax
                 
+    # def income_outcome_bar_plot(self, agentID):
+    #     income = self.transactions[(self.transactions['description'] == 'salary') & (self.transactions['receiver'] == agentID)]
+    #     outcome = self.transactions[(self.transactions['description'] != 'salary') & ( self.transactions['sender'] == agentID)].groupby(['description']).sum().reset_index()
+    #     outcome['amount'] = -outcome['amount']
+    #     df = pd.concat([income, outcome])
+        
+    #     return fig, ax
+        
+    def expenses_breakdown_plot(self,agentID):
+        df = self.transactions[(self.transactions['sender']==agentID ) | (self.transactions['receiver']==agentID)]
+        df =df.groupby('description').sum().reset_index()
+        salary = df[df['description']=='salary']['amount'].values[0]
+        df = df[df['description']!='salary']
+        df['amount'] = df['amount'].abs().sort_values(ascending=False)
+        df['percentage'] = df['amount'].apply(lambda x: x/salary)
+        fig, ax = plt.subplots(1,2,figsize=(15,5))
+        sns.barplot(x='description',y='amount',data=df,ax=ax[0])
+        # pie chart
+        ax[1].pie(df['percentage'],labels=df['description'],autopct='%1.1f%%', startangle=90, pctdistance=0.85)
+        ax[0].set_title('Expenses Breakdown by Amount')
+        ax[1].set_title('Expenses Breakdown by Percentage of Salary')
+        return fig, ax
+    
+    
+    def transaction_plot(self):
+        df = self.transactions.copy()
+        df['date_time'] = pd.to_datetime(df['date_time'])
+        df['date'] = df['date_time'].dt.date
+        df['date'] = pd.to_datetime(df['date'])
+        df['day'] = df['date'].dt.day
+        df['month'] = df['date'].dt.month
+        df['year'] = df['date'].dt.year
+        df['amount'] = df['amount'].abs()
+
+        view_toggles_buttons = widgets.ToggleButtons(
+            options=['day', 'month'],
+            description='View:',
+            disabled=False
+        )
+
+        metric_toggles_buttons = widgets.ToggleButtons(
+            options=['number', 'amount'],
+            description='Metric:',
+            disabled=False
+        )
+
+        @widgets.interact(view=view_toggles_buttons, metric=metric_toggles_buttons)
+        def plot(view, metric):
+            fig, ax = plt.subplots(figsize=(15, 5))
+            
+            if view == 'day':
+                data_grouped = df.groupby(['year', 'month', 'day', 'description'])
+            else:
+                data_grouped = df.groupby(['year', 'month', 'description'])
+
+            if metric == 'number':
+                data_to_plot = data_grouped.size().unstack(fill_value=0)
+                title = 'Number of transactions per ' + view
+                y_label = 'Number of transactions'
+            else:
+                data_to_plot = data_grouped['amount'].sum().unstack(fill_value=0)
+                title = 'Amount of transactions per ' + view
+                y_label = 'Amount of transactions'
+
+            data_to_plot.plot(kind='bar', stacked=True, ax=ax)
+            ax.set_xlabel('Date')
+            ax.set_ylabel(y_label)
+            ax.set_title(title)
+
+            # Anchor the legend outside of the plot
+            ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+            plt.show()

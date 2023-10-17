@@ -14,7 +14,7 @@ import pandas as pd
 
 class Model(Model):
     def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
-                 num_employers=2, num_banks=1):
+                 num_employers=2, num_banks=1, width=15, height=15):
         super().__init__()
         self._num_people = num_people
         self._num_merchant = num_merchant
@@ -32,7 +32,7 @@ class Model(Model):
         for (u, v) in self.social_grid.edges():
             self.social_grid.edges[u, v]['weight'] = 1 / (self._num_people - 1)
 
-        self.grid = MultiGrid(width=15, height=15, torus=False)
+        self.grid = MultiGrid(width, height, torus=False)
         self._put_employers_in_model()
         self._put_people_in_model(initial_money)
         self._put_clothes_merchants_in_model()
@@ -130,6 +130,6 @@ class Model(Model):
     def get_all_agents_on_grid(self):
         all_agents = []
         for cell in self.grid.coord_iter():
-            cell_content, x, y = cell
+            cell_content, pos = cell
             all_agents.extend(cell_content)
         return all_agents

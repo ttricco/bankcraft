@@ -135,11 +135,14 @@ class Person(GeneralAgent):
             if motivation == 'hunger' and isinstance(agent, Food):
                 value = self.motivation.state_values()['HungerState']
                 price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+                self.pay(price, agent, 'ACH', motivation)
+                return price
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
-                price = self.motivation.get_motivation(motivation)
-    
-        self.pay(price, agent, 'ACH', motivation)
-        return price
+                value = self.motivation.state_values()['ConsumerismState']
+                price = value if value > 500 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+                self.pay(price, agent, 'ACH', motivation)
+                return price
+        return 0
     
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
@@ -170,8 +173,11 @@ class Person(GeneralAgent):
             return
         
         if self.pos == self.home:
-            self.motivation.update_state_value('FatigueState', -fatigue_rate * 2)
-            # update fatigue
+            if self.model.current_time.hour >= 22 or self.model.current_time.hour <= 6:
+                self.motivation.update_state_value('FatigueState', -fatigue_rate * 6)
+            else:
+                self.motivation.update_state_value('FatigueState', -fatigue_rate * 3)
+
             
         elif self.pos == self.work:
             if self.model.current_time.weekday() < 5 and\
@@ -179,8 +185,7 @@ class Person(GeneralAgent):
                 self.motivation.update_state_value('WorkState', -0.4)
             else:
                 self.motivation.reset_one_motivation('WorkState')
-                
-                
+          
         elif self.motivation.present_state() == 'HungerState':
             value = self.buy('hunger')
             self.motivation.update_state_value('HungerState', -value)
@@ -191,7 +196,9 @@ class Person(GeneralAgent):
             self.motivation.update_state_value('ConsumerismState', -value)
             
         elif self.motivation.present_state() == 'SocialState':
-            self.motivation.update_state_value('SocialState', -social_rate*3)
+            value = self.motivation.state_values()['SocialState']
+            reduction_rate = np.random.beta(a=9, b=2, size=1)[0]
+            self.motivation.update_state_value('SocialState', -value * reduction_rate)
                      
                      
     def update_people_records(self):
