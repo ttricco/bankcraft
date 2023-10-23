@@ -85,9 +85,9 @@ class Person(GeneralAgent):
         self.salary = salary
         self.employer = employer
         self.work = employer.location
-        self._monthly_housing_cost = self.salary * random.uniform(0.3, 0.4)
-        self._housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
-        self._housing_cost_per_pay = self._monthly_housing_cost * self._housing_cost_frequency / steps['month']
+        self.housing_cost = self.salary * random.uniform(0.3, 0.4)
+        self._housing_cost_frequency = random.choice([steps['biweekly']])
+        self._housing_cost_per_pay = self.housing_cost / (steps['year'] / self._housing_cost_frequency)
         self._set_schedule_txn()
 
         

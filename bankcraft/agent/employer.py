@@ -8,7 +8,7 @@ import random
 class Employer(GeneralAgent):
     def __init__(self, model):
         super().__init__(model)
-        self.pay_period = random.choice([steps['biweekly'], steps['month']])
+        self.pay_period = random.choice([steps['biweekly']])
         self._num_pays_per_year = steps['year'] // self.pay_period
 
         self.employees = [] # list of [person, salary, salary_per_pay]
