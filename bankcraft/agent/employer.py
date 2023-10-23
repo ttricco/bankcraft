@@ -46,8 +46,7 @@ class Employer(GeneralAgent):
         salary = self.assign_salary(person)
         salary_per_pay = salary / self._num_pays_per_year
         self.employees.append([person, salary, salary_per_pay])
-        person.employer = self
-        person.work = self.location
+        person.assign_salary_info(self,salary)
 
     def remove_employee(self, person):
         self.employees.remove(person)
@@ -62,7 +61,6 @@ class Employer(GeneralAgent):
     def assign_salary(self, person):
         salary_group = random.randint(0,4)
         salary_range = self._salary_list[salary_group][3].split('-')
-        print(salary_range)
         salary = random.randint(int(salary_range[0]), int(salary_range[1]))
         salary = salary * 1000
         

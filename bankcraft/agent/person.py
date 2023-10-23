@@ -16,16 +16,11 @@ class Person(GeneralAgent):
                  initial_money):
         super().__init__(model)
         self.type = 'person'
-        self._monthly_housing_cost = np.random.normal(2000, 650)
-        self._housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
-        self._housing_cost_per_pay = self._monthly_housing_cost * self._housing_cost_frequency / steps['month']
 
         self._has_subscription = random.randint(0, 1)
         self._subscription_amount = self._has_subscription * random.randrange(0, 100)
         self._has_membership = random.randint(0, 1)
         self._membership_amount = self._has_membership * random.randrange(0, 100)
-
-        self.employer = None
 
         self.motivation = Motivation(NeutralState,self)
 
@@ -44,8 +39,6 @@ class Person(GeneralAgent):
         self._social_node = None
         self._social_network_weights = None
         self._best_friend = None
-        self._set_schedule_txn()
-        
         self._friends = []
 
     @property
@@ -87,6 +80,18 @@ class Person(GeneralAgent):
     @friends.setter
     def friends(self, value):
         self._friends = value
+        
+    def assign_salary_info(self, employer, salary):
+        self.salary = salary
+        self.employer = employer
+        self.work = employer.location
+        self._monthly_housing_cost = self.salary * random.uniform(0.3, 0.4)
+        self._housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
+        self._housing_cost_per_pay = self._monthly_housing_cost * self._housing_cost_frequency / steps['month']
+        self._set_schedule_txn()
+
+        
+        
         
     def _set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)

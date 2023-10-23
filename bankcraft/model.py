@@ -69,7 +69,6 @@ class Model(Model):
             j = i % self._num_employers
             self.employers[j].add_employee(person)
             person.employer = self.employers[j]
-            person.work = person.employer.location
             person.home = self._place_randomly_on_grid(person)
             self.schedule.add(person)
             person.social_node = i
