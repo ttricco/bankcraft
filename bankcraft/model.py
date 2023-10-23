@@ -98,6 +98,8 @@ class Model(Model):
         for person in person_agents:
             number_of_friends = self.random.randint(1, len(person_agents)-1)
             friends = self.random.sample(person_agents, number_of_friends)
+            friendship_weights = [self.random.random() for _ in range(number_of_friends)]
+            friends = dict(zip(friends, friendship_weights))
             person.friends = friends
 
     def step(self):
