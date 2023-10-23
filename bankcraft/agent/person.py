@@ -20,11 +20,6 @@ class Person(GeneralAgent):
         self._housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
         self._housing_cost_per_pay = self._monthly_housing_cost * self._housing_cost_frequency / steps['month']
 
-        self._yearly_income = np.random.normal(66800, 9000)
-        self._salary_frequency = random.choice([steps['biweekly'], steps['month']])
-        self._num_pays_per_year = steps['year'] // self._salary_frequency
-        self.salary_per_pay = self._yearly_income / self._num_pays_per_year
-
         self._has_subscription = random.randint(0, 1)
         self._subscription_amount = self._has_subscription * random.randrange(0, 100)
         self._has_membership = random.randint(0, 1)
