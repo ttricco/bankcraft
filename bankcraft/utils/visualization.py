@@ -270,12 +270,39 @@ class Visualization:
         df = df[df['description']!='salary']
         df['amount'] = df['amount'].abs().sort_values(ascending=False)
         df['percentage'] = df['amount'].apply(lambda x: x/salary)
+        # just columns we need
+        df = df[['description','amount','percentage']]
+        # if sum of percentage is less than 1, add saving
+        if df['percentage'].sum() < 1:
+            # add new row
+            df.loc[len(df)] = ['saving',salary - df['amount'].sum(),1-df['percentage'].sum()]
+        df = df.sort_values(by='percentage',ascending=False)
+        
+        expenses = self.transactions.description.unique()
+        expenses = np.append(expenses,['others','saving'])
+        colors = list(mcolors.TABLEAU_COLORS.values())
+        colors = colors[0:len(expenses)]
+        colors = dict(zip(expenses, colors))
+
         fig, ax = plt.subplots(1,2,figsize=(15,5))
-        sns.barplot(x='description',y='amount',data=df,ax=ax[0])
-        # pie chart
-        ax[1].pie(df['percentage'],labels=df['description'],autopct='%1.1f%%', startangle=90, pctdistance=0.85)
+        bar = sns.barplot(x='description',y='amount',data=df,ax=ax[0],palette=colors)
+        bar.set_xlabel('Expenses')
+        bar.set_ylabel('Amount')
+        bar.set_xticklabels(bar.get_xticklabels(),rotation=45)
+        
+        others = df[df['percentage']<0.10]
+        df['description'] = df['description'].apply(lambda x: x if df[df['description']==x]['percentage'].values[0] > 0.10 else 'others')
+        df = df.groupby('description').sum().reset_index()
+        
+        ax[1].pie(df['percentage'], startangle=90,colors=[colors[x] for x in df['description']],autopct='%1.1f%%',labels=df['description'])
+        # show othrs with their percentage
+        for i in range(len(others)):
+            ax[1].text(1.5,0.5+i*0.1,f"{others.iloc[i]['description']} ({round(others.iloc[i]['percentage']*100,2)}%)",color='black')
+        ax[1].axis('equal')
         ax[0].set_title('Expenses Breakdown by Amount')
         ax[1].set_title('Expenses Breakdown by Percentage of Salary')
+
+        
         return fig, ax
     
     
