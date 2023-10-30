@@ -45,7 +45,7 @@ class Employer(GeneralAgent):
     def add_employee(self, person):
         salary = self.assign_salary(person)
         salary_per_pay = salary / self._num_pays_per_year
-        self.employees.append([person, salary, salary_per_pay])
+        self.employees.append({'person': person, 'salary': salary, 'salary_per_pay': salary_per_pay})
         person.assign_salary_info(self,salary)
 
     def remove_employee(self, person):
@@ -53,8 +53,8 @@ class Employer(GeneralAgent):
 
     def pay_salary(self):
         for i in self.employees:
-            person = i[0]
-            salary_per_pay = i[2]
+            person = i['person']
+            salary_per_pay = i['salary_per_pay']
             self.pay(salary_per_pay,person , 'cheque', 'salary')
 
 

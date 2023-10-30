@@ -10,6 +10,7 @@ from bankcraft.agent.employer import Employer
 from bankcraft.agent.business import Business
 import datetime
 import pandas as pd
+from bankcraft.config import workplace_radius
 
 
 class Model(Model):
@@ -66,10 +67,13 @@ class Model(Model):
     def _put_people_in_model(self, initial_money):
         for i in range(self._num_people):
             person = Person(self, initial_money)
-            j = i % self._num_employers
-            self.employers[j].add_employee(person)
-            person.employer = self.employers[j]
             person.home = self._place_randomly_on_grid(person)
+            # find closest employer to home
+            closest_employer = min(self.employers, key=lambda x: self.grid.get_distance(person.home, x.location))
+            # find employers in radius of 3
+            employers_in_radius = [employer for employer in self.employers
+                                      if self.grid.get_distance(person.home, employer.location) <= workplace_radius]
+            
             self.schedule.add(person)
             person.social_node = i
 
