@@ -25,7 +25,6 @@ class Person(GeneralAgent):
         self.motivation = Motivation(NeutralState,self)
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
-        #self.update_wealth()
 
         self.schedule_txn = pd.DataFrame()
 
@@ -38,7 +37,6 @@ class Person(GeneralAgent):
         self._work = None
         self._social_node = None
         self._social_network_weights = None
-        self._best_friend = None
         self._friends = []
 
     @property
@@ -66,20 +64,16 @@ class Person(GeneralAgent):
         self._social_node = value
 
     @property
-    def best_friend(self):
-        return self._best_friend
-
-    @best_friend.setter
-    def best_friend(self, person):
-        self._best_friend = person
-
-    @property
     def friends(self):
         return self._friends
     
     @friends.setter
     def friends(self, value):
         self._friends = value
+        # highest value is the best friend
+        self._partner = max(value, key=value.get)
+        
+    
         
     def assign_salary_info(self, employer, salary):
         self.salary = salary
