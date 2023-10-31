@@ -135,7 +135,7 @@ class Person(GeneralAgent):
                 self.pay(price, agent, 'ACH', description='hunger')
                 
             elif motivation == 'large_meal' and isinstance(agent, Food):
-                price = large_meal_avg_cost * random.uniform(0.5, 1.5)
+                price = large_meal_avg_cost * random.uniform(0.7, 2.5)
                 self.pay(price, agent, 'ACH', description='hunger')
                 
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
