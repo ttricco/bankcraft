@@ -69,6 +69,17 @@ class Model(Model):
         for i in range(self._num_people):
             person = Person(self, initial_money)
             person.home = self._place_randomly_on_grid(person)
+            employer = self._assign_employer(person)
+            employer.add_employee(person)
+            person.work = employer.location
+            self.schedule.add(person)
+            person.social_node = i
+
+        for person in self.schedule.agents:
+            if isinstance(person, Person):
+                person.set_social_network_weights()
+                
+    def _assign_employer(self, person):
             closest_employer = min(self.employers, key=lambda x: self.get_distance(person.home, x.location))
             if self.get_distance(person.home, closest_employer.location) > workplace_radius:
                 valid_employers = [employer for employer in self.employers]
@@ -77,14 +88,9 @@ class Model(Model):
                                         if self.get_distance(person.home, employer.location) <= workplace_radius]
             total_distance = sum([self.get_distance(person.home, employer.location) for employer in valid_employers])
             employer_probabilities = [self.get_distance(person.home, employer.location)/total_distance for employer in valid_employers]
-            person.work = self.random.choices(valid_employers, employer_probabilities)[0].location
-            self.schedule.add(person)
-            person.social_node = i
-
-        for person in self.schedule.agents:
-            if isinstance(person, Person):
-                person.set_social_network_weights()
-
+            employer = self.random.choices(valid_employers, employer_probabilities)[0]
+            return employer
+        
     def _put_food_merchants_in_model(self):
         for _ in range(self._num_merchant):
             merchant = Food(self,  10, 1000)
