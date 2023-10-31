@@ -69,7 +69,6 @@ class Model(Model):
             j = i % self._num_employers
             self.employers[j].add_employee(person)
             person.employer = self.employers[j]
-            person.work = person.employer.location
             person.home = self._place_randomly_on_grid(person)
             self.schedule.add(person)
             person.social_node = i
@@ -92,13 +91,12 @@ class Model(Model):
             
     def _set_best_friends(self):
         person_agents = [agent for agent in self.schedule.agents if isinstance(agent, Person)]
-        for i in range(0, len(person_agents), 2):
-            person_agents[i].best_friend = person_agents[i+1]
-            person_agents[i+1].best_friend = person_agents[i]
             
         for person in person_agents:
             number_of_friends = self.random.randint(1, len(person_agents)-1)
             friends = self.random.sample(person_agents, number_of_friends)
+            friendship_weights = [self.random.random() for _ in range(number_of_friends)]
+            friends = dict(zip(friends, friendship_weights))
             person.friends = friends
 
     def step(self):

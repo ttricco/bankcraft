@@ -59,7 +59,8 @@ class SocialState(MotivationState):
 
     def set_motion(self) -> None:
         #self.motivation.agent.target_location = self.motivation.agent.best_friend.pos
-        friend = self.motivation.agent.friends[random.randint(0, len(self.motivation.agent.friends)-1)]
+        friends = self.motivation.agent.friends
+        friend = random.choices(list(friends.keys()), weights=list(friends.values()), k=1)[0]
         self.motivation.agent.target_location = friend.pos
 ###################################################
 

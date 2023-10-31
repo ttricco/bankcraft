@@ -16,26 +16,15 @@ class Person(GeneralAgent):
                  initial_money):
         super().__init__(model)
         self.type = 'person'
-        self._monthly_housing_cost = np.random.normal(2000, 650)
-        self._housing_cost_frequency = random.choice([steps['biweekly'], steps['month']])
-        self._housing_cost_per_pay = self._monthly_housing_cost * self._housing_cost_frequency / steps['month']
-
-        self._yearly_income = np.random.normal(66800, 9000)
-        self._salary_frequency = random.choice([steps['biweekly'], steps['month']])
-        self._num_pays_per_year = steps['year'] // self._salary_frequency
-        self.salary_per_pay = self._yearly_income / self._num_pays_per_year
 
         self._has_subscription = random.randint(0, 1)
         self._subscription_amount = self._has_subscription * random.randrange(0, 100)
         self._has_membership = random.randint(0, 1)
         self._membership_amount = self._has_membership * random.randrange(0, 100)
 
-        self.employer = None
-
         self.motivation = Motivation(NeutralState,self)
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
-        #self.update_wealth()
 
         self.schedule_txn = pd.DataFrame()
 
@@ -48,9 +37,6 @@ class Person(GeneralAgent):
         self._work = None
         self._social_node = None
         self._social_network_weights = None
-        self._best_friend = None
-        self._set_schedule_txn()
-        
         self._friends = []
 
     @property
@@ -78,20 +64,28 @@ class Person(GeneralAgent):
         self._social_node = value
 
     @property
-    def best_friend(self):
-        return self._best_friend
-
-    @best_friend.setter
-    def best_friend(self, person):
-        self._best_friend = person
-
-    @property
     def friends(self):
         return self._friends
     
     @friends.setter
     def friends(self, value):
         self._friends = value
+        # highest value is the best friend
+        self._partner = max(value, key=value.get)
+        
+    
+        
+    def assign_salary_info(self, employer, salary):
+        self.salary = salary
+        self.employer = employer
+        self.work = employer.location
+        self.housing_cost = self.salary * random.uniform(0.3, 0.4)
+        self._housing_cost_frequency = random.choice([steps['biweekly']])
+        self._housing_cost_per_pay = self.housing_cost / (steps['year'] / self._housing_cost_frequency)
+        self._set_schedule_txn()
+
+        
+        
         
     def _set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
