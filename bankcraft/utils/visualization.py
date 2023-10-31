@@ -115,7 +115,6 @@ class Visualization:
             plt.grid(True)
             plt.show()
 
-
     def sender_bar_plot(self, include='all'):
         df = self.transactions[self.transactions['sender'].isin(self.persons)]
         df = df if include == 'all' else df[df['sender'] == include]
@@ -235,8 +234,6 @@ class Visualization:
             
             plt.show()
 
-
-
     def account_balance_over_time(self, agentID):
         df = self.people[self.people['AgentID'] == agentID]
         df['date_time'] = pd.to_datetime(df['date_time'])
@@ -254,15 +251,7 @@ class Visualization:
         ax.set_xlabel("Step")
         plt.show()
         return fig, ax
-                
-    # def income_outcome_bar_plot(self, agentID):
-    #     income = self.transactions[(self.transactions['description'] == 'salary') & (self.transactions['receiver'] == agentID)]
-    #     outcome = self.transactions[(self.transactions['description'] != 'salary') & ( self.transactions['sender'] == agentID)].groupby(['description']).sum().reset_index()
-    #     outcome['amount'] = -outcome['amount']
-    #     df = pd.concat([income, outcome])
-        
-    #     return fig, ax
-        
+                    
     def expenses_breakdown_plot(self,agentID):
         df = self.transactions[(self.transactions['sender']==agentID ) | (self.transactions['receiver']==agentID)]
         df =df.groupby('description').sum().reset_index()
@@ -304,7 +293,6 @@ class Visualization:
 
         
         return fig, ax
-    
     
     def transaction_plot(self):
         df = self.transactions.copy()
