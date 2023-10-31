@@ -126,11 +126,18 @@ class Person(GeneralAgent):
             # if the agent is a merchant
         price = 0
         for agent in agents:          
-            if motivation == 'hunger' and isinstance(agent, Food):
-                value = self.motivation.state_values()['HungerState']
-                price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
-                self.pay(price, agent, 'ACH', motivation)
-                return price
+            if motivation == 'small_meal' and isinstance(agent, Food):
+                price = small_meal_avg_cost * random.uniform(0.5, 1.5)
+                self.pay(price, agent, 'ACH', description='hunger')
+            
+            elif motivation == 'medium_meal' and isinstance(agent, Food):
+                price = medium_meal_avg_cost * random.uniform(0.5, 1.5)
+                self.pay(price, agent, 'ACH', description='hunger')
+                
+            elif motivation == 'large_meal' and isinstance(agent, Food):
+                price = large_meal_avg_cost * random.uniform(0.5, 1.5)
+                self.pay(price, agent, 'ACH', description='hunger')
+                
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
                 value = self.motivation.state_values()['ConsumerismState']
                 price = value if value > 500 else np.random.beta(a=9, b=2, size=1)[0] * (value)
