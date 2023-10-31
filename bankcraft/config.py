@@ -15,3 +15,8 @@ steps['year'] = 365 * 24 * 6 * steps['10min']
 
 
 workplace_radius = 3
+
+
+small_meal_avg_cost = 10
+medium_meal_avg_cost = 25
+large_meal_avg_cost = 75

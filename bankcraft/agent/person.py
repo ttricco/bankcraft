@@ -6,7 +6,7 @@ from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant, Food, Clothes
 # from bankcraft.motivation import Motivation
 from bankcraft.config import steps
-from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate, consumerism_rate
+from bankcraft.config import *
 from bankcraft.motivation.motivation import Motivation
 from bankcraft.motivation.motivation_state import NeutralState
 
@@ -181,7 +181,17 @@ class Person(GeneralAgent):
                 self.motivation.reset_one_motivation('WorkState')
           
         elif self.motivation.present_state() == 'HungerState':
-            value = self.buy('hunger')
+            hunger_value = self.motivation.state_values()['HungerState']
+            if hunger_value < 2 * motivation_threshold:
+                meal = random.choices(['small_meal', 'medium_meal', 'large_meal'], weights=[0.5, 0.25, 0.25], k=1)[0]
+            else:
+                meal = random.choices(['medium_meal', 'large_meal'], weights=[ 0.5, 0.5], k=1)[0]
+            self.buy(meal)   
+            if meal == 'small_meal':
+                value = hunger_value * 0.5
+            else:
+                value = hunger_value * random.uniform(0.8, 1)
+                
             self.motivation.update_state_value('HungerState', -value)
             
             
