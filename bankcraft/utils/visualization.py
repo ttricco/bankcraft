@@ -343,3 +343,50 @@ class Visualization:
             ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
             plt.show()
+            
+    def movements_plot(self):
+        df = self.people.copy().reset_index()
+        df = df[['date_time','AgentID','location']]
+        agents = self.agents[(self.agents['Step'] == 1)]
+        info = agents[['AgentID','agent_home','agent_work','agent_type']]
+        locations = ['Home','Work','Traveling','Merchant']
+        merchant_locations = info[info['agent_type'] == 'merchant'].agent_home.unique()
+        # in df replace location with the name of the location in info
+        df = pd.merge(df, info, on='AgentID')
+        # for each row in df2, if location is the same as agent_home, replace location_name with 'Home'
+        for index, row in df.iterrows():
+            if row['location'] == row['agent_home']:
+                df.at[index,'location_name'] = 'Home'
+            elif row['location'] == row['agent_work']:
+                df.at[index,'location_name'] = 'Work'
+            elif row['location'] == merchant_locations[0] or row['location'] == merchant_locations[1] or row['location'] == merchant_locations[2]:
+                df.at[index,'location_name'] = 'Merchant'
+            else:
+                df.at[index,'location_name'] = 'Traveling'
+                
+        location_names = ['Home', 'Work', 'Merchant', 'Traveling']
+        num_locations = len(location_names)
+        slider = widgets.SelectionSlider(
+                    options = list(df['date_time'].unique()),
+                    description = 'Time:',
+                    layout={'width': '500px'},
+                )
+
+        @widgets.interact(step=slider)
+        def plot(step):
+            current_df = df[df['date_time'] == step]
+            fig, ax = plt.subplots()
+            for agent in current_df['AgentID'].unique():
+                ax.scatter(current_df[current_df['AgentID'] == agent]['location_name'], current_df[current_df['AgentID'] == agent]['AgentID'],
+                           color=self.agentID_color[agent],
+                           label=agent,
+                           )
+            ax.set_xlabel('Location')
+            ax.set_ylabel('Agent ID')
+            ax.set_title('Agent Locations')
+            ax.set_yticks([])
+            ax.set_yticklabels([])
+            ax.set_xticks(np.arange(0, num_locations, 1))
+            ax.set_xticklabels(location_names)
+            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.09))
+            plt.show()

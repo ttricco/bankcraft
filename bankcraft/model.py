@@ -45,6 +45,8 @@ class Model(Model):
             agent_reporters={'date_time': lambda a: a.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
                              'location': lambda a: a.pos,
                              'agent_type': lambda a: a.type,
+                             'agent_home': lambda a: a.home if isinstance(a, Person) else a.location,
+                             'agent_work': lambda a: a.work if isinstance(a, Person) else a.location,
                             },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"],
