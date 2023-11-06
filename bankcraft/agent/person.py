@@ -113,16 +113,17 @@ class Person(GeneralAgent):
                          txn_type='online',
                          description=row['scheduled_expenses'])
 
-    # def unscheduled_txn(self):
-    #     if random.random() < 0.1:
-    #         weight = self._social_network_weights
-    #         recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
-    #         self.adjust_social_network(recipient)
-    #         if random.random() >= self.spending_prob:
-    #             self.pay(amount=self.spending_amount,
-    #                      receiver=recipient,
-    #                      txn_type='ACH',
-    #                      description='social')
+    def unscheduled_txn(self):
+        if random.random() < 0.1:
+            weight = self._social_network_weights
+            recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+            self.adjust_social_network(recipient)
+            amount = random.randrange(0, 100)
+            if random.random() >= self.spending_prob:
+                self.pay(amount=amount,
+                         receiver=recipient,
+                         txn_type='online',
+                         description='social')
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
@@ -213,10 +214,9 @@ class Person(GeneralAgent):
         }
         self.model.datacollector.add_table_row("people", agent_data, ignore_missing=True)        
     def step(self):
-        # self.motivation_handler()
         self.move()
         self.pay_schedule_txn()
-        # self.unscheduled_txn()
+        self.unscheduled_txn()
         self.motivation.step()
         self.decision_maker()
         self.update_people_records()
