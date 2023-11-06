@@ -13,11 +13,12 @@ import pandas as pd
 
 
 class Model(Model):
-    def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
+    def __init__(self, num_people=6,  initial_money=1000,
                  num_employers=2, num_banks=1, width=15, height=15):
         super().__init__()
         self._num_people = num_people
-        self._num_merchant = num_merchant
+        self._num_merchant = width * height // 100
+
         self._num_banks = num_banks
         self.banks = [Bank(self) for _ in range(self._num_banks)]
 
