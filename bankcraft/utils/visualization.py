@@ -371,22 +371,52 @@ class Visualization:
                     description = 'Time:',
                     layout={'width': '500px'},
                 )
-
+        df2 = df.groupby(['date_time','location_name']).count().reset_index()
+        df2 = df2.pivot(index='date_time', columns='location_name', values='AgentID')
+        df2 = df2.fillna(0)
+        df2.reset_index(inplace=True)
         @widgets.interact(step=slider)
         def plot(step):
-            current_df = df[df['date_time'] == step]
-            fig, ax = plt.subplots()
+            current_df = df[df['date_time'] == step]            
+            fig = plt.figure(figsize=(15, 6))
+            gs = fig.add_gridspec(nrows=4, ncols=2)
+            ax0 = fig.add_subplot(gs[:, 0])
             for agent in current_df['AgentID'].unique():
-                ax.scatter(current_df[current_df['AgentID'] == agent]['location_name'], current_df[current_df['AgentID'] == agent]['AgentID'],
+                ax0.scatter(current_df[current_df['AgentID'] == agent]['location_name'], current_df[current_df['AgentID'] == agent]['AgentID'],
                            color=self.agentID_color[agent],
                            label=agent,
                            )
-            ax.set_xlabel('Location')
-            ax.set_ylabel('Agent ID')
-            ax.set_title('Agent Locations')
-            ax.set_yticks([])
-            ax.set_yticklabels([])
-            ax.set_xticks(np.arange(0, num_locations, 1))
-            ax.set_xticklabels(location_names)
-            ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.09))
+            ax0.set_xlabel('Location')
+            ax0.set_ylabel('Agent ID')
+            ax0.set_title('Agent Locations')
+            ax0.set_yticks([])
+            ax0.set_yticklabels([])
+            ax0.set_xticks(np.arange(0, num_locations, 1))
+            ax0.set_xticklabels(location_names)
+            
+            ax2 = fig.add_subplot(gs[1, 1])
+            ax2.plot(df2['date_time'], df2['Home'], color='red')
+            ax2.set_xticks([])
+            ax2.axvline(x=step, color='black', linestyle='--')
+            ax2.set_title('Home')
+            
+            ax3 = fig.add_subplot(gs[2, 1])
+            ax3.plot(df2['date_time'], df2['Work'], color='blue')
+            ax3.set_title('Work')
+            ax3.axvline(x=step, color='black', linestyle='--')
+            ax3.set_xticks([])
+            
+            ax4 = fig.add_subplot(gs[3, 1])
+            ax4.plot(df2['date_time'], df2['Merchant'], color='green')
+            ax4.set_title('Merchant')
+            ax4.axvline(x=step, color='black', linestyle='--')
+            ax4.set_xticks([])
+            
+            ax5 = fig.add_subplot(gs[0, 1])
+            ax5.plot(df2['date_time'], df2['Traveling'], color='orange')
+            ax5.set_title('Traveling')
+            ax5.axvline(x=step, color='black', linestyle='--')
+            ax5.set_xticks([])
+            
+            
             plt.show()
