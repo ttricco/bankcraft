@@ -12,3 +12,11 @@ steps['week'] = 7 * 24 * 6 * steps['10min']
 steps['biweekly'] = 14 * 24 * 6 * steps['10min']
 steps['month'] = 30 * 24 * 6 * steps['10min']
 steps['year'] = 365 * 24 * 6 * steps['10min']
+
+
+workplace_radius = 3
+
+
+small_meal_avg_cost = 3
+medium_meal_avg_cost = 14
+large_meal_avg_cost = 20

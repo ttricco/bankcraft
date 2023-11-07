@@ -6,7 +6,7 @@ from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.agent.merchant import Merchant, Food, Clothes
 # from bankcraft.motivation import Motivation
 from bankcraft.config import steps
-from bankcraft.config import motivation_threshold, hunger_rate, fatigue_rate, social_rate, consumerism_rate
+from bankcraft.config import *
 from bankcraft.motivation.motivation import Motivation
 from bankcraft.motivation.motivation_state import NeutralState
 
@@ -127,11 +127,18 @@ class Person(GeneralAgent):
             # if the agent is a merchant
         price = 0
         for agent in agents:          
-            if motivation == 'hunger' and isinstance(agent, Food):
-                value = self.motivation.state_values()['HungerState']
-                price = value if value > 100 else np.random.beta(a=9, b=2, size=1)[0] * (value)
-                self.pay(price, agent, 'ACH', motivation)
-                return price
+            if motivation == 'small_meal' and isinstance(agent, Food):
+                price = small_meal_avg_cost * random.uniform(0.5, 1.5)
+                self.pay(price, agent, 'ACH', description='hunger')
+            
+            elif motivation == 'medium_meal' and isinstance(agent, Food):
+                price = medium_meal_avg_cost * random.uniform(0.5, 1.5)
+                self.pay(price, agent, 'ACH', description='hunger')
+                
+            elif motivation == 'large_meal' and isinstance(agent, Food):
+                price = large_meal_avg_cost * random.uniform(0.7, 2.5)
+                self.pay(price, agent, 'ACH', description='hunger')
+                
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
                 if self.wealth > 0:
                     price = self.wealth * random.uniform(0.8,0.95)
@@ -182,7 +189,17 @@ class Person(GeneralAgent):
                 self.motivation.reset_one_motivation('WorkState')
           
         elif self.motivation.present_state() == 'HungerState':
-            value = self.buy('hunger')
+            hunger_value = self.motivation.state_values()['HungerState']
+            if hunger_value < 2 * motivation_threshold:
+                meal = random.choices(['small_meal', 'medium_meal', 'large_meal'], weights=[0.5, 0.25, 0.25], k=1)[0]
+            else:
+                meal = random.choices(['medium_meal', 'large_meal'], weights=[ 0.5, 0.5], k=1)[0]
+            self.buy(meal)   
+            if meal == 'small_meal':
+                value = hunger_value * 0.5
+            else:
+                value = hunger_value * random.uniform(0.8, 1)
+                
             self.motivation.update_state_value('HungerState', -value)
             
             
