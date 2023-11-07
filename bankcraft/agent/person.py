@@ -107,16 +107,17 @@ class Person(GeneralAgent):
                          txn_type='online',
                          description=row['scheduled_expenses'])
 
-    # def unscheduled_txn(self):
-    #     if random.random() < 0.1:
-    #         weight = self._social_network_weights
-    #         recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
-    #         self.adjust_social_network(recipient)
-    #         if random.random() >= self.spending_prob:
-    #             self.pay(amount=self.spending_amount,
-    #                      receiver=recipient,
-    #                      txn_type='ACH',
-    #                      description='social')
+    def unscheduled_txn(self):
+        if random.random() < 0.1:
+            weight = self._social_network_weights
+            recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+            self.adjust_social_network(recipient)
+            amount = random.randrange(0, 100)
+            if random.random() >= self.spending_prob:
+                self.pay(amount=amount,
+                         receiver=recipient,
+                         txn_type='online',
+                         description='social')
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
@@ -132,10 +133,10 @@ class Person(GeneralAgent):
                 self.pay(price, agent, 'ACH', motivation)
                 return price
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
-                value = self.motivation.state_values()['ConsumerismState']
-                price = value if value > 500 else np.random.beta(a=9, b=2, size=1)[0] * (value)
-                self.pay(price, agent, 'ACH', motivation)
-                return price
+                if self.wealth > 0:
+                    price = self.wealth * random.uniform(0.8,0.95)
+                    self.pay(price, agent, 'ACH', motivation)
+                    return price
         return 0
     
     def set_social_network_weights(self):
@@ -186,8 +187,8 @@ class Person(GeneralAgent):
             
             
         elif self.motivation.present_state() == 'ConsumerismState':
-            value = self.buy('consumerism')
-            self.motivation.update_state_value('ConsumerismState', -value)
+            self.buy('consumerism')
+            self.motivation.reset_one_motivation('ConsumerismState')
             
         elif self.motivation.present_state() == 'SocialState':
             value = self.motivation.state_values()['SocialState']
@@ -207,10 +208,9 @@ class Person(GeneralAgent):
         }
         self.model.datacollector.add_table_row("people", agent_data, ignore_missing=True)        
     def step(self):
-        # self.motivation_handler()
         self.move()
         self.pay_schedule_txn()
-        # self.unscheduled_txn()
+        #self.unscheduled_txn()
         self.motivation.step()
         self.decision_maker()
         self.update_people_records()

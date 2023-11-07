@@ -15,15 +15,22 @@ import matplotlib.colors as mcolors
 
 
 class Visualization:
-    def __init__(self, model , steps=1008, width=15, height=15):
+    def __init__(self, model ,people_df=None, transaction_df= None, agents_df=None, steps=1008, width=15, height=15):
         self.model = model
         self.STEPS = steps
         self.WIDTH = width
         self.HEIGHT = height
         self.pallet = sns.color_palette("tab10")
-        self.agents = model.get_agents().reset_index()
-        self.transactions = model.get_transactions()
-        self.people = model.get_people()
+        if people_df is None:
+            people_df = model.get_people()
+        self.people = people_df
+        if transaction_df is None:
+            transaction_df = model.get_transactions()
+        self.transactions = transaction_df
+        if agents_df is None:
+            agents_df = model.get_agents().reset_index()
+        self.agents = agents_df
+        
         self.agentID_color = {}
         self.agentID_jitter = {}
         self.agentID_marker = {}
@@ -114,7 +121,6 @@ class Visualization:
             plt.tight_layout()
             plt.grid(True)
             plt.show()
-
 
     def sender_bar_plot(self, include='all'):
         df = self.transactions[self.transactions['sender'].isin(self.persons)]
@@ -235,8 +241,6 @@ class Visualization:
             
             plt.show()
 
-
-
     def account_balance_over_time(self, agentID):
         df = self.people[self.people['AgentID'] == agentID]
         df['date_time'] = pd.to_datetime(df['date_time'])
@@ -254,15 +258,7 @@ class Visualization:
         ax.set_xlabel("Step")
         plt.show()
         return fig, ax
-                
-    # def income_outcome_bar_plot(self, agentID):
-    #     income = self.transactions[(self.transactions['description'] == 'salary') & (self.transactions['receiver'] == agentID)]
-    #     outcome = self.transactions[(self.transactions['description'] != 'salary') & ( self.transactions['sender'] == agentID)].groupby(['description']).sum().reset_index()
-    #     outcome['amount'] = -outcome['amount']
-    #     df = pd.concat([income, outcome])
-        
-    #     return fig, ax
-        
+                    
     def expenses_breakdown_plot(self,agentID):
         df = self.transactions[(self.transactions['sender']==agentID ) | (self.transactions['receiver']==agentID)]
         df =df.groupby('description').sum().reset_index()
@@ -304,7 +300,6 @@ class Visualization:
 
         
         return fig, ax
-    
     
     def transaction_plot(self):
         df = self.transactions.copy()
@@ -354,4 +349,81 @@ class Visualization:
             # Anchor the legend outside of the plot
             ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
+            plt.show()
+            
+    def movements_plot(self):
+        df = self.people.copy().reset_index()
+        df = df[['date_time','AgentID','location']]
+        agents = self.agents[(self.agents['Step'] == 1)]
+        info = agents[['AgentID','agent_home','agent_work','agent_type']]
+        locations = ['Home','Work','Traveling','Merchant']
+        merchant_locations = info[info['agent_type'] == 'merchant'].agent_home.unique()
+        # in df replace location with the name of the location in info
+        df = pd.merge(df, info, on='AgentID')
+        # for each row in df2, if location is the same as agent_home, replace location_name with 'Home'
+        for index, row in df.iterrows():
+            if row['location'] == row['agent_home']:
+                df.at[index,'location_name'] = 'Home'
+            elif row['location'] == row['agent_work']:
+                df.at[index,'location_name'] = 'Work'
+            elif row['location'] == merchant_locations[0] or row['location'] == merchant_locations[1] or row['location'] == merchant_locations[2]:
+                df.at[index,'location_name'] = 'Merchant'
+            else:
+                df.at[index,'location_name'] = 'Traveling'
+                
+        location_names = ['Home', 'Work', 'Merchant', 'Traveling']
+        num_locations = len(location_names)
+        slider = widgets.SelectionSlider(
+                    options = list(df['date_time'].unique()),
+                    description = 'Time:',
+                    layout={'width': '500px'},
+                )
+        df2 = df.groupby(['date_time','location_name']).count().reset_index()
+        df2 = df2.pivot(index='date_time', columns='location_name', values='AgentID')
+        df2 = df2.fillna(0)
+        df2.reset_index(inplace=True)
+        @widgets.interact(step=slider)
+        def plot(step):
+            current_df = df[df['date_time'] == step]            
+            fig = plt.figure(figsize=(15, 6))
+            gs = fig.add_gridspec(nrows=4, ncols=2)
+            ax0 = fig.add_subplot(gs[:, 0])
+            for agent in current_df['AgentID'].unique():
+                ax0.scatter(current_df[current_df['AgentID'] == agent]['location_name'], current_df[current_df['AgentID'] == agent]['AgentID'],
+                           color=self.agentID_color[agent],
+                           label=agent,
+                           )
+            ax0.set_xlabel('Location')
+            ax0.set_ylabel('Agent ID')
+            ax0.set_title('Agent Locations')
+            ax0.set_yticks([])
+            ax0.set_yticklabels([])
+            ax0.set_xticks(np.arange(0, num_locations, 1))
+            ax0.set_xticklabels(location_names)
+            
+            ax2 = fig.add_subplot(gs[1, 1])
+            ax2.plot(df2['date_time'], df2['Home'], color='red')
+            ax2.set_xticks([])
+            ax2.axvline(x=step, color='black', linestyle='--')
+            ax2.set_title('Home')
+            
+            ax3 = fig.add_subplot(gs[2, 1])
+            ax3.plot(df2['date_time'], df2['Work'], color='blue')
+            ax3.set_title('Work')
+            ax3.axvline(x=step, color='black', linestyle='--')
+            ax3.set_xticks([])
+            
+            ax4 = fig.add_subplot(gs[3, 1])
+            ax4.plot(df2['date_time'], df2['Merchant'], color='green')
+            ax4.set_title('Merchant')
+            ax4.axvline(x=step, color='black', linestyle='--')
+            ax4.set_xticks([])
+            
+            ax5 = fig.add_subplot(gs[0, 1])
+            ax5.plot(df2['date_time'], df2['Traveling'], color='orange')
+            ax5.set_title('Traveling')
+            ax5.axvline(x=step, color='black', linestyle='--')
+            ax5.set_xticks([])
+            
+            
             plt.show()
