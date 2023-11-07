@@ -15,15 +15,22 @@ import matplotlib.colors as mcolors
 
 
 class Visualization:
-    def __init__(self, model , steps=1008, width=15, height=15):
+    def __init__(self, model ,people_df=None, transaction_df= None, agents_df=None, steps=1008, width=15, height=15):
         self.model = model
         self.STEPS = steps
         self.WIDTH = width
         self.HEIGHT = height
         self.pallet = sns.color_palette("tab10")
-        self.agents = model.get_agents().reset_index()
-        self.transactions = model.get_transactions()
-        self.people = model.get_people()
+        if people_df is None:
+            people_df = model.get_people()
+        self.people = people_df
+        if transaction_df is None:
+            transaction_df = model.get_transactions()
+        self.transactions = transaction_df
+        if agents_df is None:
+            agents_df = model.get_agents().reset_index()
+        self.agents = agents_df
+        
         self.agentID_color = {}
         self.agentID_jitter = {}
         self.agentID_marker = {}
