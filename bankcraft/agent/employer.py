@@ -11,7 +11,7 @@ class Employer(GeneralAgent):
         self.pay_period = random.choice([steps['biweekly']])
         self._num_pays_per_year = steps['year'] // self.pay_period
 
-        self.employees = [] # list of [person, salary, salary_per_pay]
+        self.employees = []
         self._initial_fund = 1000000
         self.bank_accounts = self.assign_bank_account(model, self._initial_fund)
         # These are for use of agent reporter and needs to be handled better in the future
@@ -55,7 +55,6 @@ class Employer(GeneralAgent):
         for i in self.employees:
             person = i['person']
             salary_per_pay = i['salary_per_pay']
-            
             self.pay(salary_per_pay,person , 'cheque', 'salary')
 
 
