@@ -55,7 +55,6 @@ class Employer(GeneralAgent):
         for i in self.employees:
             person = i['person']
             salary_per_pay = i['salary_per_pay']
-            
             self.pay(salary_per_pay,person , 'cheque', 'salary')
 
 
