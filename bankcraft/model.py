@@ -3,6 +3,7 @@ from mesa.time import RandomActivation
 from mesa.datacollection import DataCollector
 from mesa.space import MultiGrid
 import networkx as nx
+import numpy as np
 from bankcraft.agent.merchant import Merchant, Food, Clothes
 from bankcraft.agent.person import Person
 from bankcraft.agent.bank import Bank
@@ -10,6 +11,7 @@ from bankcraft.agent.employer import Employer
 from bankcraft.agent.business import Business
 import datetime
 import pandas as pd
+from bankcraft.config import workplace_radius
 
 
 class Model(Model):
@@ -66,17 +68,29 @@ class Model(Model):
     def _put_people_in_model(self, initial_money):
         for i in range(self._num_people):
             person = Person(self, initial_money)
-            j = i % self._num_employers
-            self.employers[j].add_employee(person)
-            person.employer = self.employers[j]
             person.home = self._place_randomly_on_grid(person)
+            employer = self._assign_employer(person)
+            employer.add_employee(person)
+            person.work = employer.location
             self.schedule.add(person)
             person.social_node = i
 
         for person in self.schedule.agents:
             if isinstance(person, Person):
                 person.set_social_network_weights()
-
+                
+    def _assign_employer(self, person):
+            closest_employer = min(self.employers, key=lambda x: self.get_distance(person.home, x.location))
+            if self.get_distance(person.home, closest_employer.location) > workplace_radius:
+                valid_employers = [employer for employer in self.employers]
+            else:
+                valid_employers = [employer for employer in self.employers
+                                        if self.get_distance(person.home, employer.location) <= workplace_radius]
+            total_distance = sum([self.get_distance(person.home, employer.location) for employer in valid_employers])
+            employer_probabilities = [self.get_distance(person.home, employer.location)/total_distance for employer in valid_employers]
+            employer = self.random.choices(valid_employers, employer_probabilities)[0]
+            return employer
+        
     def _put_food_merchants_in_model(self):
         for _ in range(self._num_merchant):
             merchant = Food(self,  10, 1000)
@@ -108,6 +122,11 @@ class Model(Model):
         for _ in range(no_steps):
             self.step()
         return self
+    
+    def get_distance(self, pos_1, pos_2):
+        x1, y1 = pos_1
+        x2, y2 = pos_2
+        return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
 
     def get_transactions(self):
         return self.datacollector.get_table_dataframe("transactions")
