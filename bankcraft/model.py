@@ -16,10 +16,11 @@ from bankcraft.config import workplace_radius
 
 class Model(Model):
     def __init__(self, num_people=6,  initial_money=1000,
-                 num_employers=2, num_banks=1, width=15, height=15):
+                 num_banks=1, width=15, height=15):
         super().__init__()
         self._num_people = num_people
         self._num_merchant = width * height // 100
+        self._num_employers = 5 * width * height // 100
 
         self._num_banks = num_banks
         self.banks = [Bank(self) for _ in range(self._num_banks)]
@@ -28,7 +29,6 @@ class Model(Model):
         self.invoicer = {b_type: Business(self, b_type) for b_type in business_types}
 
         self.schedule = RandomActivation(self)
-        self._num_employers = num_employers
         self.employers = [Employer(self) for _ in range(self._num_employers)]
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
