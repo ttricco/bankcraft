@@ -122,8 +122,28 @@ class Model(Model):
         self.current_time += self._one_step_time
 
     def run(self, no_steps):
-        for _ in range(no_steps):
+        for i in range(no_steps):
             self.step()
+            if i == 0:
+                self.datacollector.get_agent_vars_dataframe().to_csv("agents.csv")
+                self.datacollector = DataCollector(
+                tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
+                                        "txn_id", "txn_type", "sender_account_type", "description"],
+                        "people": ['Step','AgentID',"date_time", "wealth", "location","account_balance", "motivations"]}
+
+            )
+                
+            if i%1440 == 0:
+                self.get_transactions().to_csv("transactions.csv",mode='a')
+                self.get_people().to_csv("people.csv",mode='a')
+                # clear the datacollector after writing to csv
+                del self.datacollector
+                self.datacollector = DataCollector(
+                tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
+                                        "txn_id", "txn_type", "sender_account_type", "description"],
+                        "people": ['Step','AgentID',"date_time", "wealth", "location","account_balance", "motivations"]}
+
+            )
         return self
     
     def get_distance(self, pos_1, pos_2):
@@ -142,9 +162,9 @@ class Model(Model):
         new_column_names = {i: f'account_{i}' for i in range(len(people["account_balance"]) + 1)}
         people = pd.concat([people.drop(['motivations'], axis=1), people['motivations'].apply(pd.Series)], axis=1)
         #people.drop([0], axis=1, inplace=True)
-        accounts = people["account_balance"].apply(pd.Series)
-        accounts = accounts.rename(columns=new_column_names)
-        people = pd.concat([people.drop(['account_balance'], axis=1),accounts], axis=1)
+        # accounts = people["account_balance"].apply(pd.Series)
+        # accounts = accounts.rename(columns=new_column_names)
+        # people = pd.concat([people.drop(['account_balance'], axis=1),accounts], axis=1)
         return people
 
     def get_all_agents_on_grid(self):
