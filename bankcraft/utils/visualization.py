@@ -22,13 +22,13 @@ class Visualization:
         self.HEIGHT = height
         self.pallet = sns.color_palette("tab10")
         if people_df is None:
-            people_df = model.get_people()
+            people_df = pd.read_csv('people.csv')
         self.people = people_df
         if transaction_df is None:
-            transaction_df = model.get_transactions()
+            transaction_df = pd.read_csv('transactions.csv')
         self.transactions = transaction_df
         if agents_df is None:
-            agents_df = model.get_agents().reset_index()
+            agents_df = pd.read_csv('agents.csv')
         self.agents = agents_df
         
         self.agentID_color = {}
