@@ -93,7 +93,6 @@ class Model(Model):
             if total_distance == 0:
                 return closest_employer
             employer_probabilities = [self.get_distance(person.home, employer.location)/total_distance for employer in valid_employers]
-            print(employer_probabilities)
             employer = self.random.choices(valid_employers, employer_probabilities)[0]
             return employer
         
