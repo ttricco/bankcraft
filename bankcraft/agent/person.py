@@ -176,7 +176,7 @@ class Person(GeneralAgent):
         if self.model.current_time.weekday() < 5 and self.model.current_time.hour == 8:
             self.motivation.update_state_value('WorkState', 100)
             
-        if self.pos == self.home:
+        if self.pos == self.home and self.motivation.state_values()['FatigueState'] > 0:
             if self.model.current_time.hour >= 22 or self.model.current_time.hour <= 6:
                 self.motivation.update_state_value('FatigueState', -fatigue_rate * 6)
             else:
