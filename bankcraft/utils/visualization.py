@@ -192,13 +192,13 @@ class Visualization:
         return fig, ax
     
     def location_over_time(self, agentID):
-        grid_df = self.agents[~self.agents['location'].isnull()]
+        grid_df = self.people[~self.people['location'].isnull()]
+        non_person = self.agents[self.agents['agent_type'] != 'person'][['AgentID','location','date_time']]
         grid_df['x'] = grid_df['location'].apply(lambda x: x[0])
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
-        grid_df['date_time'] = pd.to_datetime(grid_df['date_time'])
-        pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
+        pos = nx.spring_layout(nx.complete_graph(grid_df['AgentID'].unique()))
         slider = widgets.SelectionSlider(
             options = list(grid_df['date_time'].unique()),
             description = 'Time:',
@@ -229,12 +229,7 @@ class Visualization:
                             marker='o',
                             ax=ax, s=100)
             # plt merchandise locations as black diamonds
-            sns.scatterplot(x=grid_df[grid_df['agent_type'] == 'merchant']['x'], y=grid_df[grid_df['agent_type'] == 'merchant']['y'],
-                            data=grid_df[grid_df['agent_type'] == 'merchant'], color='black', marker='D', ax=ax, s=100)
-            
-            # Plot employer locations as black squares
-            sns.scatterplot(x=grid_df[grid_df['agent_type'] == 'employer']['x'], y=grid_df[grid_df['agent_type'] == 'employer']['y'],
-                            data=grid_df[grid_df['agent_type'] == 'employer'], color='black', marker='s', ax=ax, s=100)
+            sns.scatterplot(x=non_person['location'].apply(lambda x: x[0]), y=non_person['location'].apply(lambda x: x[1]), data=non_person,markers=['D','s'], ax=ax, s=100,label='Merchant/Employer')
             
             ax.set_title('Agent Trace')
             ax.set_xlim(0, self.WIDTH)
