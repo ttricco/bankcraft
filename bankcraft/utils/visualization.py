@@ -229,7 +229,7 @@ class Visualization:
                             marker='o',
                             ax=ax, s=100)
             # plt merchandise locations as black diamonds
-            sns.scatterplot(x=non_person['location'].apply(lambda x: x[0]), y=non_person['location'].apply(lambda x: x[1]), data=non_person,markers=['D','s'], ax=ax, s=100,label='Merchant/Employer')
+            sns.scatterplot(x=non_person['location'].apply(lambda x: x[0]), y=non_person['location'].apply(lambda x: x[1]), data=non_person,markers=['D','s'], ax=ax, s=100,label='Merchant/Employer',color='black')
             
             ax.set_title('Agent Trace')
             ax.set_xlim(0, self.WIDTH)
