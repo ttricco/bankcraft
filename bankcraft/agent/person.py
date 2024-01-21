@@ -210,7 +210,6 @@ class Person(GeneralAgent):
             "Step": self.model.schedule.steps,
             "AgentID": self.unique_id,
             "date_time": self.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
-            "wealth": self.update_wealth(),
             "location": self.pos,
             "account_balance": self.get_all_bank_accounts(),
             "motivations": self.motivation.state_values(),

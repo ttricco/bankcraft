@@ -68,3 +68,12 @@ def test_businesses_are_neither_in_scheduler_nor_on_grid():
     businesses_in_scheduler = [agent for agent in model7.schedule.agents if isinstance(agent, Business)]
     businesses_on_grid = [agent for agent in model7.get_all_agents_on_grid() if isinstance(agent, Business)]
     assert len(businesses_in_scheduler) == 0 and len(businesses_on_grid) == 0
+
+
+def test_can_run_model():
+    model = BankCraftModel(num_people=100, num_merchant=10, initial_money=1000,
+                           num_employers=2, num_banks=1, width=50, height=50)
+    current_time = model.current_time
+    model.run(1)
+    assert model.current_time == current_time + model._one_step_time
+
