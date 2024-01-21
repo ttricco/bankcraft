@@ -1,11 +1,11 @@
-from bankcraft.model import Model
+from bankcraft.bankcraftmodel import BankCraftModel
 import pandas as pd
 import time
 
 t1 = time.time()
 
-model = Model(num_people=100,num_merchant=10,initial_money=1000,
-                              num_employers=2,num_banks=1,width=50,height=50)
+model = BankCraftModel(num_people=100, num_merchant=10, initial_money=1000,
+                       num_employers=2, num_banks=1, width=50, height=50)
 # 1 day = 144 steps
 # 1 month = 30 * 144  
 model.run(30 * 144 *12 )

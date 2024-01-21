@@ -6,9 +6,8 @@ class Merchant(GeneralAgent):
                  price,
                  initial_money):
         super().__init__(model)
-        self.wealth = initial_money
         self.price = price
-        self.bank_accounts = self.assign_bank_account(model, self.wealth)
+        self.bank_accounts = self.assign_bank_account(model, initial_money)
         self.type = 'merchant'
         self._location = None
 

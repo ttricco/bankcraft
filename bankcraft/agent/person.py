@@ -1,11 +1,10 @@
 import random
-import pandas as pd
+
 import numpy as np
-from bankcraft.agent.business import Business
+import pandas as pd
+
 from bankcraft.agent.general_agent import GeneralAgent
-from bankcraft.agent.merchant import Merchant, Food, Clothes
-# from bankcraft.motivation import Motivation
-from bankcraft.config import steps
+from bankcraft.agent.merchant import Food, Clothes
 from bankcraft.config import *
 from bankcraft.motivation.motivation import Motivation
 from bankcraft.motivation.motivation_state import NeutralState
@@ -22,7 +21,7 @@ class Person(GeneralAgent):
         self._has_membership = random.randint(0, 1)
         self._membership_amount = self._has_membership * random.randrange(0, 100)
 
-        self.motivation = Motivation(NeutralState,self)
+        self.motivation = Motivation(NeutralState, self)
 
         self.bank_accounts = self.assign_bank_account(model, initial_money)
 
@@ -66,15 +65,13 @@ class Person(GeneralAgent):
     @property
     def friends(self):
         return self._friends
-    
+
     @friends.setter
     def friends(self, value):
         self._friends = value
         # highest value is the best friend
         self._partner = max(value, key=value.get)
-        
-    
-        
+
     def assign_salary_info(self, employer, salary):
         self.salary = salary
         self.employer = employer
@@ -84,14 +81,12 @@ class Person(GeneralAgent):
         self._housing_cost_per_pay = self.housing_cost / (steps['year'] / self._housing_cost_frequency)
         self._set_schedule_txn()
 
-        
-        
-        
     def _set_schedule_txn(self):
         #  include insurance, car lease, loan, tuition (limited time -> keep track of them in a counter)
         #  if the account balance is not enough they must be paid in future including the interest
         txn_list = [['scheduled_expenses', 'Amount', 'pay_date', 'Receiver'],
-                    ['Rent/Mortgage', self._housing_cost_per_pay, self._housing_cost_frequency, self.model.invoicer["rent/mortgage"]],
+                    ['Rent/Mortgage', self._housing_cost_per_pay, self._housing_cost_frequency,
+                     self.model.invoicer["rent/mortgage"]],
                     ['Utilities', np.random.normal(loc=200, scale=50), steps['week'], self.model.invoicer["utilities"]],
                     ['Memberships', self._membership_amount, steps['month'], self.model.invoicer["membership"]],
                     ['Subscriptions', self._subscription_amount, steps['month'], self.model.invoicer["subscription"]],
@@ -123,28 +118,28 @@ class Person(GeneralAgent):
         if self.model.grid.is_cell_empty(self.pos):
             return
         agents = self.model.grid.get_cell_list_contents([self.pos])
-            # if the agent is a merchant
-        price = 0
-        for agent in agents:          
+        # if the agent is a merchant
+
+        for agent in agents:
             if motivation == 'small_meal' and isinstance(agent, Food):
                 price = small_meal_avg_cost * random.uniform(0.5, 1.5)
                 self.pay(price, agent, 'ACH', description='hunger')
-            
+
             elif motivation == 'medium_meal' and isinstance(agent, Food):
                 price = medium_meal_avg_cost * random.uniform(0.5, 1.5)
                 self.pay(price, agent, 'ACH', description='hunger')
-                
+
             elif motivation == 'large_meal' and isinstance(agent, Food):
                 price = large_meal_avg_cost * random.uniform(0.7, 2.5)
                 self.pay(price, agent, 'ACH', description='hunger')
-                
+
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
                 value = self.motivation.state_values()['ConsumerismState']
-                price = value if value > 500 else np.random.beta(a=9, b=2, size=1)[0] * (value)
+                price = value if value > 500 else np.random.beta(a=9, b=2, size=1)[0] * value
                 self.pay(price, agent, 'ACH', motivation)
                 return price
         return 0
-    
+
     def set_social_network_weights(self):
         all_agents = self.model.schedule.agents
         weight = {
@@ -164,54 +159,52 @@ class Person(GeneralAgent):
         self._social_network_weights[other_agent] = min(
             self._social_network_weights[other_agent], 1
         )
-        
+
     def decision_maker(self):
-        '''
+        """
         This can adjust rates of motivation based on time of day, day of week, etc.
         and also decide whether to buy something or not
-        '''
+        """
         if self.target_location != self.pos:
             return
-        
+
         if self.pos == self.home:
             if self.model.current_time.hour >= 22 or self.model.current_time.hour <= 6:
                 self.motivation.update_state_value('FatigueState', -fatigue_rate * 6)
             else:
                 self.motivation.update_state_value('FatigueState', -fatigue_rate * 3)
 
-            
         elif self.pos == self.work:
-            if self.model.current_time.weekday() < 5 and\
+            if self.model.current_time.weekday() < 5 and \
                     (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
                 self.motivation.update_state_value('WorkState', -0.4)
             else:
                 self.motivation.reset_one_motivation('WorkState')
-          
+
         elif self.motivation.present_state() == 'HungerState':
             hunger_value = self.motivation.state_values()['HungerState']
             if hunger_value < 2 * motivation_threshold:
                 meal = random.choices(['small_meal', 'medium_meal', 'large_meal'], weights=[0.5, 0.25, 0.25], k=1)[0]
             else:
-                meal = random.choices(['medium_meal', 'large_meal'], weights=[ 0.5, 0.5], k=1)[0]
-            self.buy(meal)   
+                meal = random.choices(['medium_meal', 'large_meal'], weights=[0.5, 0.5], k=1)[0]
+            self.buy(meal)
             if meal == 'small_meal':
                 value = hunger_value * 0.5
             else:
                 value = hunger_value * random.uniform(0.8, 1)
-                
+
             self.motivation.update_state_value('HungerState', -value)
-            
-            
+
+
         elif self.motivation.present_state() == 'ConsumerismState':
             value = self.buy('consumerism')
             self.motivation.update_state_value('ConsumerismState', -value)
-            
+
         elif self.motivation.present_state() == 'SocialState':
             value = self.motivation.state_values()['SocialState']
             reduction_rate = np.random.beta(a=9, b=2, size=1)[0]
             self.motivation.update_state_value('SocialState', -value * reduction_rate)
-                     
-                     
+
     def update_people_records(self):
         agent_data = {
             "Step": self.model.schedule.steps,
@@ -220,9 +213,10 @@ class Person(GeneralAgent):
             "wealth": self.update_wealth(),
             "location": self.pos,
             "account_balance": self.get_all_bank_accounts(),
-            "motivations": self.motivation.state_values() ,
+            "motivations": self.motivation.state_values(),
         }
-        self.model.datacollector.add_table_row("people", agent_data, ignore_missing=True)        
+        self.model.datacollector.add_table_row("people", agent_data, ignore_missing=True)
+
     def step(self):
         # self.motivation_handler()
         self.move()
