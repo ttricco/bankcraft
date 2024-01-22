@@ -134,7 +134,7 @@ class Person(GeneralAgent):
 
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
                 if self.wealth > 0:
-                    price = self.wealth * random.uniform(0.8,0.95)
+                    price = self.wealth * random.uniform(0.8, 0.95)
                     self.pay(price, agent, 'ACH', motivation)
                     return price
         return 0
@@ -165,7 +165,7 @@ class Person(GeneralAgent):
         and also decide whether to buy something or not
         """
 
-        #check time, one hour to work increase work motivation
+        # check time, one hour to work increase work motivation
         if self.model.current_time.weekday() < 5 and self.model.current_time.hour == 8:
             self.motivation.update_state_value('WorkState', 100)
 
@@ -179,10 +179,9 @@ class Person(GeneralAgent):
             if self.model.current_time.weekday() < 5 and \
                     (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
                 self.motivation.update_state_value('WorkState', -0.4)
-            elif (self.model.current_time.weekday() < 5 and self.model.current_time.hour > 17) or\
-                    (self.model.current_time.weekday() >= 5 ):
+            elif (self.model.current_time.weekday() < 5 and self.model.current_time.hour > 17) or \
+                    (self.model.current_time.weekday() >= 5):
                 self.motivation.reset_one_motivation('WorkState')
-
 
         if self.target_location != self.pos:
             return
@@ -200,11 +199,10 @@ class Person(GeneralAgent):
 
             self.motivation.update_state_value('HungerState', -value)
 
-
         elif self.motivation.present_state() == 'ConsumerismState':
             self.buy('consumerism')
             self.motivation.reset_one_motivation('ConsumerismState')
-            
+
         elif self.motivation.present_state() == 'SocialState':
             value = self.motivation.state_values()['SocialState']
             reduction_rate = np.random.beta(a=9, b=2, size=1)[0]
@@ -224,7 +222,7 @@ class Person(GeneralAgent):
     def step(self):
         self.move()
         self.pay_schedule_txn()
-        #self.unscheduled_txn()
+        # self.unscheduled_txn()
         self.motivation.step()
         self.decision_maker()
         self.update_people_records()

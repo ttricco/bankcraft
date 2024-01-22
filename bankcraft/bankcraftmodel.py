@@ -16,8 +16,8 @@ from bankcraft.agent.person import Person
 from bankcraft.config import workplace_radius
 
 
-class Model(Model):
-    def __init__(self, num_people=6,initial_money=1000,
+class BankCraftModel(Model):
+    def __init__(self, num_people=6, initial_money=1000,
                  num_banks=1, width=15, height=15):
         super().__init__()
         self._num_people = num_people
@@ -83,21 +83,22 @@ class Model(Model):
         for person in self.schedule.agents:
             if isinstance(person, Person):
                 person.set_social_network_weights()
-                
+
     def _assign_employer(self, person):
-            closest_employer = min(self.employers, key=lambda x: self.get_distance(person.home, x.location))
-            if self.get_distance(person.home, closest_employer.location) > workplace_radius:
-                valid_employers = [employer for employer in self.employers]
-            else:
-                valid_employers = [employer for employer in self.employers
-                                        if self.get_distance(person.home, employer.location) <= workplace_radius]
-            total_distance = sum([self.get_distance(person.home, employer.location) for employer in valid_employers])
-            if total_distance == 0:
-                return closest_employer
-            employer_probabilities = [self.get_distance(person.home, employer.location)/total_distance for employer in valid_employers]
-            employer = self.random.choices(valid_employers, employer_probabilities)[0]
-            return employer
-        
+        closest_employer = min(self.employers, key=lambda x: self.get_distance(person.home, x.location))
+        if self.get_distance(person.home, closest_employer.location) > workplace_radius:
+            valid_employers = [employer for employer in self.employers]
+        else:
+            valid_employers = [employer for employer in self.employers
+                               if self.get_distance(person.home, employer.location) <= workplace_radius]
+        total_distance = sum([self.get_distance(person.home, employer.location) for employer in valid_employers])
+        if total_distance == 0:
+            return closest_employer
+        employer_probabilities = [self.get_distance(person.home, employer.location) / total_distance for employer in
+                                  valid_employers]
+        employer = self.random.choices(valid_employers, employer_probabilities)[0]
+        return employer
+
     def _put_food_merchants_in_model(self):
         for _ in range(self._num_merchant):
             merchant = Food(self, 10, 1000)
@@ -133,23 +134,25 @@ class Model(Model):
                 self.get_transactions().to_csv("transactions.csv")
                 self.get_people().to_csv("people.csv")
                 self.datacollector = DataCollector(
-                tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
-                                        "txn_id", "txn_type", "sender_account_type", "description"],
-                        "people": ['Step','AgentID',"date_time", "wealth", "location","account_balance", "motivations"]}
+                    tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
+                                             "txn_id", "txn_type", "sender_account_type", "description"],
+                            "people": ['Step', 'AgentID', "date_time", "wealth", "location", "account_balance",
+                                       "motivations"]}
 
-            )
+                )
 
-            if i%1440 == 0:
-                self.get_transactions().to_csv("transactions.csv",mode='a',header=False)
-                self.get_people().to_csv("people.csv",mode='a',header=False)
+            if i % 1440 == 0:
+                self.get_transactions().to_csv("transactions.csv", mode='a', header=False)
+                self.get_people().to_csv("people.csv", mode='a', header=False)
                 # clear the datacollector after writing to csv
                 del self.datacollector
                 self.datacollector = DataCollector(
-                tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
-                                        "txn_id", "txn_type", "sender_account_type", "description"],
-                        "people": ['Step','AgentID',"date_time", "wealth", "location","account_balance", "motivations"]}
+                    tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
+                                             "txn_id", "txn_type", "sender_account_type", "description"],
+                            "people": ['Step', 'AgentID', "date_time", "wealth", "location", "account_balance",
+                                       "motivations"]}
 
-            )
+                )
         return self
 
     @staticmethod
