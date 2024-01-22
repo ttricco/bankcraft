@@ -171,8 +171,7 @@ class Person(GeneralAgent):
         This can adjust rates of motivation based on time of day, day of week, etc.
         and also decide whether to buy something or not
         '''
-        if self.target_location != self.pos:
-            return
+
         
         if self.pos == self.home:
             if self.model.current_time.hour >= 22 or self.model.current_time.hour <= 6:
@@ -188,6 +187,8 @@ class Person(GeneralAgent):
             else:
                 self.motivation.reset_one_motivation('WorkState')
           
+        if self.target_location != self.pos:
+            return
         elif self.motivation.present_state() == 'HungerState':
             hunger_value = self.motivation.state_values()['HungerState']
             if hunger_value < 2 * motivation_threshold:
