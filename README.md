@@ -2,19 +2,23 @@
 
 An agent-based simulator to generate financial transaction data.
 
+## Motivation
+
+BankCraft is a tool for generating financial transaction data. It is designed to be a flexible, extensible, and easy to use tool.
+
 ## Example
 
 Here is a simple example of how to run BankCraft for now. 
 
 ```
-import bankcraft
+from bankcraft.bankcraftmodel import BankCraftModel
+from bankcraft.utils.visualization import Visualization
 
-model = bankcraft.bankcraftmodel.BankCraftModel()
+model = BankCraftModel()
 
 model.run(365)
-transactions = model.get_transactions()
-agents = model.get_agents()
-vis = bankcraft.utils.visualization.Visualization(model, agents, transactions)
+
+vis = Visualization(model)
 vis.grid_plot()
 ```
 
