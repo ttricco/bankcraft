@@ -172,8 +172,11 @@ class Person(GeneralAgent):
         and also decide whether to buy something or not
         '''
 
-        
-        if self.pos == self.home:
+        #check time, one hour to work increase work motivation 
+        if self.model.current_time.weekday() < 5 and self.model.current_time.hour == 8:
+            self.motivation.update_state_value('WorkState', 100)
+            
+        if self.pos == self.home and self.motivation.state_values()['FatigueState'] > 0:
             if self.model.current_time.hour >= 22 or self.model.current_time.hour <= 6:
                 self.motivation.update_state_value('FatigueState', -fatigue_rate * 6)
             else:
@@ -184,8 +187,10 @@ class Person(GeneralAgent):
             if self.model.current_time.weekday() < 5 and\
                     (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
                 self.motivation.update_state_value('WorkState', -0.4)
-            else:
+            elif (self.model.current_time.weekday() < 5 and self.model.current_time.hour > 17) or\
+                    (self.model.current_time.weekday() >= 5 ):
                 self.motivation.reset_one_motivation('WorkState')
+
           
         if self.target_location != self.pos:
             return
