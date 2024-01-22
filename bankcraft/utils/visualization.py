@@ -24,13 +24,15 @@ class Visualization:
         if people_df is None:
             people_df = pd.read_csv('people.csv')
         self.people = people_df
+        self.people['location'] = self.people['location'].apply(lambda x: eval(x))
         if transaction_df is None:
             transaction_df = pd.read_csv('transactions.csv')
         self.transactions = transaction_df
         if agents_df is None:
             agents_df = pd.read_csv('agents.csv')
         self.agents = agents_df
-        
+        self.agents['location'] = self.agents['location'].apply(lambda x: eval(x))
+        self.agents
         self.agentID_color = {}
         self.agentID_jitter = {}
         self.agentID_marker = {}
@@ -65,12 +67,13 @@ class Visualization:
         return fig, ax
         
     def grid_plot(self):
-        grid_df = self.agents[~self.agents['location'].isnull()]
+        grid_df = self.people[~self.people['location'].isnull()]
+        non_person = self.agents[self.agents['agent_type'] != 'person'][['AgentID','location','date_time']]
         grid_df['x'] = grid_df['location'].apply(lambda x: x[0])
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
-        pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
+        pos = nx.spring_layout(nx.complete_graph(grid_df['AgentID'].unique()))
         slider = widgets.SelectionSlider(
             options = list(grid_df['date_time'].unique()),
             description = 'Time:',
@@ -81,16 +84,16 @@ class Visualization:
         def grid_plot(slider):
             fig, ax = plt.subplots(1, 2, figsize=(15, 6))
             # extract the agents at the current step
+            sns.scatterplot(x=non_person['location'].apply(lambda x: x[0]), y=non_person['location'].apply(lambda x: x[1]), data=non_person,markers=['D','s'], ax=ax[0], s=100,label='Merchant/Employer')
             df = grid_df[grid_df['date_time'] == slider]
             for agent in df['AgentID'].unique():
-                label = df[df['AgentID'] == agent]['agent_type'].values[0]
                 x = df[df['AgentID']==agent]['x']
                 y = df[df['AgentID']==agent]['y']
 
                 sns.scatterplot(x=x+self.agentID_jitter[agent], y=y+self.agentID_jitter[agent], data=df[df['AgentID'] == agent],
                                 color=self.agentID_color[agent], 
                                 marker=self.agentID_marker[agent],
-                                ax=ax[0], s=100, label = label)
+                                ax=ax[0], s=100, label = 'Person')
                 ax[0].set_title('Agent Movements in the Grid')
 
             ax[0].set_xlim(0, self.WIDTH)
@@ -189,13 +192,13 @@ class Visualization:
         return fig, ax
     
     def location_over_time(self, agentID):
-        grid_df = self.agents[~self.agents['location'].isnull()]
+        grid_df = self.people[~self.people['location'].isnull()]
+        non_person = self.agents[self.agents['agent_type'] != 'person'][['AgentID','location','date_time']]
         grid_df['x'] = grid_df['location'].apply(lambda x: x[0])
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
-        grid_df['date_time'] = pd.to_datetime(grid_df['date_time'])
-        pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
+        pos = nx.spring_layout(nx.complete_graph(grid_df['AgentID'].unique()))
         slider = widgets.SelectionSlider(
             options = list(grid_df['date_time'].unique()),
             description = 'Time:',
@@ -226,12 +229,7 @@ class Visualization:
                             marker='o',
                             ax=ax, s=100)
             # plt merchandise locations as black diamonds
-            sns.scatterplot(x=grid_df[grid_df['agent_type'] == 'merchant']['x'], y=grid_df[grid_df['agent_type'] == 'merchant']['y'],
-                            data=grid_df[grid_df['agent_type'] == 'merchant'], color='black', marker='D', ax=ax, s=100)
-            
-            # Plot employer locations as black squares
-            sns.scatterplot(x=grid_df[grid_df['agent_type'] == 'employer']['x'], y=grid_df[grid_df['agent_type'] == 'employer']['y'],
-                            data=grid_df[grid_df['agent_type'] == 'employer'], color='black', marker='s', ax=ax, s=100)
+            sns.scatterplot(x=non_person['location'].apply(lambda x: x[0]), y=non_person['location'].apply(lambda x: x[1]), data=non_person,markers=['D','s'], ax=ax, s=100,label='Merchant/Employer',color='black')
             
             ax.set_title('Agent Trace')
             ax.set_xlim(0, self.WIDTH)
