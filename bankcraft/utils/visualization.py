@@ -12,15 +12,24 @@ import matplotlib.colors as mcolors
 
 
 class Visualization:
-    def __init__(self, model, steps=1008, width=15, height=15):
+    def __init__(self, model,people_df=None, transaction_df= None, agents_df=None, steps=1008, width=15, height=15):
         self.model = model
         self.STEPS = steps
         self.WIDTH = width
         self.HEIGHT = height
         self.pallet = sns.color_palette("tab10")
-        self.agents = model.get_agents().reset_index()
-        self.transactions = model.get_transactions()
-        self.people = model.get_people()
+        if people_df is None:
+            people_df = pd.read_csv('people.csv')
+        self.people = people_df
+        self.people['location'] = self.people['location'].apply(lambda x: eval(x))
+        if transaction_df is None:
+            transaction_df = pd.read_csv('transactions.csv')
+        self.transactions = transaction_df
+        if agents_df is None:
+            agents_df = pd.read_csv('agents.csv')
+        self.agents = agents_df
+        self.agents['location'] = self.agents['location'].apply(lambda x: eval(x))
+        self.agents
         self.agentID_color = {}
         self.agentID_jitter = {}
         self.agentID_marker = {}
@@ -55,12 +64,13 @@ class Visualization:
         return fig, ax
 
     def grid_plot(self):
-        grid_df = self.agents[~self.agents['location'].isnull()]
+        grid_df = self.people[~self.people['location'].isnull()]
+        non_person = self.agents[self.agents['agent_type'] != 'person'][['AgentID','location','date_time']]
         grid_df['x'] = grid_df['location'].apply(lambda x: x[0])
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
-        pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
+        pos = nx.spring_layout(nx.complete_graph(grid_df['AgentID'].unique()))
         slider = widgets.SelectionSlider(
             options=list(grid_df['date_time'].unique()),
             description='Time:',
@@ -71,9 +81,9 @@ class Visualization:
         def grid_plot(slider):
             fig, ax = plt.subplots(1, 2, figsize=(15, 6))
             # extract the agents at the current step
+            sns.scatterplot(x=non_person['location'].apply(lambda x: x[0]), y=non_person['location'].apply(lambda x: x[1]), data=non_person,markers=['D','s'], ax=ax[0], s=100,label='Merchant/Employer')
             df = grid_df[grid_df['date_time'] == slider]
             for agent in df['AgentID'].unique():
-                label = df[df['AgentID'] == agent]['agent_type'].values[0]
                 x = df[df['AgentID'] == agent]['x']
                 y = df[df['AgentID'] == agent]['y']
 
@@ -81,7 +91,7 @@ class Visualization:
                                 data=df[df['AgentID'] == agent],
                                 color=self.agentID_color[agent],
                                 marker=self.agentID_marker[agent],
-                                ax=ax[0], s=100, label=label)
+                                ax=ax[0], s=100, label='Person')
                 ax[0].set_title('Agent Movements in the Grid')
 
             ax[0].set_xlim(0, self.WIDTH)
@@ -181,13 +191,13 @@ class Visualization:
         return fig, ax
 
     def location_over_time(self, agentID):
-        grid_df = self.agents[~self.agents['location'].isnull()]
+        grid_df = self.people[~self.people['location'].isnull()]
+        non_person = self.agents[self.agents['agent_type'] != 'person'][['AgentID','location','date_time']]
         grid_df['x'] = grid_df['location'].apply(lambda x: x[0])
         grid_df['y'] = grid_df['location'].apply(lambda x: x[1])
         grid_df['x'] = grid_df['x'].astype(int)
         grid_df['y'] = grid_df['y'].astype(int)
-        grid_df['date_time'] = pd.to_datetime(grid_df['date_time'])
-        pos = nx.spring_layout(nx.complete_graph(grid_df[grid_df['agent_type'] == 'person']['AgentID'].unique()))
+        pos = nx.spring_layout(nx.complete_graph(grid_df['AgentID'].unique()))
         slider = widgets.SelectionSlider(
             options=list(grid_df['date_time'].unique()),
             description='Time:',
@@ -218,15 +228,7 @@ class Visualization:
                             marker='o',
                             ax=ax, s=100)
             # plt merchandise locations as black diamonds
-            sns.scatterplot(x=grid_df[grid_df['agent_type'] == 'merchant']['x'],
-                            y=grid_df[grid_df['agent_type'] == 'merchant']['y'],
-                            data=grid_df[grid_df['agent_type'] == 'merchant'], color='black', marker='D', ax=ax, s=100)
-
-            # Plot employer locations as black squares
-            sns.scatterplot(x=grid_df[grid_df['agent_type'] == 'employer']['x'],
-                            y=grid_df[grid_df['agent_type'] == 'employer']['y'],
-                            data=grid_df[grid_df['agent_type'] == 'employer'], color='black', marker='s', ax=ax, s=100)
-
+            sns.scatterplot(x=non_person['location'].apply(lambda x: x[0]), y=non_person['location'].apply(lambda x: x[1]), data=non_person,markers=['D','s'], ax=ax, s=100,label='Merchant/Employer',color='black')
             ax.set_title('Agent Trace')
             ax.set_xlim(0, self.WIDTH)
             ax.set_ylim(0, self.HEIGHT)
@@ -297,7 +299,6 @@ class Visualization:
         ax[1].set_title('Expenses Breakdown by Percentage of Salary')
 
         return fig, ax
-
     def transaction_plot(self):
         df = self.transactions.copy()
         df['date_time'] = pd.to_datetime(df['date_time'])
@@ -345,5 +346,82 @@ class Visualization:
 
             # Anchor the legend outside the plot
             ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
+
+            plt.show()
+
+    def movements_plot(self):
+        df = self.people.copy().reset_index()
+        df = df[['date_time','AgentID','location']]
+        agents = self.agents[(self.agents['Step'] == 1)]
+        info = agents[['AgentID','agent_home','agent_work','agent_type']]
+        locations = ['Home','Work','Traveling','Merchant']
+        merchant_locations = info[info['agent_type'] == 'merchant'].agent_home.unique()
+        # in df replace location with the name of the location in info
+        df = pd.merge(df, info, on='AgentID')
+        # for each row in df2, if location is the same as agent_home, replace location_name with 'Home'
+        for index, row in df.iterrows():
+            if row['location'] == row['agent_home']:
+                df.at[index,'location_name'] = 'Home'
+            elif row['location'] == row['agent_work']:
+                df.at[index,'location_name'] = 'Work'
+            elif row['location'] == merchant_locations[0] or row['location'] == merchant_locations[1] or row['location'] == merchant_locations[2]:
+                df.at[index,'location_name'] = 'Merchant'
+            else:
+                df.at[index,'location_name'] = 'Traveling'
+
+        location_names = ['Home', 'Work', 'Merchant', 'Traveling']
+        num_locations = len(location_names)
+        slider = widgets.SelectionSlider(
+                    options = list(df['date_time'].unique()),
+                    description = 'Time:',
+                    layout={'width': '500px'},
+                )
+        df2 = df.groupby(['date_time','location_name']).count().reset_index()
+        df2 = df2.pivot(index='date_time', columns='location_name', values='AgentID')
+        df2 = df2.fillna(0)
+        df2.reset_index(inplace=True)
+        @widgets.interact(step=slider)
+        def plot(step):
+            current_df = df[df['date_time'] == step]
+            fig = plt.figure(figsize=(15, 6))
+            gs = fig.add_gridspec(nrows=4, ncols=2)
+            ax0 = fig.add_subplot(gs[:, 0])
+            for agent in current_df['AgentID'].unique():
+                ax0.scatter(current_df[current_df['AgentID'] == agent]['location_name'], current_df[current_df['AgentID'] == agent]['AgentID'],
+                           color=self.agentID_color[agent],
+                           label=agent,
+                           )
+            ax0.set_xlabel('Location')
+            ax0.set_ylabel('Agent ID')
+            ax0.set_title('Agent Locations')
+            ax0.set_yticks([])
+            ax0.set_yticklabels([])
+            ax0.set_xticks(np.arange(0, num_locations, 1))
+            ax0.set_xticklabels(location_names)
+
+            ax2 = fig.add_subplot(gs[1, 1])
+            ax2.plot(df2['date_time'], df2['Home'], color='red')
+            ax2.set_xticks([])
+            ax2.axvline(x=step, color='black', linestyle='--')
+            ax2.set_title('Home')
+
+            ax3 = fig.add_subplot(gs[2, 1])
+            ax3.plot(df2['date_time'], df2['Work'], color='blue')
+            ax3.set_title('Work')
+            ax3.axvline(x=step, color='black', linestyle='--')
+            ax3.set_xticks([])
+
+            ax4 = fig.add_subplot(gs[3, 1])
+            ax4.plot(df2['date_time'], df2['Merchant'], color='green')
+            ax4.set_title('Merchant')
+            ax4.axvline(x=step, color='black', linestyle='--')
+            ax4.set_xticks([])
+
+            ax5 = fig.add_subplot(gs[0, 1])
+            ax5.plot(df2['date_time'], df2['Traveling'], color='orange')
+            ax5.set_title('Traveling')
+            ax5.axvline(x=step, color='black', linestyle='--')
+            ax5.set_xticks([])
+
 
             plt.show()

@@ -16,12 +16,14 @@ from bankcraft.agent.person import Person
 from bankcraft.config import workplace_radius
 
 
-class BankCraftModel(Model):
-    def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
-                 num_employers=2, num_banks=1, width=15, height=15):
+class Model(Model):
+    def __init__(self, num_people=6,initial_money=1000,
+                 num_banks=1, width=15, height=15):
         super().__init__()
         self._num_people = num_people
-        self._num_merchant = num_merchant
+        self._num_merchant = width * height // 100
+        self._num_employers = 5 * width * height // 100
+
         self._num_banks = num_banks
         self.banks = [Bank(self) for _ in range(self._num_banks)]
 
@@ -29,7 +31,6 @@ class BankCraftModel(Model):
         self.invoicer = {b_type: Business(self, b_type) for b_type in business_types}
 
         self.schedule = RandomActivation(self)
-        self._num_employers = num_employers
         self.employers = [Employer(self) for _ in range(self._num_employers)]
         # adding a complete graph with equal weights
         self.social_grid = nx.complete_graph(self._num_people)
@@ -49,6 +50,8 @@ class BankCraftModel(Model):
             agent_reporters={'date_time': lambda a: a.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
                              'location': lambda a: a.pos,
                              'agent_type': lambda a: a.type,
+                             'agent_home': lambda a: a.home if isinstance(a, Person) else a.location,
+                             'agent_work': lambda a: a.work if isinstance(a, Person) else a.location,
                              },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"],
@@ -80,20 +83,21 @@ class BankCraftModel(Model):
         for person in self.schedule.agents:
             if isinstance(person, Person):
                 person.set_social_network_weights()
-
+                
     def _assign_employer(self, person):
-        closest_employer = min(self.employers, key=lambda x: self.get_distance(person.home, x.location))
-        if self.get_distance(person.home, closest_employer.location) > workplace_radius:
-            valid_employers = [employer for employer in self.employers]
-        else:
-            valid_employers = [employer for employer in self.employers
-                               if self.get_distance(person.home, employer.location) <= workplace_radius]
-        total_distance = sum([self.get_distance(person.home, employer.location) for employer in valid_employers])
-        employer_probabilities = [self.get_distance(person.home, employer.location) / total_distance for employer in
-                                  valid_employers]
-        employer = self.random.choices(valid_employers, employer_probabilities)[0]
-        return employer
-
+            closest_employer = min(self.employers, key=lambda x: self.get_distance(person.home, x.location))
+            if self.get_distance(person.home, closest_employer.location) > workplace_radius:
+                valid_employers = [employer for employer in self.employers]
+            else:
+                valid_employers = [employer for employer in self.employers
+                                        if self.get_distance(person.home, employer.location) <= workplace_radius]
+            total_distance = sum([self.get_distance(person.home, employer.location) for employer in valid_employers])
+            if total_distance == 0:
+                return closest_employer
+            employer_probabilities = [self.get_distance(person.home, employer.location)/total_distance for employer in valid_employers]
+            employer = self.random.choices(valid_employers, employer_probabilities)[0]
+            return employer
+        
     def _put_food_merchants_in_model(self):
         for _ in range(self._num_merchant):
             merchant = Food(self, 10, 1000)
@@ -122,8 +126,30 @@ class BankCraftModel(Model):
         self.current_time += self._one_step_time
 
     def run(self, no_steps):
-        for _ in range(no_steps):
+        for i in range(no_steps):
             self.step()
+            if i == 0:
+                self.datacollector.get_agent_vars_dataframe().to_csv("agents.csv")
+                self.get_transactions().to_csv("transactions.csv")
+                self.get_people().to_csv("people.csv")
+                self.datacollector = DataCollector(
+                tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
+                                        "txn_id", "txn_type", "sender_account_type", "description"],
+                        "people": ['Step','AgentID',"date_time", "wealth", "location","account_balance", "motivations"]}
+
+            )
+
+            if i%1440 == 0:
+                self.get_transactions().to_csv("transactions.csv",mode='a',header=False)
+                self.get_people().to_csv("people.csv",mode='a',header=False)
+                # clear the datacollector after writing to csv
+                del self.datacollector
+                self.datacollector = DataCollector(
+                tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
+                                        "txn_id", "txn_type", "sender_account_type", "description"],
+                        "people": ['Step','AgentID',"date_time", "wealth", "location","account_balance", "motivations"]}
+
+            )
         return self
 
     @staticmethod
@@ -142,10 +168,11 @@ class BankCraftModel(Model):
         people = self.datacollector.get_table_dataframe("people")
         new_column_names = {i: f'account_{i}' for i in range(len(people["account_balance"]) + 1)}
         people = pd.concat([people.drop(['motivations'], axis=1), people['motivations'].apply(pd.Series)], axis=1)
-        # people.drop([0], axis=1, inplace=True)
-        accounts = people["account_balance"].apply(pd.Series)
-        accounts = accounts.rename(columns=new_column_names)
-        people = pd.concat([people.drop(['account_balance'], axis=1), accounts], axis=1)
+
+        if 'account_balance' in people.columns and not people['account_balance'].empty:
+            accounts = people["account_balance"].apply(pd.Series)
+            accounts.columns = [new_column_names.get(col, col) for col in accounts.columns]
+            people = pd.concat([people.drop(['account_balance'], axis=1), accounts], axis=1)
         return people
 
     def get_all_agents_on_grid(self):

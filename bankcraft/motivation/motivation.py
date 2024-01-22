@@ -72,3 +72,5 @@ class Motivation:
         if self.critical_motivation is not None:
             self.set_state(self.critical_motivation)  # Set the critical motivation state
             self.critical_motivation.set_motion()
+        else:
+            self.set_state(NeutralState)

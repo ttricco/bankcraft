@@ -61,5 +61,5 @@ class WorkState(MotivationState):
 class NeutralState(MotivationState):
 
     def set_motion(self) -> None:
-        # print('no motion in Neutral state')
+        print('no motion in Neutral state')
         return

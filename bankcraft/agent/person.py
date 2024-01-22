@@ -100,16 +100,17 @@ class Person(GeneralAgent):
                 self.pay(receiver=row['Receiver'], amount=row['Amount'], txn_type='online',
                          description=row['scheduled_expenses'])
 
-    # def unscheduled_txn(self):
-    #     if random.random() < 0.1:
-    #         weight = self._social_network_weights
-    #         recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
-    #         self.adjust_social_network(recipient)
-    #         if random.random() >= self.spending_prob:
-    #             self.pay(amount=self.spending_amount,
-    #                      receiver=recipient,
-    #                      txn_type='ACH',
-    #                      description='social')
+    def unscheduled_txn(self):
+        if random.random() < 0.1:
+            weight = self._social_network_weights
+            recipient = random.choices(list(weight.keys()), weights=list(weight.values()), k=1)[0]
+            self.adjust_social_network(recipient)
+            amount = random.randrange(0, 100)
+            if random.random() >= self.spending_prob:
+                self.pay(amount=amount,
+                         receiver=recipient,
+                         txn_type='online',
+                         description='social')
 
     def buy(self, motivation):
         # if there is a merchant agent in this location
@@ -132,10 +133,10 @@ class Person(GeneralAgent):
                 self.pay(agent, price, 'ACH', description='hunger')
 
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
-                value = self.motivation.state_values()['ConsumerismState']
-                price = value if value > 500 else np.random.beta(a=9, b=2, size=1)[0] * value
-                self.pay(agent, price, 'ACH', motivation)
-                return price
+                if self.wealth > 0:
+                    price = self.wealth * random.uniform(0.8,0.95)
+                    self.pay(price, agent, 'ACH', motivation)
+                    return price
         return 0
 
     def set_social_network_weights(self):
@@ -163,10 +164,12 @@ class Person(GeneralAgent):
         This can adjust rates of motivation based on time of day, day of week, etc.
         and also decide whether to buy something or not
         """
-        if self.target_location != self.pos:
-            return
 
-        if self.pos == self.home:
+        #check time, one hour to work increase work motivation
+        if self.model.current_time.weekday() < 5 and self.model.current_time.hour == 8:
+            self.motivation.update_state_value('WorkState', 100)
+
+        if self.pos == self.home and self.motivation.state_values()['FatigueState'] > 0:
             if self.model.current_time.hour >= 22 or self.model.current_time.hour <= 6:
                 self.motivation.update_state_value('FatigueState', -fatigue_rate * 6)
             else:
@@ -176,9 +179,13 @@ class Person(GeneralAgent):
             if self.model.current_time.weekday() < 5 and \
                     (9 <= self.model.current_time.hour <= 11 or 13 <= self.model.current_time.hour <= 16):
                 self.motivation.update_state_value('WorkState', -0.4)
-            else:
+            elif (self.model.current_time.weekday() < 5 and self.model.current_time.hour > 17) or\
+                    (self.model.current_time.weekday() >= 5 ):
                 self.motivation.reset_one_motivation('WorkState')
 
+
+        if self.target_location != self.pos:
+            return
         elif self.motivation.present_state() == 'HungerState':
             hunger_value = self.motivation.state_values()['HungerState']
             if hunger_value < 2 * motivation_threshold:
@@ -195,9 +202,9 @@ class Person(GeneralAgent):
 
 
         elif self.motivation.present_state() == 'ConsumerismState':
-            value = self.buy('consumerism')
-            self.motivation.update_state_value('ConsumerismState', -value)
-
+            self.buy('consumerism')
+            self.motivation.reset_one_motivation('ConsumerismState')
+            
         elif self.motivation.present_state() == 'SocialState':
             value = self.motivation.state_values()['SocialState']
             reduction_rate = np.random.beta(a=9, b=2, size=1)[0]
@@ -215,10 +222,9 @@ class Person(GeneralAgent):
         self.model.datacollector.add_table_row("people", agent_data, ignore_missing=True)
 
     def step(self):
-        # self.motivation_handler()
         self.move()
         self.pay_schedule_txn()
-        # self.unscheduled_txn()
+        #self.unscheduled_txn()
         self.motivation.step()
         self.decision_maker()
         self.update_people_records()
