@@ -97,9 +97,7 @@ class Person(GeneralAgent):
     def pay_schedule_txn(self):
         for index, row in self.schedule_txn.iterrows():
             if self.model.schedule.steps % row['pay_date'] == 0:
-                self.pay(amount=row['Amount'],
-                         receiver=row['Receiver'],
-                         txn_type='online',
+                self.pay(receiver=row['Receiver'], amount=row['Amount'], txn_type='online',
                          description=row['scheduled_expenses'])
 
     # def unscheduled_txn(self):
@@ -123,20 +121,20 @@ class Person(GeneralAgent):
         for agent in agents:
             if motivation == 'small_meal' and isinstance(agent, Food):
                 price = small_meal_avg_cost * random.uniform(0.5, 1.5)
-                self.pay(price, agent, 'ACH', description='hunger')
+                self.pay(agent, price, 'ACH', description='hunger')
 
             elif motivation == 'medium_meal' and isinstance(agent, Food):
                 price = medium_meal_avg_cost * random.uniform(0.5, 1.5)
-                self.pay(price, agent, 'ACH', description='hunger')
+                self.pay(agent, price, 'ACH', description='hunger')
 
             elif motivation == 'large_meal' and isinstance(agent, Food):
                 price = large_meal_avg_cost * random.uniform(0.7, 2.5)
-                self.pay(price, agent, 'ACH', description='hunger')
+                self.pay(agent, price, 'ACH', description='hunger')
 
             elif motivation == 'consumerism' and isinstance(agent, Clothes):
                 value = self.motivation.state_values()['ConsumerismState']
                 price = value if value > 500 else np.random.beta(a=9, b=2, size=1)[0] * value
-                self.pay(price, agent, 'ACH', motivation)
+                self.pay(agent, price, 'ACH', motivation)
                 return price
         return 0
 

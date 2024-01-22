@@ -1,14 +1,13 @@
+import datetime
+
 import pandas as pd
 import pytest
+from mesa.datacollection import DataCollector
+from mesa.time import RandomActivation
 
+from bankcraft.agent.bank import Bank
 from bankcraft.agent.general_agent import GeneralAgent
 from bankcraft.bankcraftmodel import BankCraftModel
-from bankcraft.agent.bank import Bank
-from bankcraft.agent.business import Business
-
-from mesa.time import RandomActivation
-from mesa.datacollection import DataCollector
-import datetime
 
 account_initial_balance = 1500
 num_banks = 1
@@ -52,31 +51,26 @@ def test_bank_account_is_not_none_after_assigning(agent, model):
     assert agent.bank_accounts is not None
 
 
-def test_update_wealth_is_needed_after_assigning_bank_account(agent, model):
+def test_wealth_updates_after_assigning_bank_account(agent, model):
     agent_default_wealth = agent.wealth
     agent.bank_accounts = agent.assign_bank_account(model, account_initial_balance)
-    agent_wealth_before_update = agent.wealth
-    agent.update_wealth()
-    assert (agent_default_wealth == 0 and agent_wealth_before_update == agent_default_wealth and
-            agent.wealth == num_banks*account_initial_balance)
+    assert (agent_default_wealth == 0 and agent.wealth == num_banks*account_initial_balance)
 
 
 def test_pay_changes_wealth(agent, other_agent, banks):
     agent.bank_accounts = agent.assign_bank_account(BankCraftModel, account_initial_balance)
     other_agent.bank_accounts = other_agent.assign_bank_account(BankCraftModel, account_initial_balance)
-    agent.pay(txn_amount, other_agent, "cash", "gift")
+    agent.pay(other_agent, txn_amount, "cash", "gift")
     assert (agent.wealth == num_banks * account_initial_balance - txn_amount and
             other_agent.wealth == num_banks * account_initial_balance + txn_amount)
 
 
 def test_undefined_tnx_type_does_not_change_wealth(agent, other_agent, banks):
     agent.bank_accounts = agent.assign_bank_account(BankCraftModel, account_initial_balance)
-    agent.update_wealth()
     agents_initial_wealth = agent.wealth
     other_agent.bank_accounts = other_agent.assign_bank_account(BankCraftModel, account_initial_balance)
-    other_agent.update_wealth()
     other_agent_initial_wealth = other_agent.wealth
-    agent.pay(txn_amount, other_agent, "e-transfer", "gift")
+    agent.pay(other_agent, txn_amount, "e-transfer", "gift")
     assert agents_initial_wealth == agent.wealth and other_agent_initial_wealth == other_agent.wealth
 
 

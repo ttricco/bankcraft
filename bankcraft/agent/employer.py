@@ -43,14 +43,21 @@ class Employer(GeneralAgent):
         self.employees.append({'person': person, 'salary': salary, 'salary_per_pay': salary_per_pay})
         person.assign_salary_info(self, salary)
 
+    def find_employee(self, person):
+        for employee in self.employees:
+            if employee['person'] == person:
+                return employee
+        return None
+
     def remove_employee(self, person):
-        self.employees.remove(person)
+        employee = self.find_employee(person)
+        self.employees.remove(employee)
 
     def pay_salary(self):
-        for i in self.employees:
-            person = i['person']
-            salary_per_pay = i['salary_per_pay']
-            self.pay(salary_per_pay, person, 'cheque', 'salary')
+        for employee in self.employees:
+            person = employee['person']
+            salary_per_pay = employee['salary_per_pay']
+            self.pay(person, salary_per_pay, 'cheque', 'salary')
 
     def assign_salary(self, person):
         salary_group = random.randint(0, 4)

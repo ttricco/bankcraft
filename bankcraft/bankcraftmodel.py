@@ -126,7 +126,8 @@ class BankCraftModel(Model):
             self.step()
         return self
 
-    def get_distance(self, pos_1, pos_2):
+    @staticmethod
+    def get_distance(pos_1, pos_2):
         x1, y1 = pos_1
         x2, y2 = pos_2
         return np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)

@@ -4,7 +4,6 @@ from bankcraft.motivation.motivation_state import *
 from bankcraft.config import hunger_rate, fatigue_rate, consumerism_rate, social_rate, work_rate, motivation_threshold
 
 
-
 class Motivation:
 
     def __init__(self, state, agent) -> None:

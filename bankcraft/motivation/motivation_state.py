@@ -24,16 +24,10 @@ class MotivationState(ABC):
         self.__value += amount
 
 
-########################################
-
-
 class HungerState(MotivationState):
 
     def set_motion(self) -> None:
         self.motivation.agent.target_location = self.motivation.agent.get_nearest(Food).pos
-
-
-#################################################
 
 
 class FatigueState(MotivationState):
@@ -43,16 +37,10 @@ class FatigueState(MotivationState):
         # self.update_value(-fatigue_rate)
 
 
-####################################################
-
-
 class ConsumerismState(MotivationState):
 
     def set_motion(self) -> None:
         self.motivation.agent.target_location = self.motivation.agent.get_nearest(Clothes).pos
-
-
-##################################################
 
 
 class SocialState(MotivationState):
@@ -64,16 +52,10 @@ class SocialState(MotivationState):
         self.motivation.agent.target_location = friend.pos
 
 
-###################################################
-
-
 class WorkState(MotivationState):
 
     def set_motion(self) -> None:
         self.motivation.agent.target_location = self.motivation.agent.work
-
-
-###################################################
 
 
 class NeutralState(MotivationState):

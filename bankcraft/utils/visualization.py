@@ -146,11 +146,11 @@ class Visualization:
         ax.set_xlabel('Receiver')
         return fig, ax
 
-    def motivation_plot(self, agentID):
-        df = self.people[self.people['AgentID'] == agentID]
+    def motivation_plot(self, agent_id):
+        df = self.people[self.people['AgentID'] == agent_id]
         df['date_time'] = pd.to_datetime(df['date_time'])
         df = df.set_index('date_time')
-        color = self.agentID_color[agentID]
+        color = self.agentID_color[agent_id]
         fig, ax = plt.subplots(figsize=(15, 6))
         ax.plot(df['ConsumerismState'], color='orange')
         ax.plot(df['HungerState'], color='red')
@@ -163,7 +163,7 @@ class Visualization:
         xticks = ax.get_xticks()
         ax.vlines(xticks, 0, 20, linestyles='dashed', colors='grey')
         ax.locator_params(axis='x', nbins=10)
-        ax.set_title(f"Motivation over time for agent {agentID}")
+        ax.set_title(f"Motivation over time for agent {agent_id}")
         ax.set_ylabel("Motivation")
         ax.set_xlabel("date")
         ax.legend(['consumerism level', 'hunger level', 'fatigue level', 'social level', 'work level'],
@@ -253,14 +253,6 @@ class Visualization:
         plt.show()
         return fig, ax
 
-    # def income_outcome_bar_plot(self, agentID):
-    #     income = self.transactions[(self.transactions['description'] == 'salary') & (self.transactions['receiver'] == agentID)]
-    #     outcome = self.transactions[(self.transactions['description'] != 'salary') & ( self.transactions['sender'] == agentID)].groupby(['description']).sum().reset_index()
-    #     outcome['amount'] = -outcome['amount']
-    #     df = pd.concat([income, outcome])
-
-    #     return fig, ax
-
     def expenses_breakdown_plot(self, agentID):
         df = self.transactions[(self.transactions['sender'] == agentID) | (self.transactions['receiver'] == agentID)]
         df = df.groupby('description').sum().reset_index()
@@ -295,7 +287,7 @@ class Visualization:
 
         ax[1].pie(df['percentage'], startangle=90, colors=[colors[x] for x in df['description']], autopct='%1.1f%%',
                   labels=df['description'])
-        # show othrs with their percentage
+        # show others with their percentage
         for i in range(len(others)):
             ax[1].text(1.5, 0.5 + i * 0.1,
                        f"{others.iloc[i]['description']} ({round(others.iloc[i]['percentage'] * 100, 2)}%)",
@@ -351,7 +343,7 @@ class Visualization:
             ax.set_ylabel(y_label)
             ax.set_title(title)
 
-            # Anchor the legend outside of the plot
+            # Anchor the legend outside the plot
             ax.legend(loc='upper left', bbox_to_anchor=(1, 1))
 
             plt.show()

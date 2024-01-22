@@ -27,7 +27,7 @@ class GeneralAgent(Agent):
                 bank_accounts[bank_counter][account_counter] = BankAccount(self, bank, initial_balance, account_type)
         return bank_accounts
 
-    def pay(self, amount, receiver, txn_type, description):
+    def pay(self, receiver, amount, txn_type, description):
         transaction = Transaction(self,
                                   receiver,
                                   amount,
@@ -99,6 +99,8 @@ class GeneralAgent(Agent):
     @property
     def wealth(self):
         _wealth = 0
+        if self.bank_accounts is None:
+            return _wealth
         for bank_account in itertools.chain(*self.bank_accounts):
             _wealth += bank_account.balance
         return _wealth

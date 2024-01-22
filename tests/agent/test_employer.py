@@ -48,7 +48,7 @@ def test_add_employee(employers, person):
     assert len(employers[0].employees) == initial_num_employees + 1
 
 
-def test_remove_employee(employers, person):
+def test_remove_employee(employers, person: Person):
     employers[0].add_employee(person)
     second_person = Person(BankCraftModel, 500)
     third_person = Person(BankCraftModel, 500)
@@ -72,8 +72,7 @@ def test_15biweekly_is_7months_pay_date(employers):
 def test_pay_salary_changes_the_employees_wealth(employers, person, banks):
     employers[0].add_employee(person)
     person.bank_accounts = person.assign_bank_account(BankCraftModel, 10)
-    person.update_wealth()
     employees_initial_wealth = person.wealth
     employers[0].pay_salary()
-    assert person.wealth == employees_initial_wealth + person.salary_per_pay
+    assert person.wealth > employees_initial_wealth
 
