@@ -90,7 +90,10 @@ class Model(Model):
                 valid_employers = [employer for employer in self.employers
                                         if self.get_distance(person.home, employer.location) <= workplace_radius]
             total_distance = sum([self.get_distance(person.home, employer.location) for employer in valid_employers])
+            if total_distance == 0:
+                return closest_employer
             employer_probabilities = [self.get_distance(person.home, employer.location)/total_distance for employer in valid_employers]
+            print(employer_probabilities)
             employer = self.random.choices(valid_employers, employer_probabilities)[0]
             return employer
         
