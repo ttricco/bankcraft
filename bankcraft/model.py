@@ -15,11 +15,12 @@ from bankcraft.config import workplace_radius
 
 
 class Model(Model):
-    def __init__(self, num_people=6, num_merchant=2, initial_money=1000,
+    def __init__(self, num_people=6,  initial_money=1000,
                  num_employers=2, num_banks=1, width=15, height=15):
         super().__init__()
         self._num_people = num_people
-        self._num_merchant = num_merchant
+        self._num_merchant = width * height // 100
+
         self._num_banks = num_banks
         self.banks = [Bank(self) for _ in range(self._num_banks)]
 
@@ -47,6 +48,8 @@ class Model(Model):
             agent_reporters={'date_time': lambda a: a.model.current_time.strftime("%Y-%m-%d %H:%M:%S"),
                              'location': lambda a: a.pos,
                              'agent_type': lambda a: a.type,
+                             'agent_home': lambda a: a.home if isinstance(a, Person) else a.location,
+                             'agent_work': lambda a: a.work if isinstance(a, Person) else a.location,
                             },
             tables={"transactions": ["sender", "receiver", "amount", "step", "date_time",
                                      "txn_id", "txn_type", "sender_account_type", "description"],
