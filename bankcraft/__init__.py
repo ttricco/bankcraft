@@ -1,2 +1,2 @@
-from .model import Model
+from .bankcraftmodel import BankCraftModel
 from . import utils

@@ -1,6 +1,7 @@
 from __future__ import annotations
-from bankcraft.config import *
+
 from bankcraft.motivation.motivation_state import *
+from bankcraft.config import hunger_rate, fatigue_rate, consumerism_rate, social_rate, work_rate, motivation_threshold
 
 
 class Motivation:
@@ -21,7 +22,7 @@ class Motivation:
     def set_state(self, state: MotivationState):
         self._state = state
         self._state.motivation = self
-        
+
     def set_motion(self):
         self._state.set_motion()
 
@@ -39,7 +40,7 @@ class Motivation:
     def get_max_motivation(self):
         max_value = 0
         max_motivation = None
-        for state_class,rate in self.states_rate.values():
+        for state_class, rate in self.states_rate.values():
             state = state_class
             value = state.get_value()
             if value > max_value:
@@ -56,18 +57,18 @@ class Motivation:
         return str(self._state)
 
     def live(self):
-        for state,rate in self.states_rate.values():
+        for state, rate in self.states_rate.values():
             state.update_value(rate)
 
     def state_values(self):
-        return {str(state): state.get_value() for state,rate in self.states_rate.values()}
-    
+        return {str(state): state.get_value() for state, rate in self.states_rate.values()}
+
     def update_state_value(self, state, value):
         self.states_rate[state][0].update_value(value)
-        
+
     def step(self):
         self.live()
-        self.critical_motivation= self.get_critical_motivation()
+        self.critical_motivation = self.get_critical_motivation()
         if self.critical_motivation is not None:
             self.set_state(self.critical_motivation)  # Set the critical motivation state
             self.critical_motivation.set_motion()

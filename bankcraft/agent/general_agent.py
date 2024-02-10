@@ -1,10 +1,11 @@
-from mesa import Agent
-from bankcraft.bank_account import BankAccount
-from uuid import uuid4
 import itertools
-from bankcraft.transaction import Transaction
-from bankcraft.config import hunger_rate
+from uuid import uuid4
+
 import numpy as np
+from mesa import Agent
+
+from bankcraft.banking.bank_account import BankAccount
+from bankcraft.banking.transaction import Transaction
 
 
 class GeneralAgent(Agent):
@@ -13,7 +14,6 @@ class GeneralAgent(Agent):
         self.unique_id = uuid4().int
         super().__init__(self.unique_id, model)
         self.bank_accounts = None
-        self.wealth = 0
         self.txn_counter = 0
 
     def step(self):
@@ -26,14 +26,8 @@ class GeneralAgent(Agent):
             for (account_type, account_counter) in zip(account_types, range(len(account_types))):
                 bank_accounts[bank_counter][account_counter] = BankAccount(self, bank, initial_balance, account_type)
         return bank_accounts
-    
-    def update_wealth(self):
-        self.wealth = 0
-        for bank_account in itertools.chain(*self.bank_accounts):
-            self.wealth += bank_account.balance
-        return self.wealth
 
-    def pay(self, amount, receiver, txn_type, description):
+    def pay(self, receiver, amount, txn_type, description):
         transaction = Transaction(self,
                                   receiver,
                                   amount,
@@ -56,18 +50,18 @@ class GeneralAgent(Agent):
             "description": description,
         }
         self.model.datacollector.add_table_row("transactions", transaction_data, ignore_missing=True)
-     
- 
+
     def get_all_bank_accounts(self):
         bank_accounts = []
         for bank_account in itertools.chain(*self.bank_accounts):
             bank_accounts.append(bank_account.balance)
         return bank_accounts
+
     def move(self):
         if self.target_location is not None:
             self.move_to(self.target_location)
-            #self.motivation.update_motivation('hunger', hunger_rate)
-            
+            # self.motivation.update_motivation('hunger', hunger_rate)
+
     def move_to(self, new_position):
         x, y = self.pos
         x_new, y_new = new_position
@@ -82,10 +76,10 @@ class GeneralAgent(Agent):
             y += 1
         elif y_distance < 0:
             y -= 1
-            
+
         self.model.grid.move_agent(self, (x, y))
         self.pos = (x, y)
-        
+
     def distance_to(self, other_agent):
         x, y = self.pos
         x_other, y_other = other_agent.pos
@@ -101,3 +95,12 @@ class GeneralAgent(Agent):
                     closest = distance
                     closest_agent = agent
         return closest_agent
+
+    @property
+    def wealth(self):
+        _wealth = 0
+        if self.bank_accounts is None:
+            return _wealth
+        for bank_account in itertools.chain(*self.bank_accounts):
+            _wealth += bank_account.balance
+        return _wealth
